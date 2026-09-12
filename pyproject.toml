@@ -8,6 +8,17 @@ version = "0.1.0"
 description = "TIC-VLA: Think-in-Control Vision-Language-Action model for robot navigation"
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26,<2.0",
+    "transformers",
+    "huggingface-hub",
+    "accelerate",
+    "einops",
+    "timm",
+    "opencv-python",
+    "matplotlib",
+    "PyYAML",
+]
 
 [tool.setuptools.packages.find]
 include = ["ticvla*", "rl*"]
