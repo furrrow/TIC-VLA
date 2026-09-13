@@ -1,16 +1,40 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68,<81", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ticvla"
 version = "0.1.0"
-description = "TIC-VLA: Think-in-Control Vision-Language-Action model for robot navigation"
+description = "TIC-VLA inference environment"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11,<3.12"
+
+dependencies = [
+    "torch==2.8.0",
+    "torchvision==0.23.0",
+    "numpy>=1.26,<2.0",
+    "Pillow==11.2.1",
+    "transformers>=4.40.0,<5.0.0",
+    "huggingface-hub>=0.34.0,<1.0",
+    "accelerate>=0.20.0",
+    "einops>=0.7.0",
+    "timm>=0.9.12",
+    "setuptools<81",
+    "opencv-python>=4.11.0.86",
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+    { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [tool.setuptools.packages.find]
-include = ["ticvla*", "rl*"]
-
-[tool.setuptools.package-data]
-"rl.env.agent" = ["*.yaml"]
+include = ["ticvla*"]

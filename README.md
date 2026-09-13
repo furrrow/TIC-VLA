@@ -59,7 +59,7 @@ pip install -e .
 Download the TIC-VLA reasoning datasets from [Hugging Face](https://huggingface.co/datasets/handsomeYun/TIC-VLA) into a local data root:
 
 ```bash
-export TICVLA_DATA_ROOT=/path/to/ticvla/dataset
+export TICVLA_DATA_ROOT=/home/jim/Projects/TIC-VLA/data
 mkdir -p "${TICVLA_DATA_ROOT}"
 
 python - <<'PY'
@@ -78,7 +78,7 @@ PY
 Download the InternVL3-1B base model from Hugging Face:
 
 ```bash
-export TICVLA_BASE_MODEL_PATH=/path/to/InternVL3-1B
+export TICVLA_BASE_MODEL_PATH=/home/jim/Projects/TIC-VLA/InternVL3-1B
 mkdir -p "${TICVLA_BASE_MODEL_PATH}"
 
 python - <<'PY'

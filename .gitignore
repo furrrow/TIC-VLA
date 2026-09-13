@@ -44,3 +44,33 @@ checkpoints/
 _isaac_sim*/
 _build/
 _repo/
+
+# Videos and ROS 1 / ROS 2 recording data (including compressed files)
+*.[mM][pP]4
+*.[mM]4[vV]
+*.[mM][oO][vV]
+*.[aA][vV][iI]
+*.[mM][kK][vV]
+*.[wW][eE][bB][mM]
+*.[wW][mM][vV]
+*.[fF][lL][vV]
+*.[mM][pP][gG]
+*.[mM][pP][eE][gG]
+*.[mM][tT][sS]
+*.[mM]2[tT][sS]
+*.3[gG][pP]
+*.[oO][gG][vV]
+*.[bB][aA][gG]
+*.[dD][bB]3
+*.[mM][cC][aA][pP]
+*.bag.*
+*.db3-*
+*.db3.*
+*.mcap.*
+rosbag2_*/
+
+# Extracted video frames
+DynaNav/tmp_video_frames/
+
+# Large simulation asset (over 50 MiB)
+/rl/env/assets/peds/Collected_0000064/0000064.usd
