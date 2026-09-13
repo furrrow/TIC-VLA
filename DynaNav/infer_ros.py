@@ -94,8 +94,7 @@ def main():
     import torch
     import rclpy
     from rclpy.node import Node
-    from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-    from rclpy.executors import MultiThreadedExecutor
+    from rclpy.executors import SingleThreadedExecutor
     from rclpy.qos import qos_profile_sensor_data
     from cv_bridge import CvBridge
     from sensor_msgs.msg import Image, CompressedImage
@@ -117,15 +116,17 @@ def main():
             self.bridge = CvBridge()
             self.lock = Lock()
             self.latest = None
+            self.last_image_received = time.monotonic()
+            self.last_image_warning = self.last_image_received
             self.sequence = self.processed = 0
             self.last_stamp = None
             self.history = deque(maxlen=4)
             self.starts = deque(maxlen=2)
             self.controller = WaypointController(v_max=args.v_max, w_max=args.w_max)
             self.started = False
+            self.received_first_image = False
+            self.started_first_inference = False
             self.subscription = None
-            self.input_group = MutuallyExclusiveCallbackGroup()
-            self.inference_group = MutuallyExclusiveCallbackGroup()
             prefix = '/' + args.prefix.strip('/')
             self.path_pub = self.create_publisher(PathMsg, prefix + '/path', 10)
             self.waypoint_pub = self.create_publisher(Float32MultiArray, prefix + '/waypoint', 10)
@@ -133,23 +134,18 @@ def main():
             self.velocity_pub = self.create_publisher(Float32MultiArray, prefix + '/velocity', 10)
             self.overlay_pub = self.create_publisher(Image, prefix + '/overlay', 10)
             self.started_pub = self.create_publisher(Empty, '/started', 10)
-            # Wall-clock timer keeps working before /clock starts. Source image stamps
-            # alone determine model delay, including slowed-down bag playback.
-            from rclpy.clock import Clock, ClockType
-            self.wall_clock = Clock(clock_type=ClockType.STEADY_TIME)
-            self.timer = self.create_timer(1 / args.rate, self.infer,
-                                          callback_group=self.inference_group, clock=self.wall_clock)
-            self.discovery = self.create_timer(1.0, self.discover, callback_group=self.input_group,
-                                              clock=self.wall_clock)
+            # Live operation uses system time unless use_sim_time is enabled.
+            self.timer = self.create_timer(1 / args.rate, self.infer)
+            self.discovery = self.create_timer(1.0, self.discover)
             if args.image_topic and args.image_type:
                 self.subscribe(args.image_topic, args.image_type)
-            self.get_logger().info('Model ready. Start bag playback; waiting for camera images.')
+            self.get_logger().info('Model ready. Waiting for live camera images or bag playback.')
 
         def subscribe(self, topic, kind):
             self.compressed = kind == 'compressed'
             self.subscription = self.create_subscription(
                 CompressedImage if self.compressed else Image, topic, self.image_callback,
-                qos_profile_sensor_data, callback_group=self.input_group)
+                qos_profile_sensor_data)
             self.get_logger().info(f'Camera: {topic} ({kind})')
 
         def discover(self):
@@ -174,16 +170,33 @@ def main():
                 with self.lock:
                     self.sequence += 1
                     self.latest = (self.sequence, frame.copy(), msg.header)
+                    self.last_image_received = time.monotonic()
+                if not self.received_first_image:
+                    self.received_first_image = True
+                    self.get_logger().info('Received first camera image.')
             except Exception as exc:
                 self.get_logger().error(f'Image conversion failed: {exc}')
 
         def infer(self):
             with self.lock:
                 observation = self.latest
+                image_age = time.monotonic() - self.last_image_received
             if observation is None or observation[0] == self.processed:
+                now = time.monotonic()
+                if image_age >= 5 and now - self.last_image_warning >= 5:
+                    self.last_image_warning = now
+                    topic = self.subscription.topic_name if self.subscription else args.image_topic
+                    self.get_logger().warning(
+                        f'No new camera image for {image_age:.1f}s on {topic}. '
+                        'Topic discovery does not guarantee image delivery. '
+                        'For RealSense, try --image-topic /camera/camera/color/image_raw/compressed '
+                        '--image-type compressed.')
                 return
             sequence, frame, header = observation
             self.processed = sequence
+            if not self.started_first_inference:
+                self.started_first_inference = True
+                self.get_logger().info('Starting first TIC-VLA inference.')
             stamp = header.stamp.sec * 1_000_000_000 + header.stamp.nanosec
             if self.last_stamp is not None and stamp < self.last_stamp:
                 # Bag loop/seek: discard cached model state and controller history.
@@ -253,7 +266,7 @@ def main():
         try:
             model = load_ticvla(args.checkpoint, args.base_model, args.device)
             node = TICVLANode(model, temp_dir)
-            executor = MultiThreadedExecutor(num_threads=2)
+            executor = SingleThreadedExecutor()
             executor.add_node(node)
             executor.spin()
         except KeyboardInterrupt:
