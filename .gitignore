@@ -74,3 +74,6 @@ DynaNav/tmp_video_frames/
 
 # Large simulation asset (over 50 MiB)
 /rl/env/assets/peds/Collected_0000064/0000064.usd
+
+# misc custom files
+models/
