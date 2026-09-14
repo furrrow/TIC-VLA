@@ -42,22 +42,15 @@ from infer_once import (
     configure_runtime_cache,
 )
 from infer_video_async import load_ticvla, save_frame
-from custom_utils.io_utils import overlay_path
-from custom_utils.io_utils import load_calibration
-
-
+from custom_utils.io_utils import load_calibration, overlay_path
 
 DEFAULT_INSTRUCTION = "Move forward safely and avoid obstacles."
 DEFAULT_BASE_MODEL = "models/InternVL3-1B"
 DEFAULT_CHECKPOINT = "checkpoints/TIC-VLA-model.ckpt"
 DEFAULT_HISTORY_LEN = 4
-DEFAULT_CACHE_DIR = "/tmp/ticvla_infer_once/cache"
+DEFAULT_CACHE_DIR = "./tmp/ticvla_infer_once/cache"
 
-# DEFAULT_VIDEO = "/home/jim/Projects/steernav/assets/corridoor_omni_ft_2_left.mp4"
-DEFAULT_VIDEO = "/home/gamma-nav/Documents/Projects/git_repos/steernav/assets/Cars_and_Gasstation.mp4"
-# DEFAULT_CAMERA_MATRIX = "/home/jim/Projects/steernav/steernav/cam_matrix.json"
-DEFAULT_CAMERA_MATRIX = "/home/gamma-nav/Documents/Projects/git_repos/steernav/steernav/cam_matrix.json"
-
+DEFAULT_CAMERA_MATRIX = "/home/jim/Projects/steernav/steernav/cam_matrix.json"
 DEFAULT_CONFIG = Path(__file__).resolve().parent / "configs" / "robot.yaml"
 
 
@@ -107,7 +100,7 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
     parser.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT)
     parser.add_argument("--base-model", default=DEFAULT_BASE_MODEL)
     parser.add_argument("--device", default="cuda:0")
-    parser.add_argument("--robot-type", default="legged robot", help="Robot description supplied to the VLM")
+    parser.add_argument("--robot-type", default="wheeled robot", help="Robot description supplied to the VLM")
     parser.add_argument("-i", "--instruction", default=DEFAULT_INSTRUCTION)
     parser.add_argument("--rate", type=float, default=None, help="Inference timer rate. Defaults to config frame_rate")
     parser.add_argument("--history-len", type=int, default=DEFAULT_HISTORY_LEN)
@@ -122,8 +115,8 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
     parser.add_argument("--frame-id", default="base_link", help="Frame for predicted relative policy path")
     parser.add_argument("--camera-matrix", default=None, help="Calibration JSON for projected overlay")
     parser.add_argument("--show", action="store_true")
-    parser.add_argument("--quiet-response", action="store_true", default=True)
-    parser.add_argument("--print-response", action="store_false", dest="quiet_response")
+    parser.add_argument("--print-response", action="store_true", default=True, help="Print VLM model text outputs")
+    parser.add_argument("--quiet-response", action="store_false", dest="print_response", help="Suppress VLM outputs")
     args, ros_args = parser.parse_known_args()
 
     if ros_args and ros_args[0] != "--ros-args":
@@ -171,9 +164,9 @@ def quat_wxyz_to_matrix(quat: np.ndarray) -> np.ndarray:
 
 
 def sample_history_paths(
-    history: deque[tuple[int, str]],
-    history_len: int,
-    interval_ns: int,
+        history: deque[tuple[int, str]],
+        history_len: int,
+        interval_ns: int,
 ) -> list[str]:
     if not history:
         return []
@@ -196,30 +189,14 @@ def sample_history_paths(
     return selected
 
 
-def draw_waypoints_simple(frame_bgr: np.ndarray, path_xy: np.ndarray) -> np.ndarray:
-    overlay = frame_bgr.copy()
-    height, width = overlay.shape[:2]
-    origin = np.array([width // 2, int(height * 0.82)], dtype=np.float32)
-    px_per_m = min(width, height) * 0.12
-    points = []
-    for x, y in path_xy:
-        point = origin + np.array([float(y), -float(x)], dtype=np.float32) * px_per_m
-        points.append((int(point[0]), int(point[1])))
-    for idx, point in enumerate(points):
-        cv2.circle(overlay, point, 5, (0, 255, 0), -1)
-        if idx:
-            cv2.line(overlay, points[idx - 1], point, (0, 255, 0), 2)
-    return overlay
-
-
 class TICVLAROSNode(Node):
     def __init__(
-        self,
-        args: argparse.Namespace,
-        config: dict[str, Any],
-        robot_config: dict[str, Any],
-        model: Any,
-        temp_dir: str,
+            self,
+            args: argparse.Namespace,
+            config: dict[str, Any],
+            robot_config: dict[str, Any],
+            model: Any,
+            temp_dir: str,
     ) -> None:
         super().__init__("ticvla_node")
         self.args = args
@@ -249,7 +226,7 @@ class TICVLAROSNode(Node):
         self.waypoint_idx = int(
             args.waypoint_idx
             if args.waypoint_idx is not None
-            else config.get("waypoint_idx", 2)
+            else config.get("waypoint_idx", 5)
         )
         self.history_interval_ns = int(args.history_interval_seconds * 1_000_000_000)
         self.history_window_ns = self.history_interval_ns * max(1, args.history_len)
@@ -262,9 +239,9 @@ class TICVLAROSNode(Node):
         sampled_actions_topic = robot_config["sampled_actions_topic"]
         overlay_topic = robot_config["overlay_topic"]
 
-        camera_matrix_path = DEFAULT_CAMERA_MATRIX
+        camera_matrix_path = args.camera_matrix or DEFAULT_CAMERA_MATRIX
         self.cam_matrix, _, T_base_from_cam = load_calibration(camera_matrix_path)
-        self.T_cam_from_base = np.linalg.inv(T_base_from_cam)
+        self.T_cam_from_base = np.linalg.inv(T_base_from_cam) if T_base_from_cam is not None else None
 
         reliable_qos = QoSProfile(
             reliability=QoSReliabilityPolicy.RELIABLE,
@@ -295,7 +272,8 @@ class TICVLAROSNode(Node):
             callback_group=self.input_group,
         )
         self.waypoint_pub = self.create_publisher(Float32MultiArray, waypoint_topic, qos_profile=reliable_qos)
-        self.sampled_actions_pub = self.create_publisher(Float32MultiArray, sampled_actions_topic, qos_profile=best_effort_qos)
+        self.sampled_actions_pub = self.create_publisher(Float32MultiArray, sampled_actions_topic,
+                                                         qos_profile=best_effort_qos)
         self.trajectory_visual_pub = self.create_publisher(Image, overlay_topic, qos_profile=reliable_qos)
         self.pub_path = self.create_publisher(PathMsg, policy_path_topic, qos_profile=reliable_qos)
         self.pub_started = self.create_publisher(Empty, "/started", 10)
@@ -353,11 +331,11 @@ class TICVLAROSNode(Node):
         }
 
     def make_robot_state(
-        self,
-        stamp_ns: int,
-        current_pos: np.ndarray,
-        robot_velocity_base: np.ndarray,
-        robot_angular_velocity_base: np.ndarray,
+            self,
+            stamp_ns: int,
+            current_pos: np.ndarray,
+            robot_velocity_base: np.ndarray,
+            robot_angular_velocity_base: np.ndarray,
     ) -> tuple[torch.Tensor, float]:
         dx, dy, delay_time = 0.0, 0.0, 0.0
         if self.vlm_generation_refs:
@@ -402,18 +380,17 @@ class TICVLAROSNode(Node):
             _ensure_custom_utils_on_path()
             if frame_rgb.shape[:2] != (720, 1280):
                 frame_rgb = cv2.resize(frame_rgb, dsize=(1280, 720), interpolation=cv2.INTER_CUBIC)
-            overlay_rgb = overlay_path(path_xy, frame_rgb, self.cam_matrix, self.T_cam_from_base)
-            return overlay_rgb
-        else:
-            print(f"self.cam_matrix {self.cam_matrix} self.T_cam_from_base {self.T_cam_from_base}")
-        # return draw_waypoints_simple(frame_bgr, path_xy)
+            return overlay_path(path_xy, frame_rgb, self.cam_matrix, self.T_cam_from_base)
+
+        self.get_logger().warn_once("Calibration matrix unavailable for image overlay.")
+        return frame_rgb
 
     def run_inference_loop(self) -> None:
         with self.lock:
             if self.obs_img_bgr is None:
                 return
             if not self.have_odom:
-                self.get_logger().info("waiting on odom")
+                self.get_logger().info("waiting on odom", throttle_duration_sec=2.0)
                 return
             if self.obs_sequence == self.processed_sequence:
                 return
@@ -483,7 +460,6 @@ class TICVLAROSNode(Node):
             )
 
         waypoints = waypoint_tensor.detach().float().cpu().numpy()
-        print("waypoints", waypoints)
         if waypoints.ndim != 3 or waypoints.shape[0] != 1 or waypoints.shape[2] < 2:
             raise ValueError(f"Expected waypoints shaped (1,T,2+), got {waypoints.shape}")
         path_xy = waypoints[0, :, :2] * self.args.metric_waypoint_spacing
@@ -491,7 +467,8 @@ class TICVLAROSNode(Node):
             raise ValueError("Model returned non-finite waypoints.")
 
         chosen_idx = min(max(self.waypoint_idx, 0), len(path_xy) - 1)
-        print("chosen waypoint_idx", chosen_idx)
+        self.get_logger().info(f"Chosen waypoint idx: {chosen_idx}")
+        self.get_logger().info(f"Waypoints len {len(path_xy)} waypoints until this idx: {path_xy[: chosen_idx]}")
         chosen_waypoint = path_xy[chosen_idx]
         self.pub_path.publish(self.to_path_msg(path_xy, header.stamp))
 
@@ -522,7 +499,7 @@ class TICVLAROSNode(Node):
             self.pub_started.publish(Empty())
             self.get_logger().info("Published /started (once).")
 
-        if self.args.show:
+        if self.args.show and self.show_overlay:
             cv2.imshow("TIC-VLA ROS", overlay)
             cv2.waitKey(1)
 
@@ -537,7 +514,8 @@ class TICVLAROSNode(Node):
             )
             self.inference_count = 0
             self.inference_start_time = time.perf_counter()
-        if response and not self.args.quiet_response:
+
+        if response and self.args.print_response:
             self.get_logger().info(str(response))
 
 
