@@ -16,17 +16,22 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
-
 from infer_once import (
-    DEFAULT_BASE_MODEL,
-    DEFAULT_CHECKPOINT,
-    DEFAULT_HISTORY_LEN,
-    DEFAULT_INSTRUCTION,
-    DEFAULT_VIDEO,
     _ensure_custom_utils_on_path,
     configure_runtime_cache,
 )
-from infer_video import DEFAULT_CAMERA_MATRIX
+
+
+DEFAULT_INSTRUCTION = "Move forward safely and avoid obstacles."
+DEFAULT_BASE_MODEL = "models/InternVL3-1B"
+DEFAULT_CHECKPOINT = "checkpoints/TIC-VLA-model.ckpt"
+DEFAULT_HISTORY_LEN = 4
+DEFAULT_CACHE_DIR = "/tmp/ticvla_infer_once/cache"
+
+# DEFAULT_VIDEO = "/home/jim/Projects/steernav/assets/corridoor_omni_ft_2_left.mp4"
+DEFAULT_VIDEO = "/home/gamma-nav/Documents/Projects/git_repos/steernav/assets/Cars_and_Gasstation.mp4"
+# DEFAULT_CAMERA_MATRIX = "/home/jim/Projects/steernav/steernav/cam_matrix.json"
+DEFAULT_CAMERA_MATRIX = "/home/gamma-nav/Documents/Projects/git_repos/steernav/steernav/cam_matrix.json"
 
 
 def async_model_class() -> Any:

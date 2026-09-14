@@ -38,15 +38,25 @@ from sensor_msgs.msg import CompressedImage, Image
 from std_msgs.msg import Empty, Float32MultiArray
 
 from infer_once import (
-    DEFAULT_BASE_MODEL,
-    DEFAULT_CHECKPOINT,
-    DEFAULT_HISTORY_LEN,
-    DEFAULT_INSTRUCTION,
     _ensure_custom_utils_on_path,
     configure_runtime_cache,
 )
 from infer_video_async import load_ticvla, save_frame
+from custom_utils.io_utils import overlay_path
+from custom_utils.io_utils import load_calibration
 
+
+
+DEFAULT_INSTRUCTION = "Move forward safely and avoid obstacles."
+DEFAULT_BASE_MODEL = "models/InternVL3-1B"
+DEFAULT_CHECKPOINT = "checkpoints/TIC-VLA-model.ckpt"
+DEFAULT_HISTORY_LEN = 4
+DEFAULT_CACHE_DIR = "/tmp/ticvla_infer_once/cache"
+
+# DEFAULT_VIDEO = "/home/jim/Projects/steernav/assets/corridoor_omni_ft_2_left.mp4"
+DEFAULT_VIDEO = "/home/gamma-nav/Documents/Projects/git_repos/steernav/assets/Cars_and_Gasstation.mp4"
+# DEFAULT_CAMERA_MATRIX = "/home/jim/Projects/steernav/steernav/cam_matrix.json"
+DEFAULT_CAMERA_MATRIX = "/home/gamma-nav/Documents/Projects/git_repos/steernav/steernav/cam_matrix.json"
 
 DEFAULT_CONFIG = Path(__file__).resolve().parent / "configs" / "robot.yaml"
 
@@ -251,18 +261,9 @@ class TICVLAROSNode(Node):
         sampled_actions_topic = robot_config["sampled_actions_topic"]
         overlay_topic = robot_config["overlay_topic"]
 
-        self.cam_matrix = None
-        self.T_cam_from_base = None
-        camera_matrix = args.camera_matrix or config.get("cam_matrix")
-        camera_matrix_path = resolve_config_path(camera_matrix, Path(args.config).expanduser().resolve())
-        if camera_matrix_path and Path(camera_matrix_path).is_file():
-            _ensure_custom_utils_on_path()
-            from custom_utils.io_utils import load_calibration
-
-            self.cam_matrix, _, T_base_from_cam = load_calibration(camera_matrix_path)
-            self.T_cam_from_base = np.linalg.inv(T_base_from_cam)
-        elif camera_matrix:
-            self.get_logger().warning(f"Calibration file not found; using schematic overlay: {camera_matrix_path}")
+        camera_matrix_path = DEFAULT_CAMERA_MATRIX
+        self.cam_matrix, _, T_base_from_cam = load_calibration(camera_matrix_path)
+        self.T_cam_from_base = np.linalg.inv(T_base_from_cam)
 
         reliable_qos = QoSProfile(
             reliability=QoSReliabilityPolicy.RELIABLE,
@@ -395,16 +396,16 @@ class TICVLAROSNode(Node):
             msg.poses.append(pose)
         return msg
 
-    def overlay_image(self, frame_bgr: np.ndarray, path_xy: np.ndarray) -> np.ndarray:
+    def overlay_image(self, frame_rgb: np.ndarray, path_xy: np.ndarray) -> np.ndarray:
         if self.cam_matrix is not None and self.T_cam_from_base is not None:
             _ensure_custom_utils_on_path()
-            from custom_utils.io_utils import overlay_path
-
-            frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+            if frame_rgb.shape[:2] != (720, 1280):
+                frame_rgb = cv2.resize(frame_rgb, dsize=(1280, 720), interpolation=cv2.INTER_CUBIC)
             overlay_rgb = overlay_path(path_xy, frame_rgb, self.cam_matrix, self.T_cam_from_base)
-            if overlay_rgb is not None:
-                return cv2.cvtColor(overlay_rgb, cv2.COLOR_RGB2BGR)
-        return draw_waypoints_simple(frame_bgr, path_xy)
+            return overlay_rgb
+        else:
+            print(f"self.cam_matrix {self.cam_matrix} self.T_cam_from_base {self.T_cam_from_base}")
+        # return draw_waypoints_simple(frame_bgr, path_xy)
 
     def run_inference_loop(self) -> None:
         with self.lock:
@@ -481,6 +482,7 @@ class TICVLAROSNode(Node):
             )
 
         waypoints = waypoint_tensor.detach().float().cpu().numpy()
+        print("waypoints", waypoints)
         if waypoints.ndim != 3 or waypoints.shape[0] != 1 or waypoints.shape[2] < 2:
             raise ValueError(f"Expected waypoints shaped (1,T,2+), got {waypoints.shape}")
         path_xy = waypoints[0, :, :2] * self.args.metric_waypoint_spacing
@@ -509,7 +511,7 @@ class TICVLAROSNode(Node):
             (0, 255, 0),
             2,
         )
-        out_msg = self.bridge.cv2_to_imgmsg(overlay, encoding="bgr8")
+        out_msg = self.bridge.cv2_to_imgmsg(np.array(overlay), encoding="bgr8")
         out_msg.header = header
         self.trajectory_visual_pub.publish(out_msg)
 
