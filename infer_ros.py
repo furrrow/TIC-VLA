@@ -243,6 +243,7 @@ class TICVLAROSNode(Node):
         self.inference_count = 0
         self.inference_start_time = time.perf_counter()
         self.path_frame_id = args.frame_id
+        self.show_overlay = False
 
         self.rate = float(args.rate or config.get("frame_rate", 10))
         self.waypoint_idx = int(
@@ -490,6 +491,7 @@ class TICVLAROSNode(Node):
             raise ValueError("Model returned non-finite waypoints.")
 
         chosen_idx = min(max(self.waypoint_idx, 0), len(path_xy) - 1)
+        print("chosen waypoint_idx", chosen_idx)
         chosen_waypoint = path_xy[chosen_idx]
         self.pub_path.publish(self.to_path_msg(path_xy, header.stamp))
 
@@ -500,20 +502,20 @@ class TICVLAROSNode(Node):
         sampled_actions_msg = Float32MultiArray()
         sampled_actions_msg.data = path_xy.flatten().astype(float).tolist()
         self.sampled_actions_pub.publish(sampled_actions_msg)
-
-        overlay = self.overlay_image(frame_bgr, path_xy)
-        cv2.putText(
-            overlay,
-            f"async inference {1.0 / max(inference_seconds, 1e-6):.2f} Hz",
-            (10, 30),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.9,
-            (0, 255, 0),
-            2,
-        )
-        out_msg = self.bridge.cv2_to_imgmsg(np.array(overlay), encoding="bgr8")
-        out_msg.header = header
-        self.trajectory_visual_pub.publish(out_msg)
+        if self.show_overlay:
+            overlay = self.overlay_image(frame_bgr, path_xy)
+            cv2.putText(
+                overlay,
+                f"async inference {1.0 / max(inference_seconds, 1e-6):.2f} Hz",
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.9,
+                (0, 255, 0),
+                2,
+            )
+            out_msg = self.bridge.cv2_to_imgmsg(np.array(overlay), encoding="bgr8")
+            out_msg.header = header
+            self.trajectory_visual_pub.publish(out_msg)
 
         if not self.started_sent:
             self.started_sent = True
