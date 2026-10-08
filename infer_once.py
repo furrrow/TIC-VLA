@@ -23,9 +23,9 @@ from custom_utils.stream_handler import FrameStatus, InputStreamHandler
 
 DEFAULT_INSTRUCTION = "Move forward safely and avoid obstacles."
 DEFAULT_BASE_MODEL = "models/InternVL3-1B"
-DEFAULT_CHECKPOINT = "checkpoints/TIC-VLA-model.ckpt"
+DEFAULT_CHECKPOINT = "models/ticvla/TIC-VLA-model.ckpt"
 DEFAULT_HISTORY_LEN = 4
-DEFAULT_VIDEO = "/home/jim/Projects/steernav/assets/corridoor_omni_ft_2_left.mp4"
+DEFAULT_VIDEO = "/home/isaac/Videos/corridoor_omni_ft_2_left.mp4"
 DEFAULT_CACHE_DIR = "./tmp/ticvla_infer_once/cache"
 ENV_CACHE_KEYS = ("HF_HOME", "HF_MODULES_CACHE", "TRANSFORMERS_CACHE", "MPLCONFIGDIR")
 
