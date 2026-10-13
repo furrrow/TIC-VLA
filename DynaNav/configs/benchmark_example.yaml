@@ -3,7 +3,7 @@ navigation_method: ticvla
 success_threshold: 1.5
 
 episode_hospital_smoke:
-  scene: "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd"
+  scene: "${HOSPITAL_USD_PATH}"
   start: [-3.0, -1.2, 0.01]
   start_yaw: 0.0
   goal: [9.72, 2.33, 0.01]
@@ -33,7 +33,7 @@ episode_outdoor_smoke:
   robot_type: "nova_carter"
 
 episode_warehouse_smoke:
-  scene: "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd"
+  scene: "${WAREHOUSE_USD_PATH}"
   start: [-18.98, -14.3, 0.01]
   start_yaw: -141
   goal: [-2.9, 6.54, 0.01]

@@ -71,8 +71,6 @@ def _load_latest_results_if_present(results_dir: Path, config_name: str) -> list
         print(f"[Parent] Warning: Failed to load resume file '{latest_path}': {e}")
         return []
 
-
-
 def _expand_env_value(value):
     """Expand environment variables in benchmark YAML values."""
     if isinstance(value, str):
@@ -111,10 +109,11 @@ class BenchmarkRunner:
         self._robot_type = None  # Track robot type for position updates
         self._robot_position = None
         self._goal_position = None
+        self._episode_failure_reason = None
 
         # Metrics tracking
         self._robot_path = []  # Track robot path for SPL calculation
-        self._collision_detected = False
+        self._human_collision_detected = False
         # NOTE: we do not store collided object lists in results JSON (keep list only internally).
         self._episode_start_position = None
 
@@ -128,10 +127,12 @@ class BenchmarkRunner:
         self._robot_contact_paths = set()       # prim paths we consider "robot bodies" for contact filtering
         self._contact_sensor_enabled = False
         self._contact_threshold = 10.0  # Minimum contact force to register as collision (N)
-        self._contact_duration_threshold_frames = 100  # Require sustained contact before counting collision
+        self._contact_duration_threshold_frames = 5  # Require sustained contact before counting collision
+        self.human_collision_threshold = 0.2  # meters
         self._contact_consecutive_frames = 0
         self._max_contact_consecutive_frames = 0
         self._contact_sensor_prim_path = None  # Path to the contact sensor prim
+        self._contact_sensor_prim_paths = []  # Paths to all contact sensor prims
         self._contact_sensor_interface = None  # Contact sensor interface
         self._contact_sensors = []  # List of contact sensor instances
 
@@ -178,9 +179,9 @@ class BenchmarkRunner:
             navigation_error = self._get_distance_to_goal()
             success_rate = 1.0 if success else 0.0
             # Use physical collision if detected, otherwise fall back to distance-based
-            any_collision = self._physical_collision_detected or self._collision_detected
+            any_collision = self._physical_collision_detected or self._human_collision_detected
             collision = 1.0 if any_collision else 0.0
-            human_collision = 1.0 if self._collision_detected else 0.0
+            human_collision = 1.0 if self._human_collision_detected else 0.0
             physical_collision = 1.0 if self._physical_collision_detected else 0.0
             spl = self._calculate_spl(success)
 
@@ -253,8 +254,9 @@ class BenchmarkRunner:
         self._robot_type = None  # Track robot type for position updates
         self._robot_position = None
         self._goal_position = None
+        self._episode_failure_reason = None
         self._robot_path = []
-        self._collision_detected = False
+        self._human_collision_detected = False
         self._episode_start_position = None
         self._simulation_frame_count = 0
         self._episode_start_frame = 0
@@ -270,6 +272,7 @@ class BenchmarkRunner:
         instruction = str(episode_config.get('instruction', ''))
         os.environ['TICVLA_INSTRUCTION'] = instruction
         os.environ['TICVLA_EPISODE_NAME'] = episode_name
+        os.environ.pop('TICVLA_EPISODE_FAILURE_REASON', None)
 
         goal = episode_config.get('goal', None)
         if goal is not None and len(goal) >= 2:
@@ -300,9 +303,9 @@ class BenchmarkRunner:
             navigation_error = self._get_distance_to_goal()
             success_rate = 1.0 if success else 0.0
             # Use physical collision if detected, otherwise fall back to distance-based
-            any_collision = self._physical_collision_detected or self._collision_detected
+            any_collision = self._physical_collision_detected or self._human_collision_detected
             collision = 1.0 if any_collision else 0.0
-            human_collision = 1.0 if self._collision_detected else 0.0
+            human_collision = 1.0 if self._human_collision_detected else 0.0
             physical_collision = 1.0 if self._physical_collision_detected else 0.0
             spl = self._calculate_spl(success)
             simulation_duration_frames = self._simulation_frame_count - self._episode_start_frame
@@ -328,6 +331,7 @@ class BenchmarkRunner:
                 'path_length': self._calculate_path_length(),
                 'physical_collision_detected': self._physical_collision_detected,
                 'physical_collision_count': self._max_contact_consecutive_frames,
+                'failure_reason': self._episode_failure_reason,
             }
 
             # Clean up contact sensor
@@ -365,10 +369,12 @@ class BenchmarkRunner:
         self.episode_name = episode_name
         self.episode_start_time = time.time()
         self.episode_success = False
+        self._episode_failure_reason = None
+        os.environ.pop('TICVLA_EPISODE_FAILURE_REASON', None)
 
         # Reset metrics tracking
         self._robot_path = []
-        self._collision_detected = False
+        self._human_collision_detected = False
         self._episode_start_position = None
         self._simulation_frame_count = 0
         self._episode_start_frame = 0
@@ -404,6 +410,7 @@ class BenchmarkRunner:
             await self._set_quadruped_robot(self._spawned_robot_prim_path)
         elif robot_type == "Nova_Carter":
             await self._set_carter_robot(self._spawned_robot_prim_path)
+            await self._set_robot_viewport_camera(self._spawned_robot_prim_path)
         print(f"Set up robot succeed")
 
         # Set up contact sensor for collision detection
@@ -542,6 +549,17 @@ class BenchmarkRunner:
                     print(f"Simulation frame count: {self._simulation_frame_count}")
                 # Update environment variable so behavior scripts can access the frame count
                 os.environ['BENCHMARK_SIMULATION_FRAME_COUNT'] = str(self._simulation_frame_count)
+
+                failure_reason = os.getenv('TICVLA_EPISODE_FAILURE_REASON')
+                if failure_reason:
+                    self._episode_failure_reason = failure_reason
+                    print(f"Episode failed early: {failure_reason}")
+                    rep.orchestrator.set_capture_on_play(False)
+                    timeline.stop()
+                    timeline.set_time_codes_per_second(original_timecode)
+                    timeline.commit_silently()
+                    await app.next_update_async()
+                    return False
 
                 # reached goal?
                 if self._is_goal_reached():
@@ -694,11 +712,9 @@ class BenchmarkRunner:
                 char_2d = char_pos[:2]
                 distance = np.linalg.norm(robot_2d - char_2d)
 
-                # Collision threshold
-                collision_threshold = 0.2  # meters
-
-                if distance < collision_threshold:
-                    self._collision_detected = True
+                # print(f"dist to {skelroot_prim.GetPath().pathString} distance: {distance:.2f}")
+                if distance < self.human_collision_threshold:
+                    self._human_collision_detected = True
                     print(f"Collision detected with {skelroot_prim.GetPath().pathString} at distance {distance:.2f}m")
 
     def _find_character_skelroot(self, character_root_prim):
@@ -1117,6 +1133,46 @@ class BenchmarkRunner:
         attr.Set([Sdf.AssetPath(script_path)])
         print(f"Set up Nova Carter behavior script ({script_name})")
 
+    async def _set_robot_viewport_camera(self, prim_path: str):
+        """Point the GUI viewport at the robot camera used for third-person logs."""
+        camera_mode = os.getenv("TICVLA_VIEWPORT_CAMERA", "third_person").strip().lower()
+        if camera_mode in {"", "none", "off", "false", "0"}:
+            return
+
+        camera_paths = {
+            "third_person": f"{prim_path}/chassis_link/third_person_view_cam",
+            "tp": f"{prim_path}/chassis_link/third_person_view_cam",
+            "front": f"{prim_path}/chassis_link/front_hawk/left/camera_left",
+        }
+        camera_path = camera_paths.get(camera_mode, camera_mode)
+
+        try:
+            import carb
+            import omni.usd
+            from omni.kit.viewport.utility import get_active_viewport
+            from pxr import Sdf
+
+            stage = omni.usd.get_context().get_stage()
+            camera_prim = stage.GetPrimAtPath(camera_path) if stage else None
+            if not camera_prim or not camera_prim.IsValid():
+                carb.log_warn(f"Requested viewport camera does not exist: {camera_path}")
+                return
+
+            viewport = get_active_viewport()
+            if viewport is None:
+                carb.log_warn("No active viewport available for robot camera view")
+                return
+
+            viewport.camera_path = Sdf.Path(camera_path)
+            await self._sim_app.app.next_update_async()
+            print(f"Viewport camera set to {camera_path}")
+        except Exception as e:
+            try:
+                import carb
+                carb.log_warn(f"Failed to set robot viewport camera: {e}")
+            except Exception:
+                print(f"Warning: Failed to set robot viewport camera: {e}")
+
     async def _set_quadruped_robot(self, prim_path: str):
         """Set up Spot robot."""
         import omni.usd
@@ -1168,7 +1224,7 @@ class BenchmarkRunner:
         """
         import omni.usd
         import omni.kit.commands
-        from pxr import Gf, Usd
+        from pxr import Gf, Usd, UsdPhysics
         import numpy as np
         
         stage = omni.usd.get_context().get_stage()
@@ -1184,6 +1240,10 @@ class BenchmarkRunner:
         self._contact_consecutive_frames = 0
         self._max_contact_consecutive_frames = 0
         self._contact_sensors = []  # Store contact sensor instances
+        self._contact_sensor_prim_path = None
+        self._contact_sensor_prim_paths = []
+        if hasattr(self, '_contact_read_error_logged'):
+            delattr(self, '_contact_read_error_logged')
         
         # Find the main body/chassis prim to attach contact sensor
         # For Nova Carter: chassis_link, For Spot: body
@@ -1269,7 +1329,7 @@ class BenchmarkRunner:
                 use_latest_data=True
             )
 
-#             print(f"Contact sensor reading: {reading.value}, {reading.is_valid}, {reading.in_contact}")
+            print(f"Contact sensor reading: {reading.value:.2f}, valid: {reading.is_valid}, in_contact:{reading.in_contact}")
             
             # Count only sustained, meaningful contact. A one-frame scrape or low-force
             # physics jitter should not mark the whole episode as physical collision.
