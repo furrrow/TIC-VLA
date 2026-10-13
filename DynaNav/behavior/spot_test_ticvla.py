@@ -216,7 +216,10 @@ class SpotTICVLA(BehaviorScript):
         self._last_log_frame = 0
         # Get run_id from environment for unique log paths (multi-instance support)
         self._run_id = os.getenv('BENCHMARK_RUN_ID', 'default')
-        self._log_directory = f"./logs/{self._run_id}/spot_ticvla_data"
+        self.save_log_dir = os.getenv('TICVLA_LOG_DIR', './logs')
+        # self._log_directory = f"./logs/{self._run_id}/spot_ticvla_data"
+        self._log_directory = f"{self.save_log_dir}/{self._run_id}/spot_ticvla_data"
+
         self._frame_count = 0
         self._create_log_directory()
         

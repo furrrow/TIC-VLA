@@ -969,9 +969,9 @@ class TICVLA(nn.Module):
         
         # Debug: print delay information
         if current_step is not None:
-            gen_status = f"new_gen_at={vlm_generation_start_step}" if vlm_generation_start_step is not None else f"no_new_gen(prev_running_at={self._kv_cache_generation_step})"
-            print(f"[TIC-VLA] Delay: current_step={current_step}, time_delay={time_delay:.3f}s (from behavior script), "
-                  f"vlm_gen_step={vlm_generation_start_step} ({gen_status})")
+            # gen_status = f"new_gen_at={vlm_generation_start_step}" if vlm_generation_start_step is not None else f"no_new_gen(prev_running_at={self._kv_cache_generation_step})"
+            # print(f"[TIC-VLA] Delay: current_step={current_step}, time_delay={time_delay:.3f}s (from behavior script), "
+            #       f"vlm_gen_step={vlm_generation_start_step} ({gen_status})")
 
         # 5) Use latest model state (from previous call if new one not ready yet)
         # For first generation, wait until model state is available (don't use empty cache)
