@@ -1,0 +1,39 @@
+seed: 36
+navigation_method: ticvla
+success_threshold: 1.5
+
+#episode_hospital_smoke:
+#  scene: "${HOSPITAL_USD_PATH}"
+#  start: [-3.0, -1.2, 0.01]
+#  start_yaw: 0.0
+#  goal: [9.72, 2.33, 0.01]
+#  instruction: "Go straight ahead and stop at the front of the vending machine."
+#  timeout: 70
+#  num_people: 20
+#  robot_type: "nova_carter"
+#
+episode_37:
+  scene: ${TICVLA_DYNANAV_ROOT}/assets/office.usd
+  start:
+  - -10.6
+  - -12.8
+  - 0.01
+  start_yaw: -90.0
+  goal:
+  - -7.68
+  - -25.53
+  - 0.01
+  instruction: Go straight ahead through the hallway, then turn left at the end to approach the red emergency exit door.
+  timeout: 90
+  num_people: 10
+  robot_type: nova_carter
+
+#episode_office_smoke:
+#  scene: "${TICVLA_DYNANAV_ROOT}/assets/office.usd"
+#  start: [-10.6, -12.1, 0.01]
+#  start_yaw: 90.0
+#  goal: [-7.68, -25.53, 0.01]
+#  instruction: "Go straight ahead through the hallway behind the black glass doors, then turn left at the end to approach the red emergency exit door."
+#  timeout: 85
+#  num_people: 20
+#  robot_type: "nova_carter"

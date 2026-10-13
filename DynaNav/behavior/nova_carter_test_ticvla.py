@@ -248,8 +248,8 @@ class NovaCarterTICVLA(BehaviorScript):
         # Stuck detection and recovery
         self._stuck_position_threshold = 0.1  # meters - consider stuck if moved less than this
         self._stuck_time_threshold_frames = 150  # frames - stuck if not moving for this many frames (3 seconds at 30 FPS)
-        self._backup_duration_frames = 300  # frames - backup for this many frames when stuck (straight back, no rotation)
-        self._backup_speed = -0.5  # m/s - backward speed during recovery
+        self._backup_duration_frames = 300  # Deprecated: stuck now ends the episode as a failure.
+        self._backup_speed = -0.5  # Deprecated: kept for compatibility with existing state reset paths.
         self._last_movement_position = None  # Last position where significant movement was detected
         self._last_movement_frame = None  # Frame when last movement was detected (don't start until first inference completes)
         self._is_backing_up = False  # Flag indicating if currently backing up
@@ -731,19 +731,20 @@ class NovaCarterTICVLA(BehaviorScript):
             if self._last_movement_frame is not None:
                 frames_since_movement = self._frame_count - self._last_movement_frame
                 if frames_since_movement >= self._stuck_time_threshold_frames:
-                    # Robot is stuck - start backup recovery
-                    self._is_backing_up = True
-                    self._backup_start_frame = self._frame_count
-                    # Clear model actions to prevent stale commands from being used
-                    with self._inference_lock:
-                        self._current_action = np.array([self._backup_speed, 0.0], dtype=np.float32)
-                    # Immediately reset velocities to backup mode (no smoothing)
-                    self._cmd_v = self._backup_speed
-                    self._cmd_w = 0.0
                     stuck_time_seconds = frames_since_movement / 30.0
-                    backup_duration_seconds = self._backup_duration_frames / 30.0
-                    carb.log_warn(f"[NovaCarterTIC-VLA] Robot stuck detected (not moved for {frames_since_movement} frames / {stuck_time_seconds:.2f}s), starting backup recovery for {self._backup_duration_frames} frames ({backup_duration_seconds:.1f}s)")
-                    carb.log_warn(f"[NovaCarterTIC-VLA] Backup start: frame={self._backup_start_frame}, cmd_v={self._cmd_v:.3f}, cmd_w={self._cmd_w:.3f}, cleared _current_action")
+                    failure_reason = (
+                        f"robot_stuck:not moved for {frames_since_movement} frames "
+                        f"/ {stuck_time_seconds:.2f}s"
+                    )
+                    carb.log_warn(f"[NovaCarterTIC-VLA] Robot stuck detected ({failure_reason}); ending episode as failure")
+                    os.environ["TICVLA_EPISODE_FAILURE_REASON"] = failure_reason
+                    self._navigation_active = False
+                    self._is_backing_up = False
+                    self._waiting_for_inference_after_backup = False
+                    self._backup_start_frame = None
+                    self._backup_completion_frame = None
+                    self._stop_robot()
+                    return
 
         # Sensor/update cadence for model
         self._sensor_frame_count += 1

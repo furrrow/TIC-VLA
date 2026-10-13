@@ -1066,7 +1066,7 @@ class TICVLA(nn.Module):
         else:
             raise ValueError(f"[TIC-VLA] ERROR: robot_state must have 6 values [vx, vy, vz, yaw_speed, dx, dy], got {robot_state_flat.shape[0]}: {robot_state_flat}")
         
-        print(f"[TIC-VLA] robot_state (input): {robot_state}, robot_state (model input): {robot_state_tensor}, time_delay: {time_delay}")
+        # print(f"[TIC-VLA] robot_state (input): {robot_state}, robot_state (model input): {robot_state_tensor}, time_delay: {time_delay}")
 
         # model state version uses robot_state (5 dims: vx, vy, yaw_speed, dx, dy) + time_delay (1 dim) = 6 dims total
         state = torch.cat([robot_state_tensor, time_delay_tensor], dim=0).view(1, -1, 1)  # (1, 6, 1)
