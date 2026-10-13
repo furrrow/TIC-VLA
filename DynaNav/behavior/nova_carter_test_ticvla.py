@@ -225,7 +225,9 @@ class NovaCarterTICVLA(BehaviorScript):
         self._last_log_frame = 0
         # Get run_id from environment for unique log paths (multi-instance support)
         self._run_id = os.getenv('BENCHMARK_RUN_ID', 'default')
-        self._log_directory = f"./logs/{self._run_id}/carter_ticvla_data"
+        self.save_log_dir = os.getenv('TICVLA_LOG_DIR', './logs')
+        # self._log_directory = f"./logs/{self._run_id}/carter_ticvla_data"
+        self._log_directory = f"{self.save_log_dir}/{self._run_id}/carter_ticvla_data"
         self._frame_count = 0
         self._create_log_directory()
         
@@ -1462,9 +1464,8 @@ class NovaCarterTICVLA(BehaviorScript):
                 self._current_action = np.array([v_cmd, w_cmd], dtype=np.float32)
             # Only print if backup is still not active
             if not self._is_backing_up:
-                print(f"v_cmd={v_cmd:.3f}, w_cmd={w_cmd:.3f}")
                 p_cur, R_cur, quat_wxyz = self._get_pose_R_quat()
-                print(f"p_cur={p_cur}")
+                # print(f"v_cmd={v_cmd:.3f}, w_cmd={w_cmd:.3f} p_cur={p_cur}")
         else:
             # Backup or waiting - set appropriate commands
             if self._is_backing_up:

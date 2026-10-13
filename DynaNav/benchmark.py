@@ -36,7 +36,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 # Timeout adjustment: Add 50 seconds to all episode timeouts
 TIMEOUT_EXTENSION_SECONDS = 0
 
-
 def _binary_metric(result: dict, key: str, legacy_key: str | None = None) -> float:
     """Read a per-episode binary metric, accepting old *_rate keys for compatibility."""
     value = result.get(key)
@@ -80,6 +79,14 @@ def _expand_env_value(value):
     if isinstance(value, dict):
         return {key: _expand_env_value(item) for key, item in value.items()}
     return value
+
+
+def _get_character_asset_path() -> str:
+    return os.path.expanduser(os.path.expandvars(os.environ["DEFAULT_CHARACTER_ASSET_PATH"]))
+
+
+def _get_biped_asset_path() -> str:
+    return os.path.expanduser(os.path.expandvars(os.environ["DEFAULT_BIPED_ASSET_PATH"]))
 
 class BenchmarkRunner:
     def __init__(self, sim_app, config_file_path, crash_report_path, debug_print):
@@ -479,6 +486,7 @@ class BenchmarkRunner:
                     'camera_num': 0
                 },
                 'character': {
+                    'asset_path': _get_character_asset_path(),
                     'command_file': str(tmp_root / "benchmark_character_commands.txt"),
                     'num': episode_config['num_people']
                 },
@@ -712,10 +720,10 @@ class BenchmarkRunner:
                 char_2d = char_pos[:2]
                 distance = np.linalg.norm(robot_2d - char_2d)
 
-                # print(f"dist to {skelroot_prim.GetPath().pathString} distance: {distance:.2f}")
+                # print(f"distance: {distance:.2f} to {skelroot_prim.GetPath().pathString} ")
                 if distance < self.human_collision_threshold:
                     self._human_collision_detected = True
-                    print(f"Collision detected with {skelroot_prim.GetPath().pathString} at distance {distance:.2f}m")
+                    print(f"\n!! Collision detected with {skelroot_prim.GetPath().pathString} at distance {distance:.2f}m")
 
     def _find_character_skelroot(self, character_root_prim):
         """Find the SkelRoot prim of a character (the actual animated part)."""
@@ -1003,6 +1011,10 @@ class BenchmarkRunner:
         # Debug settings
         self._settings.set("/log/level", "info")
         self._settings.set("/exts/isaacsim.replicator.agent/debug_print", self.debug_print)
+        self._settings.set(
+            "/exts/isaacsim.replicator.agent/asset_settings/default_biped_assets_path",
+            _get_biped_asset_path(),
+        )
 
         # Crash reporter
         self._settings.set("/crashreporter/enabled", True)
@@ -1329,7 +1341,7 @@ class BenchmarkRunner:
                 use_latest_data=True
             )
 
-            print(f"Contact sensor reading: {reading.value:.2f}, valid: {reading.is_valid}, in_contact:{reading.in_contact}")
+            # print(f"Contact sensor reading: {reading.value:.2f}, valid: {reading.is_valid}, in_contact:{reading.in_contact}")
             
             # Count only sustained, meaningful contact. A one-frame scrape or low-force
             # physics jitter should not mark the whole episode as physical collision.
@@ -1346,7 +1358,7 @@ class BenchmarkRunner:
                 ):
                     self._physical_collision_detected = True
                     print(
-                        "Contact sensor detected sustained collision "
+                        "\n!! Contact sensor detected sustained collision "
                         f"({self._contact_consecutive_frames} frames >= "
                         f"{self._contact_duration_threshold_frames}, "
                         f"force >= {self._contact_threshold:.1f} N)"
