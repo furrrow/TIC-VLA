@@ -23,8 +23,10 @@ import numpy as np
 import time
 import tempfile
 import subprocess
+from dataclasses import dataclass, field
 from pathlib import Path
 from generate_commands import *
+import benchmark_reporting as report_utils
 
 # APP_CONFIG = {"renderer": "RayTracedLighting", "headless": True, "width": 640, "height": 480}
 APP_CONFIG = {"renderer": "RayTracedLighting", "headless": False, "width": 640, "height": 480}
@@ -35,17 +37,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 
 # Timeout adjustment: Add 50 seconds to all episode timeouts
 TIMEOUT_EXTENSION_SECONDS = 0
-
-def _binary_metric(result: dict, key: str, legacy_key: str | None = None) -> float:
-    """Read a per-episode binary metric, accepting old *_rate keys for compatibility."""
-    value = result.get(key)
-    if value is None and legacy_key is not None:
-        value = result.get(legacy_key, 0.0)
-    try:
-        return 1.0 if float(value or 0.0) > 0.0 else 0.0
-    except Exception:
-        return 0.0
-
 
 def _get_results_dir(run_id: str) -> Path:
     return SCRIPT_DIR / "benchmark_results" / str(run_id)
@@ -88,6 +79,31 @@ def _get_character_asset_path() -> str:
 def _get_biped_asset_path() -> str:
     return os.path.expanduser(os.path.expandvars(os.environ["DEFAULT_BIPED_ASSET_PATH"]))
 
+
+@dataclass
+class EpisodeState:
+    """Tracking data that starts fresh for each episode."""
+
+    name: str = ""
+    config: dict | None = None
+    start_time: float | None = None
+    spawned_robot_prim_path: str | None = None
+    robot_type: str | None = None
+    robot_position: np.ndarray | None = None
+    goal_position: np.ndarray | None = None
+    failure_reason: str | None = None
+    robot_path: list[np.ndarray] = field(default_factory=list)
+    human_collision_detected: bool = False
+    start_position: np.ndarray | None = None
+    simulation_frame_count: int = 0
+    start_frame: int = 0
+    physical_collision_detected: bool = False
+    contact_consecutive_frames: int = 0
+    max_contact_consecutive_frames: int = 0
+    goal_threshold: float = 1.5
+    position_error_logged: bool = False
+
+
 class BenchmarkRunner:
     def __init__(self, sim_app, config_file_path, crash_report_path, debug_print):
         self._sim_app = sim_app
@@ -97,11 +113,8 @@ class BenchmarkRunner:
         self.crash_report_path = crash_report_path
         self.debug_print = debug_print
 
-        # Benchmark results
         self.results = []
-        self.current_episode = None
-        self.episode_start_time = None
-        self.episode_success = False
+        self.state = EpisodeState()
 
         # Simulation components
         self._sim_manager = None
@@ -111,33 +124,13 @@ class BenchmarkRunner:
         self._config = None
         self._benchmark_config = None
 
-        # Robot tracking
-        self._spawned_robot_prim_path = None
-        self._robot_type = None  # Track robot type for position updates
-        self._robot_position = None
-        self._goal_position = None
-        self._episode_failure_reason = None
-
-        # Metrics tracking
-        self._robot_path = []  # Track robot path for SPL calculation
-        self._human_collision_detected = False
-        # NOTE: we do not store collided object lists in results JSON (keep list only internally).
-        self._episode_start_position = None
-
-        # Simulation timing
-        self._simulation_frame_count = 0
-        self._episode_start_frame = 0
-        
         # Physical collision (contact sensor)
         self._physx_contact_sub = None
-        self._physical_collision_detected = False
         self._robot_contact_paths = set()       # prim paths we consider "robot bodies" for contact filtering
         self._contact_sensor_enabled = False
         self._contact_threshold = 10.0  # Minimum contact force to register as collision (N)
         self._contact_duration_threshold_frames = 5  # Require sustained contact before counting collision
         self.human_collision_threshold = 0.2  # meters
-        self._contact_consecutive_frames = 0
-        self._max_contact_consecutive_frames = 0
         self._contact_sensor_prim_path = None  # Path to the contact sensor prim
         self._contact_sensor_prim_paths = []  # Paths to all contact sensor prims
         self._contact_sensor_interface = None  # Contact sensor interface
@@ -182,42 +175,7 @@ class BenchmarkRunner:
 
             success = await self._run_episode(episode_name, episode_config)
 
-            # Calculate metrics
-            navigation_error = self._get_distance_to_goal()
-            success_rate = 1.0 if success else 0.0
-            # Use physical collision if detected, otherwise fall back to distance-based
-            any_collision = self._physical_collision_detected or self._human_collision_detected
-            collision = 1.0 if any_collision else 0.0
-            human_collision = 1.0 if self._human_collision_detected else 0.0
-            physical_collision = 1.0 if self._physical_collision_detected else 0.0
-            spl = self._calculate_spl(success)
-
-            # Calculate simulation duration in frames
-            simulation_duration_frames = self._simulation_frame_count - self._episode_start_frame
-            simulation_duration_seconds = simulation_duration_frames / 30.0  # Convert frames to seconds at 30 FPS
-
-            # Record results
-            result = {
-                'episode': episode_name,
-                'scene': episode_config['scene'],
-                'start': episode_config['start'],
-                'goal': episode_config['goal'],
-                'instruction': episode_config['instruction'],
-                'timeout': episode_config['timeout'],
-                'robot_type': episode_config['robot_type'],
-                'success': success,
-                'duration': simulation_duration_seconds,
-                'duration_frames': simulation_duration_frames,
-                'navigation_error': navigation_error,
-                'success_rate': success_rate,
-                'collision': collision,
-                'human_collision': human_collision,
-                'physical_collision': physical_collision,
-                'spl': spl,
-                'path_length': self._calculate_path_length(),
-                'physical_collision_detected': self._physical_collision_detected,
-                'physical_collision_count': self._max_contact_consecutive_frames,
-            }
+            result = self.collect_and_build_episode_result(episode_name, episode_config, success)
             self.results.append(result)
 
             # Clean up contact sensor
@@ -231,7 +189,7 @@ class BenchmarkRunner:
             # No per-contact physics logging in benchmark results.
 
         # Print final results
-        self._print_final_results()
+        report_utils.print_final_results(self.results)
         return True
 
     async def run_single_episode_worker(self, episode_name: str):
@@ -252,34 +210,11 @@ class BenchmarkRunner:
 
         episode_config = self._benchmark_config[episode_name]
 
-        # Reset per-episode trackers
-        self.results = []
-        self.current_episode = None
-        self.episode_start_time = None
-        self.episode_success = False
-        self._spawned_robot_prim_path = None
-        self._robot_type = None  # Track robot type for position updates
-        self._robot_position = None
-        self._goal_position = None
-        self._episode_failure_reason = None
-        self._robot_path = []
-        self._human_collision_detected = False
-        self._episode_start_position = None
-        self._simulation_frame_count = 0
-        self._episode_start_frame = 0
-        self._physical_collision_detected = False
-        self._contact_consecutive_frames = 0
-        self._max_contact_consecutive_frames = 0
-        
-        # Set goal threshold from episode config (fallback to global config, default to 1.5m)
-        global_threshold = self._benchmark_config.get('success_threshold', 1.5)
-        self._goal_threshold = episode_config.get('success_threshold', global_threshold)
-        
         # Propagate episode parameters to behavior scripts via environment variables
         instruction = str(episode_config.get('instruction', ''))
         os.environ['TICVLA_INSTRUCTION'] = instruction
         os.environ['TICVLA_EPISODE_NAME'] = episode_name
-        os.environ.pop('TICVLA_EPISODE_FAILURE_REASON', None)
+        os.environ.pop('EPISODE_FAILURE_REASON', None)
 
         goal = episode_config.get('goal', None)
         if goal is not None and len(goal) >= 2:
@@ -307,39 +242,7 @@ class BenchmarkRunner:
 
         # Metrics
         try:
-            navigation_error = self._get_distance_to_goal()
-            success_rate = 1.0 if success else 0.0
-            # Use physical collision if detected, otherwise fall back to distance-based
-            any_collision = self._physical_collision_detected or self._human_collision_detected
-            collision = 1.0 if any_collision else 0.0
-            human_collision = 1.0 if self._human_collision_detected else 0.0
-            physical_collision = 1.0 if self._physical_collision_detected else 0.0
-            spl = self._calculate_spl(success)
-            simulation_duration_frames = self._simulation_frame_count - self._episode_start_frame
-            simulation_duration_seconds = simulation_duration_frames / 30.0
-
-            result = {
-                'episode': episode_name,
-                'scene': episode_config['scene'],
-                'start': episode_config['start'],
-                'goal': episode_config['goal'],
-                'instruction': episode_config['instruction'],
-                'timeout': episode_config['timeout'],
-                'robot_type': episode_config['robot_type'],
-                'success': success,
-                'duration': simulation_duration_seconds,
-                'duration_frames': simulation_duration_frames,
-                'navigation_error': navigation_error,
-                'success_rate': success_rate,
-                'collision': collision,
-                'human_collision': human_collision,
-                'physical_collision': physical_collision,
-                'spl': spl,
-                'path_length': self._calculate_path_length(),
-                'physical_collision_detected': self._physical_collision_detected,
-                'physical_collision_count': self._max_contact_consecutive_frames,
-                'failure_reason': self._episode_failure_reason,
-            }
+            result = self.collect_and_build_episode_result(episode_name, episode_config, success)
 
             # Clean up contact sensor
             self._cleanup_contact_sensor()
@@ -364,6 +267,20 @@ class BenchmarkRunner:
                     pass
             raise
 
+    def collect_and_build_episode_result(self, episode_name: str, episode_config: dict, success: bool) -> dict:
+        metrics = report_utils.EpisodeMetrics(
+            success=success,
+            duration_frames=self.state.simulation_frame_count - self.state.start_frame,
+            navigation_error=self._get_distance_to_goal(),
+            spl=self._calculate_spl(success),
+            path_length=self._calculate_path_length(),
+            human_collision=self.state.human_collision_detected,
+            physical_collision=self.state.physical_collision_detected,
+            physical_collision_count=self.state.max_contact_consecutive_frames,
+            failure_reason=self.state.failure_reason,
+        )
+        return report_utils.build_episode_result(episode_name, episode_config, metrics)
+
     def _load_benchmark_config(self):
         """Load the benchmark configuration from YAML file."""
         with open(self.config_file_path, "r") as f:
@@ -372,27 +289,14 @@ class BenchmarkRunner:
 
     async def _run_episode(self, episode_name, episode_config):
         """Run a single benchmark episode."""
-        self.current_episode = episode_config
-        self.episode_name = episode_name
-        self.episode_start_time = time.time()
-        self.episode_success = False
-        self._episode_failure_reason = None
-        os.environ.pop('TICVLA_EPISODE_FAILURE_REASON', None)
-
-        # Reset metrics tracking
-        self._robot_path = []
-        self._human_collision_detected = False
-        self._episode_start_position = None
-        self._simulation_frame_count = 0
-        self._episode_start_frame = 0
-
-        # Reset physical collision tracking
-        self._physical_collision_detected = False
-        self._contact_consecutive_frames = 0
-        self._max_contact_consecutive_frames = 0
-
-        # Reset error counters
-        self._position_update_error_count = 0
+        global_threshold = self._benchmark_config.get("success_threshold", 1.5)
+        self.state = EpisodeState(
+            name=episode_name,
+            config=episode_config,
+            start_time=time.time(),
+            goal_threshold=episode_config.get("success_threshold", global_threshold),
+        )
+        os.environ.pop("EPISODE_FAILURE_REASON", None)
 
         # Set up simulation for this episode
         await self._setup_episode_simulation(episode_config)
@@ -400,39 +304,31 @@ class BenchmarkRunner:
 
         # Spawn robot at start position
         robot_type = episode_config['robot_type'].replace('_', '_').title()
-        if robot_type == 'Nova_Carter':
-            robot_type = 'Nova_Carter'
-        elif robot_type == 'Spot':
-            robot_type = 'Spot'
 
         # Store robot type for position tracking
-        self._robot_type = robot_type
+        self.state.robot_type = robot_type
 
         # Get start_yaw from config (default to 0 if not specified)
         start_yaw = episode_config.get('start_yaw', 0.0)
-        self._spawned_robot_prim_path = await self._spawn_robot(robot_type, episode_config['start'], start_yaw)
+        self.state.spawned_robot_prim_path = await self._spawn_robot(robot_type, episode_config['start'], start_yaw)
 
         # Set up robot
         if robot_type == "Spot":
-            await self._set_quadruped_robot(self._spawned_robot_prim_path)
+            await self._set_quadruped_robot(self.state.spawned_robot_prim_path)
         elif robot_type == "Nova_Carter":
-            await self._set_carter_robot(self._spawned_robot_prim_path)
-            await self._set_robot_viewport_camera(self._spawned_robot_prim_path)
+            await self._set_carter_robot(self.state.spawned_robot_prim_path)
+        await self._set_third_person_view(self.state.spawned_robot_prim_path)
         print(f"Set up robot succeed")
 
         # Set up contact sensor for collision detection
-        await self._setup_contact_sensor(self._spawned_robot_prim_path)
+        await self._setup_contact_sensor(self.state.spawned_robot_prim_path)
         print(f"Set up contact sensor succeed")
 
         # Set goal position
-        self._goal_position = np.array(episode_config['goal'])
-
-        # Set goal threshold from episode config (fallback to global config, default to 1.5m)
-        global_threshold = self._benchmark_config.get('success_threshold', 1.5)
-        self._goal_threshold = episode_config.get('success_threshold', global_threshold)
+        self.state.goal_position = np.array(episode_config['goal'])
 
         # Record start position for path tracking
-        self._episode_start_position = np.array(episode_config['start'])
+        self.state.start_position = np.array(episode_config['start'])
 
         # Run navigation with timeout (in simulation frames)
         # Add TIMEOUT_EXTENSION_SECONDS to all timeouts
@@ -499,7 +395,7 @@ class BenchmarkRunner:
                 'replicator': {
                     'writer': 'IRABasicWriter',
                     'parameters': {
-                        'output_dir': str(tmp_root / "benchmark_output" / self.episode_name),
+                        'output_dir': str(tmp_root / "benchmark_output" / self.state.name),
                         'object_info_bounding_box_2d_tight': False,
                         'object_info_bounding_box_2d_loose': False,
                         'object_info_bounding_box_3d': False,
@@ -515,7 +411,7 @@ class BenchmarkRunner:
 
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
-        temp_config_path = f'{tmp_dir}/benchmark_config_{self.episode_name}.yaml'
+        temp_config_path = f'{tmp_dir}/benchmark_config_{self.state.name}.yaml'
         with open(temp_config_path, 'w') as f:
             yaml.dump(config_template, f)
 
@@ -545,22 +441,22 @@ class BenchmarkRunner:
         rep.orchestrator.set_capture_on_play(True)
         await app.next_update_async()
 
-        self._episode_start_frame = self._simulation_frame_count
+        self.state.start_frame = self.state.simulation_frame_count
 
         try:
             for _ in range(timeout_frames):
                 # per-frame: update pos, check goal/collisions, count frames
                 await self._update_robot_position()
-                self._simulation_frame_count += 1
+                self.state.simulation_frame_count += 1
                 # Avoid printing every frame (can flood logs and slow down Isaac Sim).
-                if self.debug_print and (self._simulation_frame_count % 30 == 0):
-                    print(f"Simulation frame count: {self._simulation_frame_count}")
+                if self.debug_print and (self.state.simulation_frame_count % 30 == 0):
+                    print(f"Simulation frame count: {self.state.simulation_frame_count}")
                 # Update environment variable so behavior scripts can access the frame count
-                os.environ['BENCHMARK_SIMULATION_FRAME_COUNT'] = str(self._simulation_frame_count)
+                os.environ['BENCHMARK_SIMULATION_FRAME_COUNT'] = str(self.state.simulation_frame_count)
 
-                failure_reason = os.getenv('TICVLA_EPISODE_FAILURE_REASON')
+                failure_reason = os.getenv('EPISODE_FAILURE_REASON')
                 if failure_reason:
-                    self._episode_failure_reason = failure_reason
+                    self.state.failure_reason = failure_reason
                     print(f"Episode failed early: {failure_reason}")
                     rep.orchestrator.set_capture_on_play(False)
                     timeline.stop()
@@ -596,13 +492,13 @@ class BenchmarkRunner:
 
     async def _update_robot_position(self):
         """Update the current robot position."""
-        if not self._spawned_robot_prim_path:
+        if not self.state.spawned_robot_prim_path:
             return
 
         import omni.usd
 
         stage = omni.usd.get_context().get_stage()
-        robot_prim = stage.GetPrimAtPath(self._spawned_robot_prim_path)
+        robot_prim = stage.GetPrimAtPath(self.state.spawned_robot_prim_path)
         
         if not robot_prim or not robot_prim.IsValid():
             return
@@ -610,12 +506,12 @@ class BenchmarkRunner:
         # Try to get position from robot-specific body link, with fallbacks
         position_prim = None
         
-        if self._robot_type == "Spot":
+        if self.state.robot_type == "Spot":
             # Spot has a 'body' child
             body_prim = robot_prim.GetChild('body')
             if body_prim and body_prim.IsValid():
                 position_prim = body_prim
-        elif self._robot_type == "Nova_Carter":
+        elif self.state.robot_type == "Nova_Carter":
             # Nova Carter uses 'chassis_link' as the base link
             chassis_prim = robot_prim.GetChild('chassis_link')
             if chassis_prim and chassis_prim.IsValid():
@@ -637,10 +533,10 @@ class BenchmarkRunner:
                 # Use world transform for robust position
                 world_mtx = omni.usd.get_world_transform_matrix(position_prim)
                 position = world_mtx.ExtractTranslation()
-                self._robot_position = np.array([position[0], position[1], position[2]])
+                self.state.robot_position = np.array([position[0], position[1], position[2]])
 
                 # Record path for SPL calculation
-                self._robot_path.append(self._robot_position.copy())
+                self.state.robot_path.append(self.state.robot_position.copy())
 
                 # Check for collisions (distance-based)
                 await self._check_collisions()
@@ -649,27 +545,27 @@ class BenchmarkRunner:
                 self._read_contact_sensor()
             except Exception as e:
                 # Log error but don't crash - position will remain None
-                if not hasattr(self, '_position_error_logged'):
+                if not self.state.position_error_logged:
                     print(f"Warning: Failed to update robot position: {e}")
-                    self._position_error_logged = True
+                    self.state.position_error_logged = True
 
 
     def _is_goal_reached(self):
         """Check if robot has reached the goal."""
-        if self._robot_position is None or self._goal_position is None:
+        if self.state.robot_position is None or self.state.goal_position is None:
             return False
 
         distance = self._get_distance_to_goal()
-        return distance < self._goal_threshold
+        return distance < self.state.goal_threshold
 
     def _get_distance_to_goal(self):
         """Get distance to goal."""
-        if self._robot_position is None or self._goal_position is None:
+        if self.state.robot_position is None or self.state.goal_position is None:
             return float('inf')
 
         # Only consider x,y coordinates for 2D navigation
-        robot_2d = self._robot_position[:2]
-        goal_2d = self._goal_position[:2]
+        robot_2d = self.state.robot_position[:2]
+        goal_2d = self.state.goal_position[:2]
         return np.linalg.norm(robot_2d - goal_2d)
 
     async def _check_collisions(self):
@@ -716,13 +612,13 @@ class BenchmarkRunner:
                 char_pos = np.array([char_position[0], char_position[1], char_position[2]])
 
                 # Check 2D distance (ignore Z for ground-based navigation)
-                robot_2d = self._robot_position[:2]
+                robot_2d = self.state.robot_position[:2]
                 char_2d = char_pos[:2]
                 distance = np.linalg.norm(robot_2d - char_2d)
 
                 # print(f"distance: {distance:.2f} to {skelroot_prim.GetPath().pathString} ")
                 if distance < self.human_collision_threshold:
-                    self._human_collision_detected = True
+                    self.state.human_collision_detected = True
                     print(f"\n!! Collision detected with {skelroot_prim.GetPath().pathString} at distance {distance:.2f}m")
 
     def _find_character_skelroot(self, character_root_prim):
@@ -738,21 +634,21 @@ class BenchmarkRunner:
 
     def _calculate_spl(self, success):
         """Calculate Success weighted by Path Length (SPL)."""
-        if not success or len(self._robot_path) < 2:
+        if not success or len(self.state.robot_path) < 2:
             return 0.0 
 
         # Calculate actual path length
         path_length = 0.0
-        for i in range(1, len(self._robot_path)):
+        for i in range(1, len(self.state.robot_path)):
             # Only consider 2D distance for ground navigation
-            pos1 = self._robot_path[i - 1][:2]
-            pos2 = self._robot_path[i][:2]
+            pos1 = self.state.robot_path[i - 1][:2]
+            pos2 = self.state.robot_path[i][:2]
             path_length += np.linalg.norm(pos2 - pos1)
 
         # Calculate optimal path length (straight line from start to goal)
-        if self._episode_start_position is not None and self._goal_position is not None:
-            start_2d = self._episode_start_position[:2]
-            goal_2d = self._goal_position[:2]
+        if self.state.start_position is not None and self.state.goal_position is not None:
+            start_2d = self.state.start_position[:2]
+            goal_2d = self.state.goal_position[:2]
             optimal_length = np.linalg.norm(goal_2d - start_2d)
 
             if optimal_length > 0:
@@ -763,214 +659,17 @@ class BenchmarkRunner:
 
     def _calculate_path_length(self):
         """Calculate total path length traveled."""
-        if len(self._robot_path) < 2:
+        if len(self.state.robot_path) < 2:
             return 0.0
 
         path_length = 0.0
-        for i in range(1, len(self._robot_path)):
+        for i in range(1, len(self.state.robot_path)):
             # Only consider 2D distance for ground navigation
-            pos1 = self._robot_path[i - 1][:2]
-            pos2 = self._robot_path[i][:2]
+            pos1 = self.state.robot_path[i - 1][:2]
+            pos2 = self.state.robot_path[i][:2]
             path_length += np.linalg.norm(pos2 - pos1)
 
         return float(path_length)
-
-    def _print_final_results(self):
-        """Print final benchmark results using self.results."""
-        print("\n" + "=" * 60)
-        print("BENCHMARK RESULTS")
-        print("=" * 60)
-
-        total_episodes = len(self.results)
-        successful_episodes = sum(1 for r in self.results if r.get('success'))
-        success_rate = (successful_episodes / total_episodes) * 100 if total_episodes > 0 else 0
-
-        # Calculate aggregate metrics (use safe access with defaults)
-        navigation_errors = [r.get('navigation_error', float('inf')) for r in self.results]
-        collisions = [_binary_metric(r, 'collision', 'collision_rate') for r in self.results]
-        human_collisions = [_binary_metric(r, 'human_collision', 'human_collision_rate') for r in self.results]
-        physical_collisions = [_binary_metric(r, 'physical_collision', 'physical_collision_rate') for r in self.results]
-        spl_scores = [r.get('spl', 0.0) for r in self.results]
-        path_lengths = [r.get('path_length', 0.0) for r in self.results]
-        durations = [r.get('duration', 0.0) for r in self.results]
-        duration_frames = [r.get('duration_frames', 0.0) for r in self.results]
-
-        # Filter out inf navigation errors for averaging
-        navigation_errors_finite = [ne for ne in navigation_errors if np.isfinite(ne)]
-
-        avg_navigation_error = np.mean(navigation_errors_finite) if navigation_errors_finite else 0.0
-        avg_collision_rate = np.mean(collisions) * 100 if collisions else 0.0
-        avg_human_collision_rate = np.mean(human_collisions) * 100 if human_collisions else 0.0
-        avg_physical_collision_rate = np.mean(physical_collisions) * 100 if physical_collisions else 0.0
-        avg_spl = np.mean(spl_scores) if spl_scores else 0.0
-        avg_path_length = np.mean(path_lengths) if path_lengths else 0.0
-        avg_duration = np.mean(durations) if durations else 0.0
-        avg_duration_frames = np.mean(duration_frames) if duration_frames else 0.0
-
-        print(f"Total Episodes: {total_episodes}")
-        print(f"Successful: {successful_episodes}")
-        print(f"Failed: {total_episodes - successful_episodes}")
-        print(f"Success Rate (SR): {success_rate:.1f}%")
-        print(f"Average Navigation Error (NE): {avg_navigation_error:.2f}m")
-        print(f"Total Collision Rate (human OR physical): {avg_collision_rate:.1f}%")
-        print(f"Human Collision Rate: {avg_human_collision_rate:.1f}%")
-        print(f"Physical Contact Rate: {avg_physical_collision_rate:.1f}%")
-        print(f"Average Success weighted by Path Length: {avg_spl:.3f}")
-        print(f"Average Path Length: {avg_path_length:.2f}m")
-        print(f"Average Simulation Duration: {avg_duration:.2f}s ({avg_duration_frames:.0f} frames)")
-        print()
-
-        # Detailed results
-        for result in self.results:
-            status = "✓ SUCCESS" if result.get('success') else "✗ FAILED"
-            collision_status = "⚠ COLLISION" if _binary_metric(result, 'collision', 'collision_rate') > 0 else "✓ NO COLLISION"
-            phys_collision = "⚠ PHYS" if result.get('physical_collision_detected', False) else ""
-            dur = result.get('duration', 0.0)
-            frames = result.get('duration_frames', 0)
-            print(f"{result.get('episode','UNKNOWN')}: {status} | {collision_status} {phys_collision} ({dur:.1f}s, {int(frames)} frames)")
-            print(f"  Scene: {str(result.get('scene','')).split('/')[-1] if result.get('scene') else 'N/A'}")
-            print(f"  Robot: {result.get('robot_type','N/A')}")
-            print(f"  Instruction: {result.get('instruction','')}")
-            print(f"  Navigation Error: {result.get('navigation_error', 0.0):.2f}m")
-            print(f"  Success Rate: {result.get('success_rate', 0.0):.3f}")
-            print(f"  Success weighted by Path Length: {result.get('spl', 0.0):.3f}")
-            print(f"  Path Length: {result.get('path_length', 0.0):.2f}m")
-            print()
-
-    def _save_results_to_file(self, config_file_path=None, incremental=False):
-        """Save benchmark results to JSON and text files.
-        
-        Args:
-            config_file_path: Path to config file
-            incremental: If True, use consistent filename for incremental updates. If False, use timestamp.
-        """
-        if not self.results:
-            return None
-
-        # Get run_id from environment for unique results paths (multi-instance support)
-        run_id = os.environ.get('BENCHMARK_RUN_ID', 'default')
-        
-        # Create results directory if it doesn't exist (with run_id subdirectory)
-        results_dir = Path(f"./benchmark_results/{run_id}")
-        results_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate timestamp for filename (only if not incremental)
-        if incremental:
-            timestamp = "latest"  # Use consistent filename for incremental updates
-        else:
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-        
-        # Extract config name if available
-        config_name = "benchmark"
-        if config_file_path:
-            config_name = Path(config_file_path).stem
-
-        # Calculate aggregate metrics
-        total_episodes = len(self.results)
-        successful_episodes = sum(1 for r in self.results if r.get('success'))
-        success_rate = (successful_episodes / total_episodes) * 100 if total_episodes > 0 else 0
-
-        navigation_errors = [r.get('navigation_error', float('inf')) for r in self.results]
-        collisions = [_binary_metric(r, 'collision', 'collision_rate') for r in self.results]
-        human_collisions = [_binary_metric(r, 'human_collision', 'human_collision_rate') for r in self.results]
-        physical_collisions = [_binary_metric(r, 'physical_collision', 'physical_collision_rate') for r in self.results]
-        spl_scores = [r.get('spl', 0.0) for r in self.results]
-        path_lengths = [r.get('path_length', 0.0) for r in self.results]
-        durations = [r.get('duration', 0.0) for r in self.results]
-        duration_frames = [r.get('duration_frames', 0.0) for r in self.results]
-
-        navigation_errors_finite = [ne for ne in navigation_errors if np.isfinite(ne)]
-        avg_navigation_error = np.mean(navigation_errors_finite) if navigation_errors_finite else 0.0
-        avg_collision_rate = np.mean(collisions) * 100 if collisions else 0.0
-        avg_human_collision_rate = np.mean(human_collisions) * 100 if human_collisions else 0.0
-        avg_physical_collision_rate = np.mean(physical_collisions) * 100 if physical_collisions else 0.0
-        avg_spl = np.mean(spl_scores) if spl_scores else 0.0
-        avg_path_length = np.mean(path_lengths) if path_lengths else 0.0
-        avg_duration = np.mean(durations) if durations else 0.0
-        avg_duration_frames = np.mean(duration_frames) if duration_frames else 0.0
-
-        # Prepare summary data
-        summary = {
-            "timestamp": timestamp,
-            "config_file": config_file_path if config_file_path else None,
-            "total_episodes": total_episodes,
-            "successful_episodes": successful_episodes,
-            "failed_episodes": total_episodes - successful_episodes,
-            "success_rate_percent": success_rate,
-            "average_metrics": {
-                "navigation_error_m": avg_navigation_error,
-                "total_collision_rate_percent": avg_collision_rate,
-                "human_collision_rate_percent": avg_human_collision_rate,
-                "physical_contact_rate_percent": avg_physical_collision_rate,
-                "spl": avg_spl,
-                "path_length_m": avg_path_length,
-                "duration_s": avg_duration,
-                "duration_frames": avg_duration_frames,
-            },
-            "episodes": self.results
-        }
-
-        # Save JSON file
-        json_filename = results_dir / f"{config_name}_results_{timestamp}.json"
-        try:
-            with open(json_filename, 'w') as f:
-                json.dump(summary, f, indent=2)
-            print(f"Results saved to JSON: {json_filename}")
-            sys.stdout.flush()  # Flush to ensure message appears immediately
-        except Exception as e:
-            print(f"Failed to save JSON file: {e}", file=sys.stderr)
-            sys.stderr.flush()
-
-        # Save human-readable text file
-        text_filename = results_dir / f"{config_name}_results_{timestamp}.txt"
-        try:
-            with open(text_filename, 'w') as f:
-                f.write("=" * 60 + "\n")
-                f.write("BENCHMARK RESULTS SUMMARY\n")
-                f.write("=" * 60 + "\n\n")
-                f.write(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-                if config_file_path:
-                    f.write(f"Config File: {config_file_path}\n")
-                f.write("\n")
-                f.write("AGGREGATE METRICS\n")
-                f.write("-" * 60 + "\n")
-                f.write(f"Total Episodes: {total_episodes}\n")
-                f.write(f"Successful: {successful_episodes}\n")
-                f.write(f"Failed: {total_episodes - successful_episodes}\n")
-                f.write(f"Success Rate (SR): {success_rate:.1f}%\n")
-                f.write(f"Average Navigation Error (NE): {avg_navigation_error:.2f}m\n")
-                f.write(f"Total Collision Rate (human OR physical): {avg_collision_rate:.1f}%\n")
-                f.write(f"Human Collision Rate: {avg_human_collision_rate:.1f}%\n")
-                f.write(f"Physical Contact Rate: {avg_physical_collision_rate:.1f}%\n")
-                f.write(f"Average Success weighted by Path Length: {avg_spl:.3f}\n")
-                f.write(f"Average Path Length: {avg_path_length:.2f}m\n")
-                f.write(f"Average Simulation Duration: {avg_duration:.2f}s ({avg_duration_frames:.0f} frames)\n")
-                f.write("\n")
-                f.write("DETAILED EPISODE RESULTS\n")
-                f.write("-" * 60 + "\n\n")
-
-                for result in self.results:
-                    status = "✓ SUCCESS" if result.get('success') else "✗ FAILED"
-                    collision_status = "⚠ COLLISION" if _binary_metric(result, 'collision', 'collision_rate') > 0 else "✓ NO COLLISION"
-                    phys_collision = "⚠ PHYS" if result.get('physical_collision_detected', False) else ""
-                    dur = result.get('duration', 0.0)
-                    frames = result.get('duration_frames', 0)
-                    f.write(f"{result.get('episode','UNKNOWN')}: {status} | {collision_status} {phys_collision} ({dur:.1f}s, {int(frames)} frames)\n")
-                    f.write(f"  Scene: {str(result.get('scene','')).split('/')[-1] if result.get('scene') else 'N/A'}\n")
-                    f.write(f"  Robot: {result.get('robot_type','N/A')}\n")
-                    f.write(f"  Instruction: {result.get('instruction','')}\n")
-                    f.write(f"  Navigation Error: {result.get('navigation_error', 0.0):.2f}m\n")
-                    f.write(f"  Success Rate: {result.get('success_rate', 0.0):.3f}\n")
-                    f.write(f"  Success weighted by Path Length: {result.get('spl', 0.0):.3f}\n")
-                    f.write(f"  Path Length: {result.get('path_length', 0.0):.2f}m\n")
-                    f.write("\n")
-            print(f"Results saved to text: {text_filename}")
-            sys.stdout.flush()  # Flush to ensure message appears immediately
-            return str(text_filename)
-        except Exception as e:
-            print(f"Failed to save text file: {e}", file=sys.stderr)
-            sys.stderr.flush()
-            return None
 
     # Reuse methods from collect_data.py
     def _enable_extensions(self):
@@ -1044,7 +743,7 @@ class BenchmarkRunner:
 
         stage = omni.usd.get_context().get_stage()
         robots_root = "/World/Robots"
-
+        # note, they are using the older version of nova-carter on purpose, it will break if we try nova-carter.use from v5.1
         if robot_type == "Spot":
             asset_url = "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Robots/BostonDynamics/spot/spot.usd"
             name = "Spot"
@@ -1145,30 +844,14 @@ class BenchmarkRunner:
         attr.Set([Sdf.AssetPath(script_path)])
         print(f"Set up Nova Carter behavior script ({script_name})")
 
-    async def _set_robot_viewport_camera(self, prim_path: str):
+    async def _set_third_person_view(self, prim_path: str):
         """Point the GUI viewport at the robot camera used for third-person logs."""
-        camera_mode = os.getenv("TICVLA_VIEWPORT_CAMERA", "third_person").strip().lower()
-        if camera_mode in {"", "none", "off", "false", "0"}:
-            return
-
-        camera_paths = {
-            "third_person": f"{prim_path}/chassis_link/third_person_view_cam",
-            "tp": f"{prim_path}/chassis_link/third_person_view_cam",
-            "front": f"{prim_path}/chassis_link/front_hawk/left/camera_left",
-        }
-        camera_path = camera_paths.get(camera_mode, camera_mode)
+        camera_path = f"{prim_path}/chassis_link/third_person_view_cam"
 
         try:
             import carb
-            import omni.usd
             from omni.kit.viewport.utility import get_active_viewport
             from pxr import Sdf
-
-            stage = omni.usd.get_context().get_stage()
-            camera_prim = stage.GetPrimAtPath(camera_path) if stage else None
-            if not camera_prim or not camera_prim.IsValid():
-                carb.log_warn(f"Requested viewport camera does not exist: {camera_path}")
-                return
 
             viewport = get_active_viewport()
             if viewport is None:
@@ -1248,9 +931,9 @@ class BenchmarkRunner:
         
         # Clear previous contact tracking
         self._robot_contact_paths.clear()
-        self._physical_collision_detected = False
-        self._contact_consecutive_frames = 0
-        self._max_contact_consecutive_frames = 0
+        self.state.physical_collision_detected = False
+        self.state.contact_consecutive_frames = 0
+        self.state.max_contact_consecutive_frames = 0
         self._contact_sensors = []  # Store contact sensor instances
         self._contact_sensor_prim_path = None
         self._contact_sensor_prim_paths = []
@@ -1260,12 +943,12 @@ class BenchmarkRunner:
         # Find the main body/chassis prim to attach contact sensor
         # For Nova Carter: chassis_link, For Spot: body
         body_prim_path = None
-        if self._robot_type == "Nova_Carter":
+        if self.state.robot_type == "Nova_Carter":
             chassis_path = f"{robot_prim_path}/chassis_link"
             chassis_prim = stage.GetPrimAtPath(chassis_path)
             if chassis_prim and chassis_prim.IsValid():
                 body_prim_path = chassis_path
-        elif self._robot_type == "Spot":
+        elif self.state.robot_type == "Spot":
             body_path = f"{robot_prim_path}/body"
             body_prim = stage.GetPrimAtPath(body_path)
             if body_prim and body_prim.IsValid():
@@ -1346,25 +1029,25 @@ class BenchmarkRunner:
             # Count only sustained, meaningful contact. A one-frame scrape or low-force
             # physics jitter should not mark the whole episode as physical collision.
             if reading.is_valid and reading.in_contact and float(reading.value) >= self._contact_threshold:
-                self._contact_consecutive_frames += 1
-                self._max_contact_consecutive_frames = max(
-                    self._max_contact_consecutive_frames,
-                    self._contact_consecutive_frames,
+                self.state.contact_consecutive_frames += 1
+                self.state.max_contact_consecutive_frames = max(
+                    self.state.max_contact_consecutive_frames,
+                    self.state.contact_consecutive_frames,
                 )
 
                 if (
-                    not self._physical_collision_detected
-                    and self._contact_consecutive_frames >= self._contact_duration_threshold_frames
+                    not self.state.physical_collision_detected
+                    and self.state.contact_consecutive_frames >= self._contact_duration_threshold_frames
                 ):
-                    self._physical_collision_detected = True
+                    self.state.physical_collision_detected = True
                     print(
                         "\n!! Contact sensor detected sustained collision "
-                        f"({self._contact_consecutive_frames} frames >= "
+                        f"({self.state.contact_consecutive_frames} frames >= "
                         f"{self._contact_duration_threshold_frames}, "
                         f"force >= {self._contact_threshold:.1f} N)"
                     )
             else:
-                self._contact_consecutive_frames = 0
+                self.state.contact_consecutive_frames = 0
                             
         except Exception as e:
             if not hasattr(self, '_contact_read_error_logged'):
@@ -1397,7 +1080,7 @@ class BenchmarkRunner:
         print("Generating random commands for benchmark...")
 
         # Detect scene type from the episode scene URL
-        scene_url = self.current_episode.get('scene', '')
+        scene_url = self.state.config.get('scene', '')
         scene_type = self._detect_scene_type(scene_url)
 
         if not scene_type:
@@ -1408,8 +1091,8 @@ class BenchmarkRunner:
         print(f"Detected scene type: {scene_type}")
 
         # Get episode configuration with sensible defaults
-        num_people = self.current_episode.get('num_people', 3)
-        robot_type = self.current_episode.get('robot_type', 'nova_carter')
+        num_people = self.state.config.get('num_people', 3)
+        robot_type = self.state.config.get('robot_type', 'nova_carter')
         seed = self._benchmark_config.get('seed', 42) if self._benchmark_config else 42
 
         print(f"Episode config - People: {num_people}, Robot: {robot_type}, Seed: {seed}")
@@ -1504,35 +1187,17 @@ def _run_child_episode(config_file_path: str, episode_name: str, crash_report_pa
     # Helper function to create error payload with episode config
     def _create_error_payload(error_type: str, error_msg: str = "") -> dict:
         """Create error payload with episode config data."""
+        error = f"{error_type}:{error_msg}" if error_msg else error_type
         try:
-            # Load config to get episode info
-            runner_temp = BenchmarkRunner(None, os.path.abspath(config_file_path), None, False)
-            runner_temp._load_benchmark_config()
-            episode_config = runner_temp._benchmark_config.get(episode_name, {}) if hasattr(runner_temp, '_benchmark_config') and runner_temp._benchmark_config else {}
-            return {
-                "episode": episode_name,
-                "scene": episode_config.get('scene'),
-                "start": episode_config.get('start'),
-                "goal": episode_config.get('goal'),
-                "instruction": episode_config.get('instruction', ''),
-                "timeout": episode_config.get('timeout', 0),
-                "robot_type": episode_config.get('robot_type', ''),
-                "success": False,
-                "duration": 0.0,
-                "duration_frames": 0,
-                "navigation_error": float('inf'),
-                "success_rate": 0.0,
-                "collision": 0.0,
-                "human_collision": 0.0,
-                "physical_collision": 0.0,
-                "spl": 0.0,
-                "path_length": 0.0,
-                "physical_collision_detected": False,
-                "error": f"{error_type}:{error_msg}" if error_msg else error_type
-            }
+            with open(config_file_path, "r") as config_file:
+                benchmark_config = _expand_env_value(yaml.safe_load(config_file))
+            episode_config = benchmark_config.get(episode_name, {})
+            if not isinstance(episode_config, dict):
+                episode_config = {}
         except Exception as config_error:
             print(f"Failed to load config for error payload: {config_error}")
-            return {"episode": episode_name, "success": False, "error": f"{error_type}:{error_msg}" if error_msg else error_type}
+            episode_config = {}
+        return report_utils.build_episode_result(episode_name, episode_config, error=error)
 
     try:
         runner = BenchmarkRunner(sim_app, os.path.abspath(config_file_path), crash_report_path, debug_print)
@@ -1641,31 +1306,15 @@ def _normalize_result(raw: dict, episode_name: str, episode_config: dict) -> dic
     if not isinstance(episode_config, dict):
         episode_config = {}
     
-    defaults = {
-        'episode': episode_name,
-        'scene': episode_config.get('scene'),
-        'start': episode_config.get('start'),
-        'goal': episode_config.get('goal'),
-        'instruction': episode_config.get('instruction', ''),
-        'timeout': episode_config.get('timeout', 0),
-        'robot_type': episode_config.get('robot_type', ''),
-        'success': False,
-        'duration': 0.0,
-        'duration_frames': 0,
-        'navigation_error': float('inf'),
-        'success_rate': 0.0,
-        'collision': 0.0,
-        'human_collision': 0.0,
-        'physical_collision': 0.0,
-        'spl': 0.0,
-        'path_length': 0.0,
-        'physical_collision_detected': False,
-        'physical_collision_count': 0,
-    }
+    defaults = report_utils.build_episode_result(episode_name, episode_config)
     normalized = {**defaults, **(raw or {})}
-    normalized['collision'] = _binary_metric(normalized, 'collision', 'collision_rate')
-    normalized['human_collision'] = _binary_metric(normalized, 'human_collision', 'human_collision_rate')
-    normalized['physical_collision'] = _binary_metric(normalized, 'physical_collision', 'physical_collision_rate')
+    # Read legacy metric names before defaults fill in the current names.
+    for key, legacy_key in (
+        ('collision', 'collision_rate'),
+        ('human_collision', 'human_collision_rate'),
+        ('physical_collision', 'physical_collision_rate'),
+    ):
+        normalized[key] = report_utils.binary_metric(raw or {}, key, legacy_key)
     normalized.pop('collision_rate', None)
     normalized.pop('human_collision_rate', None)
     normalized.pop('physical_collision_rate', None)
@@ -1809,29 +1458,19 @@ def main():
         all_results.append(normalized)
         
         # Save results incrementally after each episode
-        class _Printer:
-            def __init__(self, results):
-                self.results = results
-            _save_results_to_file = BenchmarkRunner._save_results_to_file
-        
-        printer = _Printer(all_results)
-        saved_file = printer._save_results_to_file(config_file_path=config_file_path, incremental=True)
+        saved_file = report_utils.save_results_to_file(
+            all_results, config_file_path=config_file_path,
+            incremental=True, run_id=run_id,
+        )
         if saved_file:
-            print(f"[REALTIME] Results updated after episode '{episode_name}': {saved_file}")
-            sys.stdout.flush()  # Flush to ensure message appears immediately
+            print(f"[REALTIME] Results updated after episode {episode_name!r}: {saved_file}")
+            sys.stdout.flush()
 
-    # Pretty print final aggregate (reuse the class printer without SimulationApp)
-    class _Printer:
-        def __init__(self, results):
-            self.results = results
-
-        _print_final_results = BenchmarkRunner._print_final_results
-        _save_results_to_file = BenchmarkRunner._save_results_to_file
-
-    printer = _Printer(all_results)
-    printer._print_final_results()
-    # Final save with timestamp (in addition to the latest incremental file)
-    saved_file = printer._save_results_to_file(config_file_path=config_file_path, incremental=False)
+    report_utils.print_final_results(all_results)
+    saved_file = report_utils.save_results_to_file(
+        all_results, config_file_path=config_file_path,
+        incremental=False, run_id=run_id,
+    )
     if saved_file:
         print(f"\n[FINAL] Results summary saved to: {saved_file}")
         sys.stdout.flush()
