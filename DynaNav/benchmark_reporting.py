@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+from benchmark_runtime import SIMULATION_FPS
 
 
 def binary_metric(result: dict, key: str, legacy_key: str | None = None) -> float:
@@ -50,7 +51,7 @@ def build_episode_result(
         "timeout": episode_config.get("timeout", 0),
         "robot_type": episode_config.get("robot_type", ""),
         "success": metrics.success,
-        "duration": metrics.duration_frames / 30.0,
+        "duration": metrics.duration_frames / SIMULATION_FPS,
         "duration_frames": metrics.duration_frames,
         "navigation_error": metrics.navigation_error,
         "success_rate": 1.0 if metrics.success else 0.0,

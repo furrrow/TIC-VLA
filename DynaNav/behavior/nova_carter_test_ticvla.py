@@ -63,6 +63,8 @@ except ImportError as e:
     print(f"Warning: TIC-VLA components not found: {e}")
     TICVLA = None
 
+import benchmark_runtime as runtime
+
 import shutil
 from pathlib import Path
 
@@ -128,6 +130,7 @@ class NovaCarterTICVLA(BehaviorScript):
     def on_init(self):
         """Initialize the TIC-VLA behavior script."""
         carb.log_info(f"[{self.get_agent_name()}] Initializing NovaCarterTICVLA...")
+        self._benchmark_context = runtime.get(str(self.prim_path))
 
         # Create wheeled robot & controller
         self._wheeled_robot: WheeledRobot = WheeledRobot(
@@ -173,7 +176,7 @@ class NovaCarterTICVLA(BehaviorScript):
         # Offsets for model context (frame-based, same as benchmark):
         # Compute 1s displacement (t-1 -> t) expressed in the (t-1) frame at 1Hz.
         # We use sim steps (frames @ 30Hz): step 0 -> (0,0,0), step 30 -> delta(0->30), step 60 -> delta(30->60), ...
-        # Same timing as benchmark: time = frames / 30.0 (30 FPS)
+        # Convert simulation frames to seconds with the benchmark frame rate.
         self._delta_1s_sampled_1s: List[tuple[int, List[float]]] = []  # (step, [dx,dy,dz]) in (t-1) frame (FLU)
         self._last_recorded_frame: int = -1  # Track last frame we recorded a waypoint to avoid duplicates
         self._prev_position_for_offset: np.ndarray | None = None
@@ -183,7 +186,7 @@ class NovaCarterTICVLA(BehaviorScript):
         # Track VLM generation start pose and frame for dx, dy calculation in robot state
         # Keep only the 2 most recent VLM generation start poses
         # Note: VLM generation runs asynchronously, so we track when VLM actually starts, not when policy inference starts
-        # Uses frame count (like benchmark) - assumes 30 FPS: time = frames / 30.0
+        # Use benchmark frame counts for generation timing.
         self._vlm_generation_start_positions: List[np.ndarray] = []  # List of positions when VLM generation started
         self._vlm_generation_start_quaternions: List[np.ndarray] = []  # List of quaternions [w, x, y, z] when VLM generation started
         self._vlm_generation_start_frames: List[int] = []  # List of frame numbers when VLM generation started (30 FPS)
@@ -201,9 +204,8 @@ class NovaCarterTICVLA(BehaviorScript):
 
         # Image history buffering for model
         self._image_history = []  # Keep last N frames for better prediction
-        self._max_history_frames = 4  # Maximum number of historical frames to keep
         self._sensor_update_frequency = 10  # Hz
-        # Keep 9 seconds of history based on sensor frequency
+        # Retain enough sensor frames for the history samples.
         self._max_history_frames = int(19 * self._sensor_update_frequency)
         self._sensor_frame_count = -1
         self._image_buffer_dir = None  # Directory to temporarily store camera frames
@@ -223,10 +225,8 @@ class NovaCarterTICVLA(BehaviorScript):
         self._stream_data = True
         self._log_interval_frames = 10
         self._last_log_frame = 0
-        # Get run_id from environment for unique log paths (multi-instance support)
-        self._run_id = os.getenv('BENCHMARK_RUN_ID', 'default')
-        self.save_log_dir = os.getenv('TICVLA_LOG_DIR', './logs')
-        # self._log_directory = f"./logs/{self._run_id}/carter_ticvla_data"
+        self._run_id = self._benchmark_context.run_id
+        self.save_log_dir = self._benchmark_context.log_dir
         self._log_directory = f"{self.save_log_dir}/{self._run_id}/carter_ticvla_data"
         self._frame_count = 0
         self._create_log_directory()
@@ -249,7 +249,7 @@ class NovaCarterTICVLA(BehaviorScript):
 
         # Stuck detection and recovery
         self._stuck_position_threshold = 0.1  # meters - consider stuck if moved less than this
-        self._stuck_time_threshold_frames = 150  # frames - stuck if not moving for this many frames (3 seconds at 30 FPS)
+        self._stuck_time_threshold_frames = 150  # Five seconds at the simulation frame rate
         self._backup_duration_frames = 300  # Deprecated: stuck now ends the episode as a failure.
         self._backup_speed = -0.5  # Deprecated: kept for compatibility with existing state reset paths.
         self._last_movement_position = None  # Last position where significant movement was detected
@@ -459,7 +459,7 @@ class NovaCarterTICVLA(BehaviorScript):
         self._navigation_active = True
 
         # Configure from environment variables set by benchmark
-        self._configure_from_environment()
+        self._configure_from_benchmark()
 
         carb.log_info("[NovaCarterTIC-VLA] TIC-VLA navigation initialized")
 
@@ -560,27 +560,9 @@ class NovaCarterTICVLA(BehaviorScript):
                 carb.log_warn(f"Failed to get TP camera data: {e}")
                 self._camera_image_tp = None
 
-    def _configure_from_environment(self):
-        """Configure TIC-VLA behavior from environment variables set by benchmark."""
-        try:
-            # Read goal position from environment variables
-            goal_x = os.getenv('TICVLA_GOAL_X')
-            goal_y = os.getenv('TICVLA_GOAL_Y')
-            goal_z = os.getenv('TICVLA_GOAL_Z', '0.0')
-
-            if goal_x is not None and goal_y is not None:
-                goal_position = np.array([float(goal_x), float(goal_y), float(goal_z)])
-                self._goal_position = goal_position
-                carb.log_info(f"Goal position configured from environment: {goal_position}")
-
-            # Read instruction from environment variables
-            instruction = os.getenv('TICVLA_INSTRUCTION')
-            if instruction is not None:
-                self._instruction = instruction
-                carb.log_info(f"Instruction configured from environment: {instruction}")
-
-        except Exception as e:
-            carb.log_warn(f"Failed to configure from environment: {e}")
+    def _configure_from_benchmark(self):
+        self._goal_position = np.array(self._benchmark_context.goal)
+        self._instruction = self._benchmark_context.instruction
 
     def _robot_ready(self):
         stage = omni.usd.get_context().get_stage()
@@ -606,12 +588,7 @@ class NovaCarterTICVLA(BehaviorScript):
         if not self._navigation_active:
             return
         
-        benchmark_frame_count_str = os.getenv('BENCHMARK_SIMULATION_FRAME_COUNT')
-        if benchmark_frame_count_str is not None:
-            try:
-                self._frame_count = int(benchmark_frame_count_str)
-            except (ValueError, TypeError):
-                pass
+        self._frame_count = self._benchmark_context.frame_count
 
         try:
             app = omni.kit.app.get_app()
@@ -641,7 +618,7 @@ class NovaCarterTICVLA(BehaviorScript):
         self._update_robot_state(delta_time)
         
         frame_idx = int(self._frame_count)
-        if frame_idx % 30 == 0 and frame_idx != self._last_recorded_frame:
+        if frame_idx % runtime.SIMULATION_FPS == 0 and frame_idx != self._last_recorded_frame:
             if self._robot_position is not None:
                 try:
                     p_cur, R_cur, quat_wxyz = self._get_pose_R_quat()
@@ -676,10 +653,10 @@ class NovaCarterTICVLA(BehaviorScript):
             if self._backup_start_frame is not None:
                 backup_elapsed_frames = self._frame_count - self._backup_start_frame
                 
-                # Log progress every 30 frames (approximately every second at 30 FPS)
-                if backup_elapsed_frames > 0 and backup_elapsed_frames % 30 == 0 and backup_elapsed_frames < self._backup_duration_frames:
+                # Log backup progress once per simulation second.
+                if backup_elapsed_frames > 0 and backup_elapsed_frames % runtime.SIMULATION_FPS == 0 and backup_elapsed_frames < self._backup_duration_frames:
                     remaining_frames = self._backup_duration_frames - backup_elapsed_frames
-                    remaining_time = remaining_frames / 30.0
+                    remaining_time = remaining_frames / runtime.SIMULATION_FPS
                     carb.log_info(f"[NovaCarterTIC-VLA] Backing up progress: {backup_elapsed_frames}/{self._backup_duration_frames} frames ({remaining_time:.1f}s remaining, frame={self._frame_count}, start_frame={self._backup_start_frame})")
                 
                 # Check if backup duration has elapsed - do this check every frame
@@ -733,13 +710,13 @@ class NovaCarterTICVLA(BehaviorScript):
             if self._last_movement_frame is not None:
                 frames_since_movement = self._frame_count - self._last_movement_frame
                 if frames_since_movement >= self._stuck_time_threshold_frames:
-                    stuck_time_seconds = frames_since_movement / 30.0
+                    stuck_time_seconds = frames_since_movement / runtime.SIMULATION_FPS
                     failure_reason = (
                         f"robot_stuck:not moved for {frames_since_movement} frames "
                         f"/ {stuck_time_seconds:.2f}s"
                     )
                     carb.log_warn(f"[NovaCarterTIC-VLA] Robot stuck detected ({failure_reason}); ending episode as failure")
-                    os.environ["TICVLA_EPISODE_FAILURE_REASON"] = failure_reason
+                    self._benchmark_context.failure_reason = failure_reason
                     self._navigation_active = False
                     self._is_backing_up = False
                     self._waiting_for_inference_after_backup = False
@@ -750,7 +727,7 @@ class NovaCarterTICVLA(BehaviorScript):
 
         # Sensor/update cadence for model
         self._sensor_frame_count += 1
-        if self._sensor_frame_count % max(1, (30 // self._sensor_update_frequency)) == 0:
+        if self._sensor_frame_count % max(1, (runtime.SIMULATION_FPS // self._sensor_update_frequency)) == 0:
             # Buffer the latest front image to disk for the model (main thread does file write)
             if self._image_buffer_dir is not None and self._camera_image_front is not None:
 
@@ -821,9 +798,9 @@ class NovaCarterTICVLA(BehaviorScript):
                         dx = float(vec_flu[0])
                         dy = float(vec_flu[1])
                         
-                        # Calculate delay from frame difference (same as benchmark: frames / 30.0)
+                        # Calculate delay from frame difference (same as benchmark: frames / runtime.SIMULATION_FPS)
                         step_delay = self._frame_count - ref_vlm_generation_start_frame
-                        delay_time = float(step_delay) / 30.0
+                        delay_time = float(step_delay) / runtime.SIMULATION_FPS
                     else:
                         dx, dy = 0.0, 0.0
                         delay_time = 0.0
@@ -846,7 +823,7 @@ class NovaCarterTICVLA(BehaviorScript):
                         raise ValueError("[NovaCarterTIC-VLA] ERROR: Empty or missing instruction!")
                     
                     # Prepare waypoints: filter out initial (0,0,0) and convert to (relative_time, waypoint) format
-                    elapsed_time = float(self._frame_count) / 30.0
+                    elapsed_time = float(self._frame_count) / runtime.SIMULATION_FPS
                     raw_waypoints = list(self._delta_1s_sampled_1s)
                     # Filter out initial (0,0,0) waypoint and convert to (relative_time, waypoint) format
                     previous_waypoints = []
@@ -854,7 +831,7 @@ class NovaCarterTICVLA(BehaviorScript):
                         # Skip initial (0,0,0) waypoint
                         if abs(waypoint[0]) < 1e-6 and abs(waypoint[1]) < 1e-6 and abs(waypoint[2]) < 1e-6:
                             continue
-                        relative_time = float(step) / 30.0
+                        relative_time = float(step) / runtime.SIMULATION_FPS
                         previous_waypoints.append((relative_time, waypoint))
                     
                     previous_waypoints_text = self._format_previous_waypoints_text(previous_waypoints, elapsed_time)
@@ -986,7 +963,7 @@ class NovaCarterTICVLA(BehaviorScript):
             target_w = 0.0
             self._cmd_v = self._slew(self._cmd_v, target_v, self._max_accel_lin, self._max_decel_lin, delta_time, self._lin_deadband)
             self._cmd_w = self._slew(self._cmd_w, target_w, self._max_accel_ang, self._max_decel_ang, delta_time, self._ang_deadband)
-            if self._frame_count % 30 == 0:  # Log once per second
+            if self._frame_count % runtime.SIMULATION_FPS == 0:  # Log once per second
                 carb.log_warn(f"[NovaCarterTIC-VLA] *** WAITING FOR FRESH INFERENCE AFTER BACKUP ***: frame={self._frame_count}, backup_completion_frame={self._backup_completion_frame} - robot stationary")
         elif not self._first_inference_complete:
             # Keep robot stationary until first inference completes (but not if backing up - handled above)
@@ -1041,7 +1018,7 @@ class NovaCarterTICVLA(BehaviorScript):
                 elif self._waiting_for_inference_after_backup:
                     final_v = 0.0
                     final_w = 0.0
-                    if self._frame_count % 30 == 0:
+                    if self._frame_count % runtime.SIMULATION_FPS == 0:
                         carb.log_warn(f"[NovaCarterTIC-VLA] *** WAITING FOR INFERENCE - forcing zero commands: v={final_v:.3f}, w={final_w:.3f}, frame={self._frame_count} ***")
                 else:
                     final_v = self._cmd_v
