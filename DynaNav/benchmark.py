@@ -28,6 +28,7 @@ from generate_commands import generate_character_commands, generate_robot_comman
 import benchmark_reporting as report_utils
 import benchmark_config as config_utils
 import benchmark_runtime as runtime
+from scripted_humans import generate_scripted_commands
 
 SIMULATION_FPS = runtime.SIMULATION_FPS
 
@@ -276,7 +277,39 @@ class BenchmarkRunner:
             raise Exception("Failed to load episode configuration")
 
         # Set up simulation
-        await self._setup_sim()
+        humans = episode_config.get('scripted_humans')
+        if humans is None:
+            await self._setup_sim()
+        else:
+            import carb
+
+            command_path = config_utils.benchmark_tmp_dir(self.config_file_path, self.run_id) / "benchmark_character_commands.txt"
+            command_path.parent.mkdir(parents=True, exist_ok=True)
+            command_path.write_text(generate_scripted_commands(humans), encoding="utf-8")
+            randomizer = self._sim_manager._character_randomizer
+            original_position = randomizer.get_random_position
+            original_spawn = self._sim_manager.spawn_character_by_idx
+            next_human = 0
+
+            def scripted_position(spawn_area=None):
+                # Isaac Sim 0.7.28 passes a spawn area here, not a character index.
+                # load_characters_from_config_file calls this once per character, in index order.
+                nonlocal next_human
+                if next_human >= len(humans):
+                    raise RuntimeError("Isaac Sim requested more character positions than scripted_humans provides")
+                position = carb.Float3(*humans[next_human]['position'])
+                next_human += 1
+                return position
+
+            randomizer.get_random_position = scripted_position
+            self._sim_manager.spawn_character_by_idx = (
+                lambda location, rotation, idx: original_spawn(location, humans[idx]['yaw_degrees'], idx)
+            )
+            try:
+                await self._setup_sim()
+            finally:
+                randomizer.get_random_position = original_position
+                self._sim_manager.spawn_character_by_idx = original_spawn
         print(f"Setup sim succeed: {self._setup_sim_succeed}")
 
         # Warmup simulation

@@ -12,6 +12,7 @@ GLOBAL_KEYS = {"seed", "navigation_method", "success_threshold"}
 EPISODE_KEYS = {
     "scene", "start", "start_yaw", "goal", "instruction", "timeout",
     "num_people", "robot_type", "success_threshold",
+    "scripted_humans", "physical_human_metrics",
 }
 _VARIABLE = re.compile(r"\$\{[^}]+\}|\$[A-Za-z_][A-Za-z_0-9]*")
 
@@ -101,6 +102,31 @@ def load_benchmark_config(path):
         _number(entry["timeout"], f"episode {name!r} timeout", positive=True)
         entry["start_yaw"] = _number(entry.get("start_yaw", 0.0), f"episode {name!r} start_yaw")
         entry["num_people"] = _integer(entry.get("num_people", 3), f"episode {name!r} num_people")
+        humans = entry.get("scripted_humans")
+        if humans is not None:
+            if not isinstance(humans, list) or len(humans) != entry["num_people"]:
+                raise ValueError(f"episode {name!r} scripted_humans must contain num_people entries")
+            for index, human in enumerate(humans):
+                label = f"episode {name!r} scripted_humans[{index}]"
+                if not isinstance(human, dict) or "position" not in human:
+                    raise ValueError(f"{label} must contain position")
+                if set(human) - {"position", "yaw_degrees", "initial_idle", "walk_route"}:
+                    raise ValueError(f"{label} has unknown fields")
+                if len(_position(human["position"], f"{label} position")) != 3:
+                    raise ValueError(f"{label} position must have x, y, z")
+                human["yaw_degrees"] = _number(human.get("yaw_degrees", 0.0), f"{label} yaw_degrees")
+                human["initial_idle"] = _number(human.get("initial_idle", 3.0), f"{label} initial_idle")
+                if human["initial_idle"] < 0:
+                    raise ValueError(f"{label} initial_idle must be nonnegative")
+                route = human.get("walk_route", [])
+                if not isinstance(route, list):
+                    raise ValueError(f"{label} walk_route must be a list")
+                for point in route:
+                    if len(_position(point, f"{label} walk_route point")) != 3:
+                        raise ValueError(f"{label} walk_route points must have x, y, z")
+        metrics = entry.get("physical_human_metrics", False)
+        if not isinstance(metrics, bool):
+            raise ValueError(f"episode {name!r} physical_human_metrics must be boolean")
         entry["success_threshold"] = _number(
             entry.get("success_threshold", threshold), f"episode {name!r} success_threshold", positive=True
         )

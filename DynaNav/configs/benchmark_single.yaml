@@ -9,24 +9,45 @@ success_threshold: 1.5
 #  goal: [9.72, 2.33, 0.01]
 #  instruction: "Go straight ahead and stop at the front of the vending machine."
 #  timeout: 70
-#  num_people: 20
+#  num_people: 50
 #  robot_type: "nova_carter"
-#
-episode_37:
-  scene: ${TICVLA_DYNANAV_ROOT}/assets/office.usd
+
+episode_far20_s1_03:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
   start:
-  - -10.6
-  - -12.8
+  - 5.0
+  - 0.0
   - 0.01
-  start_yaw: -90.0
+  start_yaw: 52.46411369035301
   goal:
-  - -7.68
-  - -25.53
+  - 10.400474641839258
+  - 7.028915689689185
   - 0.01
-  instruction: Go straight ahead through the hallway, then turn left at the end to approach the red emergency exit door.
-  timeout: 90
-  num_people: 10
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 2
   robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 7.989207325074997
+    - 2.4954237250851783
+    - 0.01
+    yaw_degrees: 232.464113690353
+    initial_idle: 1.157895
+    walk_route:
+    - - 5.369397005105393
+      - -0.9143554301359873
+      - 0.01
+    - - 7.989207325074997
+      - 2.4954237250851783
+      - 0.01
+  - position:
+    - 10.400474641839258
+    - 7.028915689689185
+    - 0.01
+    yaw_degrees: 232.464113690353
+  physical_human_metrics: true
 
 #episode_office_smoke:
 #  scene: "${TICVLA_DYNANAV_ROOT}/assets/office.usd"
