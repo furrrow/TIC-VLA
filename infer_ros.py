@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import argparse
 from collections import deque
+import json
 import math
+import os
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -33,9 +35,9 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.clock import Clock, ClockType
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
-from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
+from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import CompressedImage, Image
-from std_msgs.msg import Empty, Float32MultiArray
+from std_msgs.msg import Empty, Float32MultiArray, String
 
 from infer_once import (
     _ensure_custom_utils_on_path,
@@ -45,8 +47,8 @@ from infer_video_async import load_ticvla, save_frame
 from custom_utils.io_utils import load_calibration, overlay_path
 
 DEFAULT_INSTRUCTION = "Move forward safely and avoid obstacles."
-DEFAULT_BASE_MODEL = "models/InternVL3-1B"
-DEFAULT_CHECKPOINT = "checkpoints/TIC-VLA-model.ckpt"
+DEFAULT_BASE_MODEL = os.environ.get("TICVLA_BASE_MODEL_PATH", "models/InternVL3-1B")
+DEFAULT_CHECKPOINT = os.environ.get("TICVLA_CHECKPOINT_PATH", "models/TIC-VLA-model.ckpt")
 DEFAULT_HISTORY_LEN = 4
 DEFAULT_CACHE_DIR = "./tmp/ticvla_infer_once/cache"
 
@@ -102,6 +104,7 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--robot-type", default="wheeled robot", help="Robot description supplied to the VLM")
     parser.add_argument("-i", "--instruction", default=DEFAULT_INSTRUCTION)
+    parser.add_argument("--episode-topic", default="/isaacsim/episode", help="Episode metadata topic for sim_nova")
     parser.add_argument("--rate", type=float, default=None, help="Inference timer rate. Defaults to config frame_rate")
     parser.add_argument("--history-len", type=int, default=DEFAULT_HISTORY_LEN)
     parser.add_argument(
@@ -204,6 +207,11 @@ class TICVLAROSNode(Node):
         self.temp_dir = Path(temp_dir)
         self.bridge = CvBridge()
         self.lock = Lock()
+        self.episode_id: str | None = None
+        self.instruction = args.instruction
+        self.episode_generation = 0
+        self.pending_episode_reset = False
+        self.require_episode = args.robot == "sim_nova"
         self.obs_img_bgr: np.ndarray | None = None
         self.obs_header: Any | None = None
         self.obs_sequence = 0
@@ -271,7 +279,22 @@ class TICVLAROSNode(Node):
             qos_profile=reliable_qos,
             callback_group=self.input_group,
         )
-        self.waypoint_pub = self.create_publisher(Float32MultiArray, waypoint_topic, qos_profile=reliable_qos)
+        self.episode_sub = None
+        if self.require_episode:
+            episode_qos = QoSProfile(
+                reliability=QoSReliabilityPolicy.RELIABLE,
+                durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+                history=QoSHistoryPolicy.KEEP_LAST,
+                depth=1,
+            )
+            self.episode_sub = self.create_subscription(
+                String, args.episode_topic, self.episode_callback,
+                qos_profile=episode_qos, callback_group=self.input_group,
+            )
+        # Nova Carter's Isaac bridge selects a lookahead point from policy_path.
+        self.waypoint_pub = None if self.require_episode else self.create_publisher(
+            Float32MultiArray, waypoint_topic, qos_profile=reliable_qos
+        )
         self.sampled_actions_pub = self.create_publisher(Float32MultiArray, sampled_actions_topic,
                                                          qos_profile=best_effort_qos)
         self.trajectory_visual_pub = self.create_publisher(Image, overlay_topic, qos_profile=reliable_qos)
@@ -290,7 +313,40 @@ class TICVLAROSNode(Node):
         self.get_logger().info(f"IMAGE_TOPIC: {image_topic} compressed_img_topic: {self.compressed_img_topic}")
         self.get_logger().info(f"ODOM_TOPIC: {odom_topic}")
         self.get_logger().info(f"WAYPOINT_TOPIC: {waypoint_topic}")
-        self.get_logger().info("Model ready. Waiting for image observations and odometry...")
+        self.get_logger().info("Model ready. Waiting for episode, image observations, and odometry..." if self.require_episode else "Model ready. Waiting for image observations and odometry...")
+
+    def episode_callback(self, msg: String) -> None:
+        try:
+            episode = json.loads(msg.data)
+            episode_id = episode["episode_id"]
+            instruction = episode["instruction"]
+            if not isinstance(episode_id, str) or not episode_id or not isinstance(instruction, str) or not instruction:
+                raise ValueError("episode_id and instruction must be nonempty strings")
+            if episode.get("state") != "started":
+                return
+            if episode.get("robot_type") != "nova_carter":
+                raise ValueError("expected robot_type nova_carter")
+        except (ValueError, KeyError, TypeError) as exc:
+            self.get_logger().error(f"Invalid episode message: {exc}")
+            return
+
+        with self.lock:
+            if episode_id == self.episode_id:
+                return
+            self.episode_id = episode_id
+            self.instruction = instruction
+            self.episode_generation += 1
+            self.pending_episode_reset = True
+            self.obs_img_bgr = None
+            self.obs_header = None
+            self.obs_sequence = 0
+            self.processed_sequence = 0
+            self.have_odom = False
+            self.current_pos.fill(0.0)
+            self.current_quat_wxyz[:] = [1.0, 0.0, 0.0, 0.0]
+            self.robot_velocity_base.fill(0.0)
+            self.robot_angular_velocity_base.fill(0.0)
+        self.get_logger().info(f"Started episode {episode_id}; instruction: {instruction}")
 
     def img_callback_obs(self, msg: Image | CompressedImage) -> None:
         try:
@@ -387,6 +443,23 @@ class TICVLAROSNode(Node):
 
     def run_inference_loop(self) -> None:
         with self.lock:
+            reset_requested = self.pending_episode_reset
+            reset_generation = self.episode_generation
+            self.pending_episode_reset = False
+        if reset_requested:
+            self.model.reset_episode_state()
+            self.image_history.clear()
+            self.vlm_generation_refs.clear()
+            self.last_image_stamp_ns = None
+            self.started_sent = False
+            self.inference_count = 0
+            self.inference_start_time = time.perf_counter()
+
+        with self.lock:
+            if self.pending_episode_reset or self.episode_generation != reset_generation:
+                return
+            if self.require_episode and self.episode_id is None:
+                return
             if self.obs_img_bgr is None:
                 return
             if not self.have_odom:
@@ -403,6 +476,8 @@ class TICVLAROSNode(Node):
             current_quat_wxyz = self.current_quat_wxyz.copy()
             robot_velocity_base = self.robot_velocity_base.copy()
             robot_angular_velocity_base = self.robot_angular_velocity_base.copy()
+            instruction = self.instruction
+            generation = self.episode_generation
 
         if header is None:
             return
@@ -438,7 +513,7 @@ class TICVLAROSNode(Node):
             response, waypoint_tensor, generation_step, cache_available, generation_pose = self.model.predict_async(
                 image_paths=image_paths,
                 delayed_image_paths=image_paths,
-                instruction=self.args.instruction,
+                instruction=instruction,
                 robot_state=robot_state,
                 current_step=sequence,
                 current_robot_pose=robot_pose,
@@ -446,6 +521,10 @@ class TICVLAROSNode(Node):
                 robot_type=self.args.robot_type,
             )
         inference_seconds = time.perf_counter() - t0
+
+        with self.lock:
+            if generation != self.episode_generation:
+                return
 
         if generation_step is not None and generation_pose is not None:
             pos = np.asarray(generation_pose.get("position", current_pos), dtype=np.float64)
@@ -467,18 +546,23 @@ class TICVLAROSNode(Node):
             raise ValueError("Model returned non-finite waypoints.")
 
         chosen_idx = min(max(self.waypoint_idx, 0), len(path_xy) - 1)
-        self.get_logger().info(f"Chosen waypoint idx: {chosen_idx}")
-        self.get_logger().info(f"Waypoints len {len(path_xy)} waypoints until this idx: {path_xy[: chosen_idx]}")
-        chosen_waypoint = path_xy[chosen_idx]
-        self.pub_path.publish(self.to_path_msg(path_xy, header.stamp))
-
-        waypoint_msg = Float32MultiArray()
-        waypoint_msg.data = chosen_waypoint.flatten().astype(float).tolist()
-        self.waypoint_pub.publish(waypoint_msg)
+        if self.waypoint_pub is not None:
+            chosen_waypoint = path_xy[chosen_idx]
+            waypoint_msg = Float32MultiArray()
+            waypoint_msg.data = chosen_waypoint.flatten().astype(float).tolist()
+        with self.lock:
+            if generation != self.episode_generation:
+                return
+            self.pub_path.publish(self.to_path_msg(path_xy, header.stamp))
+            if self.waypoint_pub is not None:
+                self.waypoint_pub.publish(waypoint_msg)
 
         sampled_actions_msg = Float32MultiArray()
         sampled_actions_msg.data = path_xy.flatten().astype(float).tolist()
-        self.sampled_actions_pub.publish(sampled_actions_msg)
+        with self.lock:
+            if generation != self.episode_generation:
+                return
+            self.sampled_actions_pub.publish(sampled_actions_msg)
         if self.show_overlay:
             overlay = self.overlay_image(frame_bgr, path_xy)
             cv2.putText(
@@ -492,12 +576,18 @@ class TICVLAROSNode(Node):
             )
             out_msg = self.bridge.cv2_to_imgmsg(np.array(overlay), encoding="bgr8")
             out_msg.header = header
-            self.trajectory_visual_pub.publish(out_msg)
+            with self.lock:
+                if generation != self.episode_generation:
+                    return
+                self.trajectory_visual_pub.publish(out_msg)
 
-        if not self.started_sent:
-            self.started_sent = True
-            self.pub_started.publish(Empty())
-            self.get_logger().info("Published /started (once).")
+        with self.lock:
+            if generation != self.episode_generation:
+                return
+            if not self.started_sent:
+                self.started_sent = True
+                self.pub_started.publish(Empty())
+                self.get_logger().info("Published /started (once).")
 
         if self.args.show and self.show_overlay:
             cv2.imshow("TIC-VLA ROS", overlay)
@@ -507,10 +597,15 @@ class TICVLAROSNode(Node):
         elapsed = time.perf_counter() - self.inference_start_time
         if elapsed >= 1.0:
             inference_rate = self.inference_count / elapsed
+            detail = (
+                f"path_points={len(path_xy)} (bridge selects 1 m lookahead)"
+                if self.waypoint_pub is None
+                else f"waypoint[{chosen_idx}]={chosen_waypoint.tolist()}"
+            )
             self.get_logger().info(
                 f"Inference rate: {inference_rate:.2f} Hz | "
                 f"last={inference_seconds:.2f}s delay={delay_time:.2f}s "
-                f"cache={cache_available} waypoint[{chosen_idx}]={chosen_waypoint.tolist()}"
+                f"cache={cache_available} {detail}"
             )
             self.inference_count = 0
             self.inference_start_time = time.perf_counter()

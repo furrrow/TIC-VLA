@@ -1,6 +1,7 @@
 """In-process episode context shared with Isaac-created behavior scripts."""
 
 from dataclasses import dataclass
+from typing import Callable
 
 
 SIMULATION_FPS = 30
@@ -9,11 +10,13 @@ SIMULATION_FPS = 30
 @dataclass
 class BehaviorContext:
     run_id: str
+    episode_name: str
     goal: tuple[float, float, float]
     instruction: str
     log_dir: str
     frame_count: int = 0
     failure_reason: str | None = None
+    ros_cleanup: Callable[[], None] | None = None
 
 
 _contexts: dict[str, BehaviorContext] = {}

@@ -1,0 +1,228 @@
+"""Bridge Nova Carter's camera, odometry, and wheel commands to ROS 2."""
+
+import cv2
+import json
+import os
+import time
+import numpy as np
+import carb
+import omni.usd
+import omni.replicator.core as rep
+from omni.kit.scripting import BehaviorScript
+from isaacsim.robot.wheeled_robots.robots import WheeledRobot
+from isaacsim.robot.wheeled_robots.controllers.differential_controller import DifferentialController
+from isaacsim.core.utils.rotations import quat_to_rot_matrix
+
+import rclpy
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+import benchmark_runtime as runtime
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry, Path
+from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import Float32MultiArray, String
+
+
+IMAGE_TOPIC = "/isaacsim/camera/front/image_raw/compressed"
+ODOM_TOPIC = "/isaacsim/odom"
+CMD_VEL_TOPIC = os.environ.get("TICVLA_CMD_VEL_TOPIC", "/isaacsim/cmd_vel")
+EPISODE_TOPIC = "/isaacsim/episode"
+POLICY_PATH_TOPIC = "/sim_nova/policy_path"
+WAYPOINT_TOPIC = "/sim_nova/waypoint"
+LOOKAHEAD_DISTANCE_M = 1.0
+COMMAND_TIMEOUT_S = 0.5
+MAX_LINEAR_SPEED = 1.5 # 0.2
+MAX_ANGULAR_SPEED = 1.2 # 0.3
+CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/front_hawk/left/camera_left"
+BASE_LINK_PATH = "/World/Robots/Nova_Carter/chassis_link"
+
+
+class NovaCarterROSBridge(BehaviorScript):
+    """Isaac-thread publisher for one benchmark child and one robot."""
+
+    def on_init(self):
+        self._benchmark_context = runtime.get(str(self.prim_path))
+        self._benchmark_context.ros_cleanup = self._close
+        self._robot = WheeledRobot(
+            prim_path=str(self.prim_path),
+            name="nova_carter_ros_bridge",
+            wheel_dof_names=["joint_wheel_left", "joint_wheel_right"],
+            create_robot=False,
+        )
+        self._node = None
+        self._controller = DifferentialController(
+            name="nova_carter_ros_differential_controller", wheel_radius=0.152, wheel_base=0.413
+        )
+        self._command = (0.0, 0.0)
+        self._command_time = None
+        self._owns_rclpy = False
+        self._render_product = None
+        self._annotator = None
+        self._closed = False
+
+    def on_play(self):
+        self._benchmark_context.ros_cleanup = self._close
+        self._command = (0.0, 0.0)
+        self._command_time = None
+        if not rclpy.ok():
+            rclpy.init()
+            self._owns_rclpy = True
+        if self._node is None:
+            self._node = rclpy.create_node("ticvla_simulation")
+            self._image_pub = self._node.create_publisher(CompressedImage, IMAGE_TOPIC, 10)
+            self._odom_pub = self._node.create_publisher(Odometry, ODOM_TOPIC, 10)
+            self._cmd_sub = self._node.create_subscription(Twist, CMD_VEL_TOPIC, self._on_command, 10)
+            self._path_sub = self._node.create_subscription(Path, POLICY_PATH_TOPIC, self._on_path, 10)
+            self._waypoint_pub = self._node.create_publisher(Float32MultiArray, WAYPOINT_TOPIC, 10)
+            episode_qos = QoSProfile(depth=1)
+            episode_qos.reliability = ReliabilityPolicy.RELIABLE
+            episode_qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
+            self._episode_pub = self._node.create_publisher(String, EPISODE_TOPIC, episode_qos)
+        if not getattr(self._robot, "_initialized", False):
+            self._robot.initialize()
+        if self._annotator is None:
+            self._render_product = rep.create.render_product(CAMERA_PATH, resolution=(1920, 1080))
+            self._annotator = rep.AnnotatorRegistry.get_annotator("rgb")
+            self._annotator.attach([self._render_product])
+        self._closed = False
+        episode = self._benchmark_context
+        message = String()
+        message.data = json.dumps({
+            "episode_id": f"{episode.run_id}:{episode.episode_name}:{os.getpid()}",
+            "run_id": episode.run_id,
+            "episode_name": episode.episode_name,
+            "instruction": episode.instruction,
+            "robot_type": "nova_carter",
+            "state": "started",
+        })
+        self._episode_pub.publish(message)
+
+    def _on_command(self, msg: Twist):
+        self._command = (
+            float(np.clip(msg.linear.x, -MAX_LINEAR_SPEED, MAX_LINEAR_SPEED)),
+            float(np.clip(msg.angular.z, -MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED)),
+        )
+        self._command_time = time.monotonic()
+
+    def _on_path(self, msg: Path):
+        points = np.asarray(
+            [[pose.pose.position.x, pose.pose.position.y] for pose in msg.poses],
+            dtype=np.float64,
+        )
+        if len(points) == 0 or not np.isfinite(points).all():
+            carb.log_warn("Ignoring empty or non-finite Nova Carter policy path")
+            return
+        if len(points) == 1:
+            index = 0
+        else:
+            segment_lengths = np.linalg.norm(np.diff(points, axis=0), axis=1)
+            arc_lengths = np.concatenate(([0.0], np.cumsum(segment_lengths)))
+            index = int(np.searchsorted(arc_lengths, LOOKAHEAD_DISTANCE_M, side="left"))
+            if len(points) >= 5:
+                index = int(np.clip(index, 2, len(points) - 3))
+            else:
+                index = min(index, len(points) - 1)
+        waypoint = Float32MultiArray()
+        waypoint.data = points[index].tolist()
+        self._waypoint_pub.publish(waypoint)
+
+    def on_update(self, current_time: float, delta_time: float):
+        if self._node is not None:
+            rclpy.spin_once(self._node, timeout_sec=0.0)
+        if self._closed or self._node is None or not self._robot.is_valid():
+            return
+        command = self._command if self._command_time is not None and time.monotonic() - self._command_time < COMMAND_TIMEOUT_S else (0.0, 0.0)
+        stage = omni.usd.get_context().get_stage()
+        if stage is None:
+            return
+        base_prim = stage.GetPrimAtPath(BASE_LINK_PATH)
+        if not base_prim or not base_prim.IsValid():
+            return
+        transform = omni.usd.get_world_transform_matrix(base_prim)
+        position = transform.ExtractTranslation()
+        action = self._controller.forward(command=np.asarray(command, dtype=np.float32))
+        self._robot.apply_wheel_actions(action)
+
+        # Both messages describe this update. Node/system time is used until
+        # the benchmark publishes /clock and opts into simulation time.
+        stamp = self._node.get_clock().now().to_msg()
+        rotation = transform.ExtractRotation().GetQuat()
+        q_wxyz = np.array([rotation.GetReal(), *rotation.GetImaginary()], dtype=np.float64)
+        world_from_base = quat_to_rot_matrix(q_wxyz)
+        linear_world = self._robot.get_linear_velocity()
+        angular_world = self._robot.get_angular_velocity()
+        linear_base = world_from_base.T @ np.asarray(
+            linear_world if linear_world is not None else np.zeros(3), dtype=np.float64
+        )
+        angular_base = world_from_base.T @ np.asarray(
+            angular_world if angular_world is not None else np.zeros(3), dtype=np.float64
+        )
+
+        odom = Odometry()
+        odom.header.stamp = stamp
+        odom.header.frame_id = "odom"
+        odom.child_frame_id = "base_link"
+        odom.pose.pose.position.x, odom.pose.pose.position.y, odom.pose.pose.position.z = map(float, position)
+        odom.pose.pose.orientation.w = float(q_wxyz[0])
+        odom.pose.pose.orientation.x = float(q_wxyz[1])
+        odom.pose.pose.orientation.y = float(q_wxyz[2])
+        odom.pose.pose.orientation.z = float(q_wxyz[3])
+        odom.twist.twist.linear.x, odom.twist.twist.linear.y, odom.twist.twist.linear.z = map(float, linear_base)
+        odom.twist.twist.angular.x, odom.twist.twist.angular.y, odom.twist.twist.angular.z = map(float, angular_base)
+        self._odom_pub.publish(odom)
+
+        # Replicator rgb is RGB or RGBA. OpenCV's JPEG encoder expects BGR.
+        if self._annotator is None:
+            return
+        frame = self._annotator.get_data()
+        if frame is None or not hasattr(frame, "shape") or frame.size == 0:
+            return
+        if frame.ndim != 3 or frame.shape[2] not in (3, 4):
+            carb.log_warn(f"Unexpected front camera frame shape: {frame.shape}")
+            return
+        if frame.dtype != np.uint8:
+            frame = np.clip(frame, 0, 255).astype(np.uint8)
+        bgr = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR if frame.shape[2] == 4 else cv2.COLOR_RGB2BGR)
+        encoded, jpeg = cv2.imencode(".jpg", bgr)
+        if not encoded:
+            carb.log_warn("Failed to JPEG-encode front camera frame")
+            return
+        image = CompressedImage()
+        image.header.stamp = stamp
+        image.header.frame_id = "front_camera"
+        image.format = "jpeg"
+        image.data = jpeg.tobytes()
+        self._image_pub.publish(image)
+
+    def on_stop(self):
+        self._close()
+
+    def on_destroy(self):
+        self._close()
+
+    def _close(self):
+        if self._closed:
+            return
+        self._closed = True
+        if self._benchmark_context.ros_cleanup == self._close:
+            self._benchmark_context.ros_cleanup = None
+        self._command = (0.0, 0.0)
+        self._command_time = None
+        try:
+            if self._robot.is_valid():
+                action = self._controller.forward(command=np.zeros(2, dtype=np.float32))
+                self._robot.apply_wheel_actions(action)
+        except Exception as exc:
+            carb.log_warn(f"Failed to stop Nova Carter wheels: {exc}")
+        if self._annotator is not None:
+            try:
+                self._annotator.detach()
+            except Exception as exc:
+                carb.log_warn(f"Failed to detach front camera annotator: {exc}")
+            self._annotator = None
+        self._render_product = None
+        if self._node is not None:
+            self._node.destroy_node()
+            self._node = None
+        if self._owns_rclpy and rclpy.ok():
+            rclpy.shutdown()
+            self._owns_rclpy = False

@@ -157,6 +157,7 @@ class BenchmarkRunner:
         goal = episode_config['goal']
         self.behavior_context = runtime.BehaviorContext(
             run_id=self.run_id,
+            episode_name=episode_name,
             goal=(float(goal[0]), float(goal[1]), float(goal[2] if len(goal) > 2 else 0.0)),
             instruction=episode_config['instruction'],
             log_dir=os.getenv('TICVLA_LOG_DIR', './logs'),
@@ -181,19 +182,23 @@ class BenchmarkRunner:
     def _cleanup_episode_resources(self):
         """Release resources created for one episode on every exit path."""
         try:
-            self._cleanup_contact_sensor()
+            if self.behavior_context and self.behavior_context.ros_cleanup:
+                self.behavior_context.ros_cleanup()
         finally:
-            runtime.unregister(self.state.spawned_robot_prim_path)
-            self._setup_sim_sub = None
-            path = getattr(self, '_temp_config_path', None)
-            self._temp_config_path = None
-            if path:
-                try:
-                    os.remove(path)
-                except FileNotFoundError:
-                    pass
-                except OSError as error:
-                    print(f"Warning: Failed to cleanup temp config: {error}")
+            try:
+                self._cleanup_contact_sensor()
+            finally:
+                runtime.unregister(self.state.spawned_robot_prim_path)
+                self._setup_sim_sub = None
+                path = getattr(self, '_temp_config_path', None)
+                self._temp_config_path = None
+                if path:
+                    try:
+                        os.remove(path)
+                    except FileNotFoundError:
+                        pass
+                    except OSError as error:
+                        print(f"Warning: Failed to cleanup temp config: {error}")
 
     def collect_and_build_episode_result(self, episode_name: str, episode_config: dict, success: bool) -> dict:
         metrics = report_utils.EpisodeMetrics(
@@ -633,6 +638,9 @@ class BenchmarkRunner:
 
         for ext in extensions:
             ext_manager.set_extension_enabled_immediate(ext, True)
+        if self.navigation_method == 'ticvla_ros':
+            # Isaac's bridge supplies Python 3.11-compatible rclpy and message types.
+            ext_manager.set_extension_enabled_immediate('isaacsim.ros2.bridge', True)
 
     def _set_simulation_settings(self):
         import carb
@@ -767,14 +775,17 @@ class BenchmarkRunner:
 
         nav_method = self.navigation_method
         
-        if nav_method != 'ticvla':
+        if nav_method not in ('ticvla', 'ticvla_ros'):
             raise ValueError(
                 f"Unsupported navigation method in the public TIC-VLA release: {nav_method}. "
                 "Use 'ticvla'."
             )
-        script_path = os.path.abspath("./behavior/nova_carter_test_ticvla.py")
-        script_name = "TIC-VLA"
-        print("Using TIC-VLA behavior script")
+        script_path = os.path.abspath(
+            "./behavior/nova_carter_ros_bridge.py" if nav_method == 'ticvla_ros'
+            else "./behavior/nova_carter_test_ticvla.py"
+        )
+        script_name = "ROS sensor bridge" if nav_method == 'ticvla_ros' else "TIC-VLA"
+        print(f"Using {script_name} behavior script")
 
         # Attach behavioral script
         import omni.kit.commands
@@ -825,8 +836,7 @@ class BenchmarkRunner:
         
         if nav_method != 'ticvla':
             raise ValueError(
-                f"Unsupported navigation method in the public TIC-VLA release: {nav_method}. "
-                "Use 'ticvla'."
+                f"Navigation method {nav_method!r} is not supported for Spot; use 'ticvla'."
             )
         script_path = os.path.abspath("./behavior/spot_test_ticvla.py")
         script_name = "TIC-VLA"
@@ -1252,12 +1262,12 @@ def parse_args():
     parser.add_argument("--crash_report_path", required=False, default=None, help="Path to store crash reports")
     parser.add_argument("--debug_print", required=False, default=False, action="store_true", help="Enable debug print")
     
-    # Navigation method (command-line takes priority over YAML config)
+    # Command-line selection overrides the method in the benchmark YAML.
     parser.add_argument(
         "--navigation_method", "--method", 
         default=None,
-        choices=['ticvla'],
-        help="Navigation method to use. Public release supports ticvla."
+        choices=['ticvla', 'ticvla_ros'],
+        help="Navigation method; ticvla_ros publishes Nova Carter sensor topics."
     )
 
     # Run ID for multi-instance support (allows running multiple benchmarks simultaneously)
@@ -1293,8 +1303,8 @@ def main():
     try:
         benchmark_config = config_utils.load_benchmark_config(config_file_path)
         navigation_method = args.navigation_method or benchmark_config['navigation_method']
-        if args.navigation_method and args.navigation_method.lower() != 'ticvla':
-            raise ValueError("navigation_method must be 'ticvla'")
+        if args.navigation_method and args.navigation_method.lower() not in ('ticvla', 'ticvla_ros'):
+            raise ValueError("navigation_method must be 'ticvla' or 'ticvla_ros'")
         if args.child:
             if not args.episode_name or not args.result_json:
                 raise ValueError("Child mode requires --episode_name and --result_json")
@@ -1321,10 +1331,7 @@ def main():
     print("Crash Report Path:", crash_report_path)
     print("Debug Print:", debug_print)
     print("Run ID:", run_id)
-    if args.navigation_method:
-        print(f"Navigation Method: {args.navigation_method} (from command-line)")
-    else:
-        print("Navigation Method: Will use YAML config or default")
+    print(f"Navigation Method: {navigation_method} (resolved from command-line or config)")
     if args.start_from:
         print("Start From:", args.start_from)
     if args.reverse_episodes:
@@ -1343,7 +1350,7 @@ def main():
             crash_report_path=crash_report_path,
             debug_print=debug_print,
             run_id=run_id,
-            navigation_method=args.navigation_method,
+            navigation_method=navigation_method,
         )
         normalized = _normalize_result(raw, episode_name, episode_config)
         all_results.append(normalized)

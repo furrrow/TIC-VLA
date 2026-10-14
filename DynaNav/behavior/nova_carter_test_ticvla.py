@@ -1026,6 +1026,8 @@ class NovaCarterTICVLA(BehaviorScript):
                 
                 action = self._diff.forward(command=np.array([final_v, final_w], dtype=np.float32))
                 self._wheeled_robot.apply_wheel_actions(action)
+                if self._frame_count % runtime.SIMULATION_FPS == 0:
+                    print(f"[NovaCarterTIC-VLA] wheel command: v={final_v:.3f} m/s, w={final_w:.3f} rad/s, frame={self._frame_count}", flush=True)
             except Exception as e:
                 carb.log_error(f"Failed to apply wheel actions: {e}")
                 import traceback

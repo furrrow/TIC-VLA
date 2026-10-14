@@ -41,6 +41,65 @@ The worker collects metrics and cleans up episode resources. The child writes on
 
 The child process exits after its episode, so the next episode starts with a fresh SimulationApp. There is no separate `run_benchmark()` method in the current workflow.
 
+### Nova Carter ROS sensor preview
+
+The `ticvla_ros` method publishes Nova Carter's forward camera as
+`sensor_msgs/CompressedImage` on `/isaacsim/camera/front/image_raw/compressed` and
+base-frame velocity and pose as `nav_msgs/Odometry` on `/isaacsim/odom`. It
+subscribes to `geometry_msgs/Twist` on `/isaacsim/cmd_vel` and applies its
+`linear.x` and `angular.z` to the wheels. Commands are limited to 1.5 m/s and
+1.2 rad/s, and the robot stops if no command arrives for 0.5 seconds. Set
+`TICVLA_CMD_VEL_TOPIC` in the Isaac terminal to override the command topic.
+Spot is not supported in this preview.
+
+At episode start, the bridge publishes a reliable, transient-local
+`std_msgs/String` on `/isaacsim/episode`. Its `data` is JSON with
+`episode_id` (`run_id:episode_name:child_pid`), `run_id`, `episode_name`,
+`instruction`, `robot_type` (`nova_carter`), and `state` (`started`). Subscribers
+can use the ID to reset state when a new child starts. The benchmark closes
+the bridge and stops its wheels when the episode exits.
+With `--robot sim_nova`, `infer_ros.py` subscribes to this topic, waits for an
+episode before inference, uses its instruction, and resets model and observation
+history on each new episode ID. Other robot profiles continue using
+`--instruction`.
+For `sim_nova`, inference publishes the full predicted path on
+`/sim_nova/policy_path`. The Isaac bridge publishes `/sim_nova/waypoint` using
+the first point about 1 meter along that path, clamped to indices 2 through
+`T-3` for paths of at least five points. The global `waypoint_idx` setting and
+`--waypoint-idx` apply only to other robot profiles.
+
+Isaac's ROS 2 bridge extension supplies an `rclpy` build compatible with its
+Python 3.11 runtime. `run_benchmark.sh` sources `.env.testing` to use its
+bundled Humble library path for the Isaac ROS bridge.
+Run a Nova Carter episode with:
+
+```bash
+DynaNav/run_benchmark.sh DynaNav/configs/benchmark_single.yaml
+```
+
+In a separate terminal, source the system ROS installation and inspect the streams:
+
+```bash
+source /opt/ros/humble/setup.bash
+export ROS_DOMAIN_ID=42
+ros2 node list
+ros2 topic hz /isaacsim/camera/front/image_raw/compressed
+ros2 topic hz /isaacsim/odom
+ros2 topic echo /isaacsim/odom --once
+ros2 topic echo /isaacsim/episode std_msgs/msg/String --qos-durability transient_local --once
+```
+
+To test wheel control during an episode, run in the ROS terminal:
+
+```bash
+ros2 topic pub --rate 10 /isaacsim/cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1}, angular: {z: 0.0}}'
+```
+
+The `sim_nova` entry in `configs/robot.yaml` uses the same image, odometry,
+and velocity topics for the waypoint controller.
+
+Use the same `ROS_DOMAIN_ID` from `.env.testing` in the ROS inspection terminal.
+
 ## Data Collection
 
 Data collection uses Isaac Sim Python and the configs in `configs/data_collection/`:

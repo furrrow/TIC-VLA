@@ -73,9 +73,9 @@ def load_benchmark_config(path):
 
     seed = _integer(config.get("seed", 42), "seed")
     threshold = _number(config.get("success_threshold", 1.5), "success_threshold", positive=True)
-    method = config.get("navigation_method", "ticvla")
-    if not isinstance(method, str) or method.lower() != "ticvla":
-        raise ValueError("navigation_method must be 'ticvla'")
+    method = config.get("navigation_method", "ticvla_ros")
+    if not isinstance(method, str) or method.lower() not in ("ticvla", "ticvla_ros"):
+        raise ValueError("navigation_method must be 'ticvla' or 'ticvla_ros'")
     validated = {"seed": seed, "navigation_method": method.lower(), "success_threshold": threshold}
 
     for name, episode in config.items():
