@@ -18,7 +18,7 @@ import argparse
 import asyncio
 import numpy as np
 from isaacsim import SimulationApp
-from generate_commands import *
+from generate_commands import generate_character_commands, generate_robot_commands
 
 
 APP_CONFIG = {"renderer": "RayTracedLighting", "headless": False, "width": 640, "height": 480}

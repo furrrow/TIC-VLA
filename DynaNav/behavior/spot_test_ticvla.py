@@ -102,6 +102,8 @@ except ImportError as e:
     print(f"Warning: TIC-VLA components not found: {e}")
     TICVLA = None
 
+import benchmark_runtime as runtime
+
 
 class SpotTICVLA(BehaviorScript):
     """TIC-VLA-based autonomous navigation behavior for Spot robot with async inference."""
@@ -131,6 +133,7 @@ class SpotTICVLA(BehaviorScript):
     def on_init(self):
         """Initialize the TIC-VLA behavior script."""
         carb.log_info(f"[{self.get_agent_name()}] Initializing SpotTICVLA...")
+        self._benchmark_context = runtime.get(str(self.prim_path))
 
         # Create Spot policy controller
         self._policy: SpotFlatTerrainPolicy = SpotFlatTerrainPolicy(
@@ -192,9 +195,8 @@ class SpotTICVLA(BehaviorScript):
 
         # Image history buffering for model
         self._image_history = []  # Keep last N frames for better prediction
-        self._max_history_frames = 4  # Maximum number of historical frames to keep
         self._sensor_update_frequency = 10  # Hz
-        # Keep 9 seconds of history based on sensor frequency
+        # Retain enough sensor frames for the history samples.
         self._max_history_frames = int(19 * self._sensor_update_frequency)
         self._sensor_frame_count = -1
         self._image_buffer_dir = None  # Directory to temporarily store camera frames
@@ -214,10 +216,8 @@ class SpotTICVLA(BehaviorScript):
         self._stream_data = True
         self._log_interval_frames = 10
         self._last_log_frame = 0
-        # Get run_id from environment for unique log paths (multi-instance support)
-        self._run_id = os.getenv('BENCHMARK_RUN_ID', 'default')
-        self.save_log_dir = os.getenv('TICVLA_LOG_DIR', './logs')
-        # self._log_directory = f"./logs/{self._run_id}/spot_ticvla_data"
+        self._run_id = self._benchmark_context.run_id
+        self.save_log_dir = self._benchmark_context.log_dir
         self._log_directory = f"{self.save_log_dir}/{self._run_id}/spot_ticvla_data"
 
         self._frame_count = 0
@@ -242,7 +242,7 @@ class SpotTICVLA(BehaviorScript):
         
         # Stuck detection and recovery
         self._stuck_position_threshold = 0.1  # meters - consider stuck if moved less than this
-        self._stuck_time_threshold_frames = 150  # frames - stuck if not moving for this many frames (3 seconds at 30 FPS)
+        self._stuck_time_threshold_frames = 150  # Five seconds at the simulation frame rate
         self._backup_duration_frames = 300  # frames - backup for this many frames when stuck (straight back, no rotation)
         self._backup_speed = -0.5  # m/s - backward speed during recovery
         self._last_movement_position = None  # Last position where significant movement was detected
@@ -466,7 +466,7 @@ class SpotTICVLA(BehaviorScript):
         self._navigation_active = True
 
         # Configure from environment variables set by benchmark
-        self._configure_from_environment()
+        self._configure_from_benchmark()
 
         carb.log_info("[SpotTIC-VLA] TIC-VLA navigation initialized")
 
@@ -570,7 +570,7 @@ class SpotTICVLA(BehaviorScript):
             self._head_camera = Camera(
                 prim_path=cam_prim_path,
                 name=cam_name,
-                frequency=30,
+                frequency=runtime.SIMULATION_FPS,
                 resolution=(1920, 1080),
                 translation=cam_translation,
                 orientation=cam_orientation,
@@ -650,7 +650,7 @@ class SpotTICVLA(BehaviorScript):
             self._third_person_camera = Camera(
                 prim_path=tp_cam_prim_path,
                 name=tp_cam_name,
-                frequency=30,
+                frequency=runtime.SIMULATION_FPS,
                 resolution=(1920, 1080),
                 translation=tp_cam_translation,
                 orientation=tp_cam_orientation,
@@ -741,27 +741,9 @@ class SpotTICVLA(BehaviorScript):
                 carb.log_warn(f"Failed to get TP camera data: {e}")
                 self._camera_image_tp = None
 
-    def _configure_from_environment(self):
-        """Configure TIC-VLA behavior from environment variables set by benchmark."""
-        try:
-            # Read goal position from environment variables
-            goal_x = os.getenv('TICVLA_GOAL_X')
-            goal_y = os.getenv('TICVLA_GOAL_Y')
-            goal_z = os.getenv('TICVLA_GOAL_Z', '0.0')
-
-            if goal_x is not None and goal_y is not None:
-                goal_position = np.array([float(goal_x), float(goal_y), float(goal_z)])
-                self._goal_position = goal_position
-                carb.log_info(f"Goal position configured from environment: {goal_position}")
-
-            # Read instruction from environment variables
-            instruction = os.getenv('TICVLA_INSTRUCTION')
-            if instruction is not None:
-                self._instruction = instruction
-                carb.log_info(f"Instruction configured from environment: {instruction}")
-
-        except Exception as e:
-            carb.log_warn(f"Failed to configure from environment: {e}")
+    def _configure_from_benchmark(self):
+        self._goal_position = np.array(self._benchmark_context.goal)
+        self._instruction = self._benchmark_context.instruction
 
     def _robot_ready(self):
         stage = omni.usd.get_context().get_stage()
@@ -787,12 +769,7 @@ class SpotTICVLA(BehaviorScript):
         if not self._navigation_active:
             return
         
-        benchmark_frame_count_str = os.getenv('BENCHMARK_SIMULATION_FRAME_COUNT')
-        if benchmark_frame_count_str is not None:
-            try:
-                self._frame_count = int(benchmark_frame_count_str)
-            except (ValueError, TypeError):
-                pass
+        self._frame_count = self._benchmark_context.frame_count
 
         try:
             app = omni.kit.app.get_app()
@@ -824,7 +801,7 @@ class SpotTICVLA(BehaviorScript):
         self._update_robot_state(delta_time)
         
         frame_idx = int(self._frame_count)
-        if frame_idx % 30 == 0 and frame_idx != getattr(self, '_last_recorded_frame', -1):
+        if frame_idx % runtime.SIMULATION_FPS == 0 and frame_idx != getattr(self, '_last_recorded_frame', -1):
             if self._robot_position is not None:
                 try:
                     p_cur, R_cur, quat_wxyz = self._get_pose_R_quat()
@@ -859,10 +836,10 @@ class SpotTICVLA(BehaviorScript):
             if self._backup_start_frame is not None:
                 backup_elapsed_frames = self._frame_count - self._backup_start_frame
                 
-                # Log progress every 30 frames (approximately every second at 30 FPS)
-                if backup_elapsed_frames > 0 and backup_elapsed_frames % 30 == 0 and backup_elapsed_frames < self._backup_duration_frames:
+                # Log backup progress once per simulation second.
+                if backup_elapsed_frames > 0 and backup_elapsed_frames % runtime.SIMULATION_FPS == 0 and backup_elapsed_frames < self._backup_duration_frames:
                     remaining_frames = self._backup_duration_frames - backup_elapsed_frames
-                    remaining_time = remaining_frames / 30.0
+                    remaining_time = remaining_frames / runtime.SIMULATION_FPS
                     carb.log_info(f"[{self.get_agent_name()}] Backing up progress: {backup_elapsed_frames}/{self._backup_duration_frames} frames ({remaining_time:.1f}s remaining, frame={self._frame_count}, start_frame={self._backup_start_frame})")
                 
                 # Check if backup duration has elapsed - do this check every frame
@@ -926,15 +903,15 @@ class SpotTICVLA(BehaviorScript):
                     self._cmd_vx = self._backup_speed
                     self._cmd_vy = 0.0
                     self._cmd_wz = 0.0
-                    stuck_time_seconds = frames_since_movement / 30.0
-                    backup_duration_seconds = self._backup_duration_frames / 30.0
+                    stuck_time_seconds = frames_since_movement / runtime.SIMULATION_FPS
+                    backup_duration_seconds = self._backup_duration_frames / runtime.SIMULATION_FPS
                     carb.log_warn(f"[{self.get_agent_name()}] Robot stuck detected (not moved for {frames_since_movement} frames / {stuck_time_seconds:.2f}s), starting backup recovery for {self._backup_duration_frames} frames ({backup_duration_seconds:.1f}s)")
                     carb.log_warn(f"[{self.get_agent_name()}] Backup start: frame={self._backup_start_frame}, cmd_vx={self._cmd_vx:.3f}, cmd_wz={self._cmd_wz:.3f}, cleared _current_action")
 
         # Sensor/update cadence for model
 
         self._sensor_frame_count += 1
-        if self._sensor_frame_count % max(1, (30 // self._sensor_update_frequency)) == 0:
+        if self._sensor_frame_count % max(1, (runtime.SIMULATION_FPS // self._sensor_update_frequency)) == 0:
             # Buffer the latest head image to disk for the model (main thread does file write)
             if self._image_buffer_dir is not None and self._camera_image_head is not None:
 
@@ -1006,7 +983,7 @@ class SpotTICVLA(BehaviorScript):
                         dy = float(vec_flu[1])
                         
                         step_delay = self._frame_count - ref_vlm_generation_start_frame
-                        delay_time = float(step_delay) / 30.0
+                        delay_time = float(step_delay) / runtime.SIMULATION_FPS
                     else:
                         dx, dy = 0.0, 0.0
                         delay_time = 0.0
@@ -1023,7 +1000,7 @@ class SpotTICVLA(BehaviorScript):
                     )
                     
                     # Prepare waypoints: filter out initial (0,0,0) and convert to (relative_time, waypoint) format
-                    elapsed_time = float(self._frame_count) / 30.0
+                    elapsed_time = float(self._frame_count) / runtime.SIMULATION_FPS
                     raw_waypoints = list(self._position_offset_history)
                     # Filter out initial (0,0,0) waypoint and convert to (relative_time, waypoint) format
                     previous_waypoints = []
@@ -1031,7 +1008,7 @@ class SpotTICVLA(BehaviorScript):
                         # Skip initial (0,0,0) waypoint
                         if abs(waypoint[0]) < 1e-6 and abs(waypoint[1]) < 1e-6 and abs(waypoint[2]) < 1e-6:
                             continue
-                        relative_time = float(step) / 30.0
+                        relative_time = float(step) / runtime.SIMULATION_FPS
                         previous_waypoints.append((relative_time, waypoint))
                     
                     previous_waypoints_text = self._format_previous_waypoints_text(previous_waypoints, elapsed_time)
@@ -1103,7 +1080,7 @@ class SpotTICVLA(BehaviorScript):
             self._cmd_vx = self._slew(self._cmd_vx, target_vx, self._max_accel_vx, self._max_decel_vx, delta_time, self._deadband_v)
             self._cmd_vy = self._slew(self._cmd_vy, target_vy, self._max_accel_vy, self._max_decel_vy, delta_time, self._deadband_v)
             self._cmd_wz = self._slew(self._cmd_wz, target_wz, self._max_accel_wz, self._max_decel_wz, delta_time, self._deadband_w)
-            if self._frame_count % 30 == 0:  # Log once per second
+            if self._frame_count % runtime.SIMULATION_FPS == 0:  # Log once per second
                 carb.log_warn(f"[{self.get_agent_name()}] *** WAITING FOR FRESH INFERENCE AFTER BACKUP ***: frame={self._frame_count}, backup_completion_frame={self._backup_completion_frame} - robot stationary")
         elif not self._first_inference_complete:
             # Keep robot stationary until first inference completes (but not if backing up - handled above)

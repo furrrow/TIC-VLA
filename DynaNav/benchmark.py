@@ -24,12 +24,12 @@ import time
 import tempfile
 import subprocess
 from dataclasses import dataclass, field
-from generate_commands import *
+from generate_commands import generate_character_commands, generate_robot_commands
 import benchmark_reporting as report_utils
 import benchmark_config as config_utils
+import benchmark_runtime as runtime
 
-# Timeout adjustment: Add 50 seconds to all episode timeouts
-TIMEOUT_EXTENSION_SECONDS = 0
+SIMULATION_FPS = runtime.SIMULATION_FPS
 
 @dataclass
 class EpisodeState:
@@ -56,13 +56,16 @@ class EpisodeState:
 
 
 class BenchmarkRunner:
-    def __init__(self, sim_app, config_file_path, crash_report_path, debug_print):
+    def __init__(self, sim_app, config_file_path, crash_report_path, debug_print, run_id, navigation_method):
         self._sim_app = sim_app
         self._sim_app.set_setting("/app/scripting/ignoreWarningDialog", True)
         # Inputs
         self.config_file_path = config_file_path
         self.crash_report_path = crash_report_path
         self.debug_print = debug_print
+        self.run_id = run_id
+        self.navigation_method = navigation_method
+        self.behavior_context = None
 
         self.results = []
         self.state = EpisodeState()
@@ -150,17 +153,13 @@ class BenchmarkRunner:
             traceback.print_exc()
             raise
 
-        # Propagate episode parameters to behavior scripts via environment variables
-        instruction = str(episode_config.get('instruction', ''))
-        os.environ['TICVLA_INSTRUCTION'] = instruction
-        os.environ['TICVLA_EPISODE_NAME'] = episode_name
-        os.environ.pop('EPISODE_FAILURE_REASON', None)
-
-        goal = episode_config.get('goal', None)
-        if goal is not None and len(goal) >= 2:
-            os.environ['TICVLA_GOAL_X'] = str(float(goal[0]))
-            os.environ['TICVLA_GOAL_Y'] = str(float(goal[1]))
-            os.environ['TICVLA_GOAL_Z'] = str(float(goal[2] if len(goal) > 2 else 0.0))
+        goal = episode_config['goal']
+        self.behavior_context = runtime.BehaviorContext(
+            run_id=self.run_id,
+            goal=(float(goal[0]), float(goal[1]), float(goal[2] if len(goal) > 2 else 0.0)),
+            instruction=episode_config['instruction'],
+            log_dir=os.getenv('TICVLA_LOG_DIR', './logs'),
+        )
 
         # Enable + settings
         self._enable_extensions()
@@ -183,6 +182,7 @@ class BenchmarkRunner:
         try:
             self._cleanup_contact_sensor()
         finally:
+            runtime.unregister(self.state.spawned_robot_prim_path)
             self._setup_sim_sub = None
             path = getattr(self, '_temp_config_path', None)
             self._temp_config_path = None
@@ -221,7 +221,6 @@ class BenchmarkRunner:
             start_time=time.time(),
             goal_threshold=episode_config['success_threshold'],
         )
-        os.environ.pop("EPISODE_FAILURE_REASON", None)
 
         # Set up simulation for this episode
         await self._setup_episode_simulation(episode_config)
@@ -236,6 +235,7 @@ class BenchmarkRunner:
         # Get start_yaw from config (default to 0 if not specified)
         start_yaw = episode_config['start_yaw']
         self.state.spawned_robot_prim_path = await self._spawn_robot(robot_type, episode_config['start'], start_yaw)
+        runtime.register(self.state.spawned_robot_prim_path, self.behavior_context)
 
         # Set up robot
         if robot_type == "Spot":
@@ -256,9 +256,8 @@ class BenchmarkRunner:
         self.state.start_position = np.array(episode_config['start'])
 
         # Run navigation with timeout (in simulation frames)
-        # Add TIMEOUT_EXTENSION_SECONDS to all timeouts
-        timeout_seconds = episode_config['timeout'] + TIMEOUT_EXTENSION_SECONDS
-        timeout_frames = int(timeout_seconds * 30)  # Convert seconds to frames (30 FPS, must be int)
+        timeout_seconds = episode_config['timeout']
+        timeout_frames = int(timeout_seconds * SIMULATION_FPS)
         success = await self._run_navigation(timeout_frames)
 
         return success
@@ -288,9 +287,7 @@ class BenchmarkRunner:
         """Create a temporary config file for this episode."""
         scene_url = episode_config['scene']
 
-        # Get run_id from environment for unique temp paths (multi-instance support)
-        run_id = os.environ.get('BENCHMARK_RUN_ID', 'default')
-        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, run_id)
+        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, self.run_id)
         tmp_dir = str(tmp_root)
 
         config_template = {
@@ -298,7 +295,7 @@ class BenchmarkRunner:
                 'version': '0.7.19',
                 'global': {
                     'seed': self._benchmark_config['seed'],
-                    'simulation_length': int((episode_config['timeout'] + TIMEOUT_EXTENSION_SECONDS) * 30)  # Convert seconds to frames (30 FPS), with timeout extension (must be int)
+                    'simulation_length': int(episode_config['timeout'] * SIMULATION_FPS)
                 },
                 'scene': {
                     'asset_path': scene_url
@@ -353,7 +350,7 @@ class BenchmarkRunner:
 
         original_timecode = timeline.get_time_codes_per_second()
         try:
-            timeline.set_time_codes_per_second(30)
+            timeline.set_time_codes_per_second(SIMULATION_FPS)
             timeline.commit_silently()
             await app.next_update_async()
 
@@ -369,12 +366,11 @@ class BenchmarkRunner:
                 await self._update_robot_position()
                 self.state.simulation_frame_count += 1
                 # Avoid printing every frame (can flood logs and slow down Isaac Sim).
-                if self.debug_print and (self.state.simulation_frame_count % 30 == 0):
+                if self.debug_print and (self.state.simulation_frame_count % SIMULATION_FPS == 0):
                     print(f"Simulation frame count: {self.state.simulation_frame_count}")
-                # Update environment variable so behavior scripts can access the frame count
-                os.environ['BENCHMARK_SIMULATION_FRAME_COUNT'] = str(self.state.simulation_frame_count)
+                self.behavior_context.frame_count = self.state.simulation_frame_count
 
-                failure_reason = os.getenv('EPISODE_FAILURE_REASON')
+                failure_reason = self.behavior_context.failure_reason
                 if failure_reason:
                     self.state.failure_reason = failure_reason
                     print(f"Episode failed early: {failure_reason}")
@@ -736,20 +732,7 @@ class BenchmarkRunner:
             carb.log_warn(f"Robot prim not found: {prim_path}")
             return
 
-        # Determine which TIC-VLA behavior script to use
-        # Priority: command-line/env var > YAML config > default
-        nav_method = None
-        # First check environment variable (set from command-line)
-        if os.getenv('NAVIGATION_METHOD'):
-            nav_method = os.getenv('NAVIGATION_METHOD').lower()
-        # Fall back to YAML config if not set via command-line
-        elif hasattr(self, '_benchmark_config') and self._benchmark_config:
-            global_nav_method = self._benchmark_config.get('navigation_method', None)
-            if global_nav_method:
-                nav_method = global_nav_method.lower()
-        # Default fallback
-        if not nav_method:
-            nav_method = 'ticvla'
+        nav_method = self.navigation_method
         
         if nav_method != 'ticvla':
             raise ValueError(
@@ -805,20 +788,7 @@ class BenchmarkRunner:
             carb.log_warn(f"Robot prim not found: {prim_path}")
             return
 
-        # Determine which TIC-VLA behavior script to use
-        # Priority: command-line/env var > YAML config > default
-        nav_method = None
-        # First check environment variable (set from command-line)
-        if os.getenv('NAVIGATION_METHOD'):
-            nav_method = os.getenv('NAVIGATION_METHOD').lower()
-        # Fall back to YAML config if not set via command-line
-        elif hasattr(self, '_benchmark_config') and self._benchmark_config:
-            global_nav_method = self._benchmark_config.get('navigation_method', None)
-            if global_nav_method:
-                nav_method = global_nav_method.lower()
-        # Default fallback
-        if not nav_method:
-            nav_method = 'ticvla'
+        nav_method = self.navigation_method
         
         if nav_method != 'ticvla':
             raise ValueError(
@@ -1049,9 +1019,7 @@ class BenchmarkRunner:
 
     async def _generate_character_commands(self, scene_type: str, num_people: int, seed: int):
         """Generate character commands for the given scene type."""
-        # Get run_id from environment for unique temp paths (multi-instance support)
-        run_id = os.environ.get('BENCHMARK_RUN_ID', 'default')
-        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, run_id)
+        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, self.run_id)
         tmp_root.mkdir(parents=True, exist_ok=True)
         character_filename = str(tmp_root / "benchmark_character_commands.txt")
 
@@ -1072,9 +1040,7 @@ class BenchmarkRunner:
         # Normalize robot type name for the command generation
         robot_name = "Nova_Carter" if str(robot_type).lower() == "nova_carter" else "Spot"
 
-        # Get run_id from environment for unique temp paths (multi-instance support)
-        run_id = os.environ.get('BENCHMARK_RUN_ID', 'default')
-        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, run_id)
+        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, self.run_id)
         tmp_root.mkdir(parents=True, exist_ok=True)
         robot_filename = str(tmp_root / "benchmark_robot_commands.txt")
 
@@ -1092,16 +1058,11 @@ class BenchmarkRunner:
 
 # ---------- Child process wrapper ----------
 
-def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict) -> int:
+def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str) -> int:
     """
     Child process entry point: create SimulationApp, run one episode, write results JSON, then close.
     Returns OS exit code (0 on success).
     """
-    # Read navigation_method from command-line if provided (takes priority)
-    args = parse_args()
-    if args.navigation_method:
-        os.environ['NAVIGATION_METHOD'] = args.navigation_method.lower()
-    
     # Late import inside child so parent doesn't load Isaac runtime
     from isaacsim import SimulationApp
     
@@ -1115,7 +1076,7 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
         return report_utils.build_episode_result(episode_name, episode_config, error=error)
 
     try:
-        runner = BenchmarkRunner(sim_app, os.path.abspath(config_file_path), crash_report_path, debug_print)
+        runner = BenchmarkRunner(sim_app, os.path.abspath(config_file_path), crash_report_path, debug_print, run_id, navigation_method)
 
         from omni.kit.async_engine import run_coroutine
         task = run_coroutine(runner.run_single_episode_worker(episode_name))
@@ -1293,18 +1254,12 @@ def main():
         # Auto-generate run_id from timestamp if not provided
         run_id = time.strftime("%Y%m%d_%H%M%S")
     
-    # Set run_id in environment for behavior scripts to use
-    os.environ['BENCHMARK_RUN_ID'] = run_id
-    
-    # Set navigation method from command-line (takes priority over YAML config)
-    if args.navigation_method:
-        os.environ['NAVIGATION_METHOD'] = args.navigation_method.lower()
-
     if not os.path.isfile(config_file_path):
         print("Invalid config file path. Exit.", file=sys.stderr)
         return
     try:
         benchmark_config = config_utils.load_benchmark_config(config_file_path)
+        navigation_method = args.navigation_method or benchmark_config['navigation_method']
         if args.navigation_method and args.navigation_method.lower() != 'ticvla':
             raise ValueError("navigation_method must be 'ticvla'")
         if args.child:
@@ -1325,7 +1280,7 @@ def main():
             print("Child mode requires --episode_name and --result_json", file=sys.stderr)
             sys.exit(2)
         print(f"[Child] Running episode '{args.episode_name}'")
-        rc = run_child_episode(config_file_path, args.episode_name, crash_report_path, debug_print, args.result_json, benchmark_config)
+        rc = run_child_episode(config_file_path, args.episode_name, crash_report_path, debug_print, args.result_json, benchmark_config, run_id, navigation_method)
         sys.exit(rc)
 
     # --- Parent mode: orchestrate all episodes in separate child processes ---
