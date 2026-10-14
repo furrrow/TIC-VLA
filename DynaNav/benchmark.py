@@ -87,53 +87,53 @@ class BenchmarkRunner:
         self._contact_sensor_interface = None  # Contact sensor interface
         self._contact_sensors = []  # List of contact sensor instances
 
-
-    async def run_benchmark(self):
-        """
-        Legacy single-process run of all episodes (kept for completeness).
-        In the new design, the parent process orchestrates episodes via subprocesses.
-        """
-        print("Starting benchmark run...")
-
-        # Load benchmark configuration
-        self._load_benchmark_config()
-
-        # Enable extensions and setup
-        self._enable_extensions()
-        await self._sim_app.app.next_update_async()
-
-        self._set_simulation_settings()
-        await self._sim_app.app.next_update_async()
-
-        # Initialize simulation manager
-        from isaacsim.replicator.agent.core.simulation import SimulationManager
-        self._sim_manager = SimulationManager()
-
-        # Run each episode (note: this mode does NOT close SimulationApp between episodes)
-        for episode_name, episode_config in config_utils.select_episodes(self._benchmark_config):
-
-            print(f"\n{'=' * 50}")
-            print(f"Running Episode: {episode_name}")
-            print(f"{'=' * 50}")
-
-            success = await self._run_episode(episode_name, episode_config)
-
-            result = self.collect_and_build_episode_result(episode_name, episode_config, success)
-            self.results.append(result)
-
-            # Clean up contact sensor
-            self._cleanup_contact_sensor()
-
-            print(f"Episode {episode_name} completed: {'SUCCESS' if success else 'FAILED'}")
-            print(f"Simulation Duration: {result['duration']:.2f}s ({result['duration_frames']} frames)")
-            print(f"Navigation Error: {result['navigation_error']:.2f}m")
-            print(f"Success weighted by Path Length: {result['spl']:.3f}")
-            print(f"Path Length: {result['path_length']:.2f}m")
-            # No per-contact physics logging in benchmark results.
-
-        # Print final results
-        report_utils.print_final_results(self.results)
-        return True
+    # LEGACY, not used...
+    # async def run_benchmark(self):
+    #     """
+    #     Legacy single-process run of all episodes (kept for completeness).
+    #     In the new design, the parent process orchestrates episodes via subprocesses.
+    #     """
+    #     print("Starting benchmark run...")
+    #
+    #     # Load benchmark configuration
+    #     self._load_benchmark_config()
+    #
+    #     # Enable extensions and setup
+    #     self._enable_extensions()
+    #     await self._sim_app.app.next_update_async()
+    #
+    #     self._set_simulation_settings()
+    #     await self._sim_app.app.next_update_async()
+    #
+    #     # Initialize simulation manager
+    #     from isaacsim.replicator.agent.core.simulation import SimulationManager
+    #     self._sim_manager = SimulationManager()
+    #
+    #     # Run each episode (note: this mode does NOT close SimulationApp between episodes)
+    #     for episode_name, episode_config in config_utils.select_episodes(self._benchmark_config):
+    #
+    #         print(f"\n{'=' * 50}")
+    #         print(f"Running Episode: {episode_name}")
+    #         print(f"{'=' * 50}")
+    #
+    #         success = await self._run_episode(episode_name, episode_config)
+    #
+    #         result = self.collect_and_build_episode_result(episode_name, episode_config, success)
+    #         self.results.append(result)
+    #
+    #         # Clean up contact sensor
+    #         self._cleanup_contact_sensor()
+    #
+    #         print(f"Episode {episode_name} completed: {'SUCCESS' if success else 'FAILED'}")
+    #         print(f"Simulation Duration: {result['duration']:.2f}s ({result['duration_frames']} frames)")
+    #         print(f"Navigation Error: {result['navigation_error']:.2f}m")
+    #         print(f"Success weighted by Path Length: {result['spl']:.3f}")
+    #         print(f"Path Length: {result['path_length']:.2f}m")
+    #         # No per-contact physics logging in benchmark results.
+    #
+    #     # Print final results
+    #     report_utils.print_final_results(self.results)
+    #     return True
 
     async def run_single_episode_worker(self, episode_name: str):
         """
@@ -171,41 +171,28 @@ class BenchmarkRunner:
         from isaacsim.replicator.agent.core.simulation import SimulationManager
         self._sim_manager = SimulationManager()
         
-        # Run the episode
         try:
-            success = await self._run_episode(episode_name, episode_config)
-        except Exception as e:
-            print(f"[run_single_episode_worker] Error running episode '{episode_name}': {e}")
-            import traceback
-            traceback.print_exc()
-            raise
-
-        # Metrics
-        try:
+            success = await self.run_episode(episode_name, episode_config)
             result = self.collect_and_build_episode_result(episode_name, episode_config, success)
-
-            # Clean up contact sensor
-            self._cleanup_contact_sensor()
-
-            # Cleanup temp config file if it exists
-            if hasattr(self, '_temp_config_path') and os.path.exists(self._temp_config_path):
-                try:
-                    os.remove(self._temp_config_path)
-                except Exception as cleanup_error:
-                    print(f"Warning: Failed to cleanup temp config: {cleanup_error}")
-
             return result
-        except Exception as e:
-            print(f"[run_single_episode_worker] Error calculating metrics for episode '{episode_name}': {e}")
-            import traceback
-            traceback.print_exc()
-            # Cleanup temp config file even on error
-            if hasattr(self, '_temp_config_path') and os.path.exists(self._temp_config_path):
+        finally:
+            self._cleanup_episode_resources()
+
+    def _cleanup_episode_resources(self):
+        """Release resources created for one episode on every exit path."""
+        try:
+            self._cleanup_contact_sensor()
+        finally:
+            self._setup_sim_sub = None
+            path = getattr(self, '_temp_config_path', None)
+            self._temp_config_path = None
+            if path:
                 try:
-                    os.remove(self._temp_config_path)
-                except Exception:
+                    os.remove(path)
+                except FileNotFoundError:
                     pass
-            raise
+                except OSError as error:
+                    print(f"Warning: Failed to cleanup temp config: {error}")
 
     def collect_and_build_episode_result(self, episode_name: str, episode_config: dict, success: bool) -> dict:
         metrics = report_utils.EpisodeMetrics(
@@ -226,7 +213,7 @@ class BenchmarkRunner:
         self._benchmark_config = config_utils.load_benchmark_config(self.config_file_path)
         print(f"Loaded benchmark config with {len(config_utils.select_episodes(self._benchmark_config))} episodes")
 
-    async def _run_episode(self, episode_name, episode_config):
+    async def run_episode(self, episode_name, episode_config):
         """Run a single benchmark episode."""
         self.state = EpisodeState(
             name=episode_name,
@@ -350,11 +337,9 @@ class BenchmarkRunner:
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
         temp_config_path = f'{tmp_dir}/benchmark_config_{self.state.name}.yaml'
+        self._temp_config_path = temp_config_path
         with open(temp_config_path, 'w') as f:
             yaml.dump(config_template, f)
-
-        # Store path for cleanup later
-        self._temp_config_path = temp_config_path
 
         return temp_config_path
 
@@ -367,21 +352,18 @@ class BenchmarkRunner:
         timeline = omni.timeline.get_timeline_interface()
 
         original_timecode = timeline.get_time_codes_per_second()
-        timeline.set_time_codes_per_second(30)
-        timeline.commit_silently()
-        await app.next_update_async()
-
-        # make sure we're playing
-        if not timeline.is_playing():
-            timeline.play()
-
-        # enable capture and run for N frames while we poll status
-        rep.orchestrator.set_capture_on_play(True)
-        await app.next_update_async()
-
-        self.state.start_frame = self.state.simulation_frame_count
-
         try:
+            timeline.set_time_codes_per_second(30)
+            timeline.commit_silently()
+            await app.next_update_async()
+
+            if not timeline.is_playing():
+                timeline.play()
+
+            rep.orchestrator.set_capture_on_play(True)
+            await app.next_update_async()
+
+            self.state.start_frame = self.state.simulation_frame_count
             for _ in range(timeout_frames):
                 # per-frame: update pos, check goal/collisions, count frames
                 await self._update_robot_position()
@@ -396,21 +378,10 @@ class BenchmarkRunner:
                 if failure_reason:
                     self.state.failure_reason = failure_reason
                     print(f"Episode failed early: {failure_reason}")
-                    rep.orchestrator.set_capture_on_play(False)
-                    timeline.stop()
-                    timeline.set_time_codes_per_second(original_timecode)
-                    timeline.commit_silently()
-                    await app.next_update_async()
                     return False
 
                 # reached goal?
                 if self._is_goal_reached():
-                    rep.orchestrator.set_capture_on_play(False)
-                    timeline.stop()
-                    # restore timecode
-                    timeline.set_time_codes_per_second(original_timecode)
-                    timeline.commit_silently()
-                    await app.next_update_async()
                     return True
 
                 # advance one frame
@@ -419,12 +390,21 @@ class BenchmarkRunner:
         except Exception as e:
             print(f"Warning: Error during navigation: {e}")
         finally:
-            # timeout or error - ensure proper cleanup
-            rep.orchestrator.set_capture_on_play(False)
-            timeline.stop()
-            timeline.set_time_codes_per_second(original_timecode)
-            timeline.commit_silently()
-            await app.next_update_async()
+            # Restore capture and timeline state after success, failure, or setup error.
+            for action in (
+                lambda: rep.orchestrator.set_capture_on_play(False),
+                timeline.stop,
+                lambda: timeline.set_time_codes_per_second(original_timecode),
+                timeline.commit_silently,
+            ):
+                try:
+                    action()
+                except Exception as cleanup_error:
+                    print(f"Warning: Failed to restore navigation state: {cleanup_error}")
+            try:
+                await app.next_update_async()
+            except Exception as cleanup_error:
+                print(f"Warning: Failed to update app after navigation cleanup: {cleanup_error}")
 
         return False
 
@@ -663,11 +643,16 @@ class BenchmarkRunner:
             self._setup_sim_succeed = True
             self._setup_sim_sub = None
 
+        self._setup_sim_succeed = False
         self._setup_sim_sub = self._sim_manager.register_set_up_simulation_done_callback(done_callback)
-        self._sim_manager.set_up_simulation_from_config_file()
+        try:
+            self._sim_manager.set_up_simulation_from_config_file()
 
-        while self._setup_sim_sub and not self._sim_app.is_exiting():
-            await self._sim_app.app.next_update_async()
+            while self._setup_sim_sub and not self._sim_app.is_exiting():
+                await self._sim_app.app.next_update_async()
+        finally:
+            # The callback handle owns the subscription; dropping it releases it.
+            self._setup_sim_sub = None
 
     async def _warmup(self, frames=200):
         for _ in range(frames):
@@ -1107,13 +1092,13 @@ class BenchmarkRunner:
 
 # ---------- Child process wrapper ----------
 
-def _run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict) -> int:
+def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict) -> int:
     """
     Child process entry point: create SimulationApp, run one episode, write results JSON, then close.
     Returns OS exit code (0 on success).
     """
     # Read navigation_method from command-line if provided (takes priority)
-    args = get_args()
+    args = parse_args()
     if args.navigation_method:
         os.environ['NAVIGATION_METHOD'] = args.navigation_method.lower()
     
@@ -1139,38 +1124,33 @@ def _run_child_episode(config_file_path: str, episode_name: str, crash_report_pa
         ok = False
         result = None
         episode_error_msg = ""
+        while not task.done() and not sim_app.is_exiting():
+            sim_app.update()
+
         try:
-            while not task.done() and not sim_app.is_exiting():
-                sim_app.update()
+            result = task.result()
+            ok = True
+        except asyncio.CancelledError:
+            print("Episode was cancelled.")
+            ok = False
+            result = None
+            episode_error_msg = "cancelled"
+        except Exception as e:
+            print(f"Episode error: {e}")
+            import traceback
+            traceback.print_exc()
+            ok = False
+            result = None
+            episode_error_msg = str(e)
 
-            try:
-                result = task.result()
-                ok = True
-            except asyncio.CancelledError:
-                print("Episode was cancelled.")
-                ok = False
-                result = None
-                episode_error_msg = "cancelled"
-            except Exception as e:
-                print(f"Episode error: {e}")
-                import traceback
-                traceback.print_exc()
-                ok = False
-                result = None
-                episode_error_msg = str(e)
+        # Persist single-episode result (always write something)
+        if ok and result is not None:
+            payload = result
+        else:
+            payload = _create_error_payload("child_failed", episode_error_msg)
 
-            # Persist single-episode result (always write something)
-            if ok and result is not None:
-                payload = result
-            else:
-                # Include episode config in error payload so parent can normalize properly
-                payload = _create_error_payload("child_failed", episode_error_msg)
-            
-            with open(result_json_path, "w") as f:
-                json.dump(payload, f)
-
-        finally:
-            sim_app.close()
+        with open(result_json_path, "w") as f:
+            json.dump(payload, f)
     except Exception as e:
         print(f"Child bootstrap error: {e}")
         import traceback
@@ -1183,14 +1163,16 @@ def _run_child_episode(config_file_path: str, episode_name: str, crash_report_pa
         except Exception:
             pass
         return 2
+    finally:
+        sim_app.close()
 
     return 0
 
 
 # ---------- Parent process orchestration ----------
 
-def _run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None) -> dict:
-    """Spawn a child Python process that executes exactly one episode and returns the result dict."""
+def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None) -> dict:
+    """Start benchmark.py --child; its main() dispatches to run_child_episode()."""
     with tempfile.TemporaryDirectory() as td:
         out_json = os.path.join(td, f"{episode_name}_result.json")
 
@@ -1269,7 +1251,7 @@ def _normalize_result(raw: dict, episode_name: str, episode_config: dict) -> dic
 
 # ---------- CLI ----------
 
-def get_args():
+def parse_args():
     parser = argparse.ArgumentParser("DynaNav Benchmark")
     parser.add_argument("-c", "--config_file", required=True, help="Path to benchmark config YAML file")
 
@@ -1299,7 +1281,7 @@ def get_args():
 
 
 def main():
-    args = get_args()
+    args = parse_args()
     config_file_path = args.config_file
     crash_report_path = args.crash_report_path
     debug_print = args.debug_print
@@ -1343,7 +1325,7 @@ def main():
             print("Child mode requires --episode_name and --result_json", file=sys.stderr)
             sys.exit(2)
         print(f"[Child] Running episode '{args.episode_name}'")
-        rc = _run_child_episode(config_file_path, args.episode_name, crash_report_path, debug_print, args.result_json, benchmark_config)
+        rc = run_child_episode(config_file_path, args.episode_name, crash_report_path, debug_print, args.result_json, benchmark_config)
         sys.exit(rc)
 
     # --- Parent mode: orchestrate all episodes in separate child processes ---
@@ -1366,7 +1348,7 @@ def main():
 
         print(f"\n{'=' * 50}\nLaunching episode (subprocess): {episode_name}\n{'=' * 50}")
         sys.stdout.flush()  # Ensure output is visible immediately
-        raw = _run_episode_in_subprocess(
+        raw = run_episode_in_subprocess(
             script_path=os.path.abspath(__file__),
             config_file=config_file_path,
             episode_name=episode_name,
