@@ -24,61 +24,12 @@ import time
 import tempfile
 import subprocess
 from dataclasses import dataclass, field
-from pathlib import Path
 from generate_commands import *
 import benchmark_reporting as report_utils
-
-# APP_CONFIG = {"renderer": "RayTracedLighting", "headless": True, "width": 640, "height": 480}
-APP_CONFIG = {"renderer": "RayTracedLighting", "headless": False, "width": 640, "height": 480}
-
-# Prefer writing outputs relative to this script (not cwd), since Isaac Sim subprocesses
-# may be launched from different working directories.
-SCRIPT_DIR = Path(__file__).resolve().parent
+import benchmark_config as config_utils
 
 # Timeout adjustment: Add 50 seconds to all episode timeouts
 TIMEOUT_EXTENSION_SECONDS = 0
-
-def _get_results_dir(run_id: str) -> Path:
-    return SCRIPT_DIR / "benchmark_results" / str(run_id)
-
-
-def _benchmark_tmp_dir(config_file_path: str, run_id: str) -> Path:
-    """Same directory for generated commands and YAML paths (independent of process cwd)."""
-    return Path(config_file_path).resolve().parent / "tmp" / str(run_id)
-
-
-def _load_latest_results_if_present(results_dir: Path, config_name: str) -> list:
-    """Load existing incremental results file if present, otherwise return empty list."""
-    latest_path = results_dir / f"{config_name}_results_latest.json"
-    if not latest_path.is_file():
-        return []
-    try:
-        with open(latest_path, "r") as f:
-            data = json.load(f)
-        episodes = data.get("episodes", [])
-        return episodes if isinstance(episodes, list) else []
-    except Exception as e:
-        print(f"[Parent] Warning: Failed to load resume file '{latest_path}': {e}")
-        return []
-
-def _expand_env_value(value):
-    """Expand environment variables in benchmark YAML values."""
-    if isinstance(value, str):
-        return os.path.expanduser(os.path.expandvars(value))
-    if isinstance(value, list):
-        return [_expand_env_value(item) for item in value]
-    if isinstance(value, dict):
-        return {key: _expand_env_value(item) for key, item in value.items()}
-    return value
-
-
-def _get_character_asset_path() -> str:
-    return os.path.expanduser(os.path.expandvars(os.environ["DEFAULT_CHARACTER_ASSET_PATH"]))
-
-
-def _get_biped_asset_path() -> str:
-    return os.path.expanduser(os.path.expandvars(os.environ["DEFAULT_BIPED_ASSET_PATH"]))
-
 
 @dataclass
 class EpisodeState:
@@ -159,15 +110,7 @@ class BenchmarkRunner:
         self._sim_manager = SimulationManager()
 
         # Run each episode (note: this mode does NOT close SimulationApp between episodes)
-        for episode_name, episode_config in self._benchmark_config.items():
-            # Skip metadata keys that aren't episode configs (should be dicts)
-            if episode_name == 'seed':
-                continue
-            if episode_name == 'navigation_method':
-                continue
-            if not isinstance(episode_config, dict):
-                # Skip entries that aren't dictionaries
-                continue
+        for episode_name, episode_config in config_utils.select_episodes(self._benchmark_config):
 
             print(f"\n{'=' * 50}")
             print(f"Running Episode: {episode_name}")
@@ -200,15 +143,12 @@ class BenchmarkRunner:
         try:
             # Load and prep config
             self._load_benchmark_config()
-            if episode_name not in self._benchmark_config:
-                raise KeyError(f"Episode '{episode_name}' not found in config.")
+            episode_config = config_utils.get_episode(self._benchmark_config, episode_name)
         except Exception as e:
             print(f"[run_single_episode_worker] Error loading config for episode '{episode_name}': {e}")
             import traceback
             traceback.print_exc()
             raise
-
-        episode_config = self._benchmark_config[episode_name]
 
         # Propagate episode parameters to behavior scripts via environment variables
         instruction = str(episode_config.get('instruction', ''))
@@ -283,18 +223,16 @@ class BenchmarkRunner:
 
     def _load_benchmark_config(self):
         """Load the benchmark configuration from YAML file."""
-        with open(self.config_file_path, "r") as f:
-            self._benchmark_config = _expand_env_value(yaml.safe_load(f))
-        print(f"Loaded benchmark config with {len(self._benchmark_config) - 1 if 'seed' in self._benchmark_config else len(self._benchmark_config)} episodes")
+        self._benchmark_config = config_utils.load_benchmark_config(self.config_file_path)
+        print(f"Loaded benchmark config with {len(config_utils.select_episodes(self._benchmark_config))} episodes")
 
     async def _run_episode(self, episode_name, episode_config):
         """Run a single benchmark episode."""
-        global_threshold = self._benchmark_config.get("success_threshold", 1.5)
         self.state = EpisodeState(
             name=episode_name,
             config=episode_config,
             start_time=time.time(),
-            goal_threshold=episode_config.get("success_threshold", global_threshold),
+            goal_threshold=episode_config['success_threshold'],
         )
         os.environ.pop("EPISODE_FAILURE_REASON", None)
 
@@ -309,7 +247,7 @@ class BenchmarkRunner:
         self.state.robot_type = robot_type
 
         # Get start_yaw from config (default to 0 if not specified)
-        start_yaw = episode_config.get('start_yaw', 0.0)
+        start_yaw = episode_config['start_yaw']
         self.state.spawned_robot_prim_path = await self._spawn_robot(robot_type, episode_config['start'], start_yaw)
 
         # Set up robot
@@ -365,14 +303,14 @@ class BenchmarkRunner:
 
         # Get run_id from environment for unique temp paths (multi-instance support)
         run_id = os.environ.get('BENCHMARK_RUN_ID', 'default')
-        tmp_root = _benchmark_tmp_dir(self.config_file_path, run_id)
+        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, run_id)
         tmp_dir = str(tmp_root)
 
         config_template = {
             'isaacsim.replicator.agent': {
                 'version': '0.7.19',
                 'global': {
-                    'seed': self._benchmark_config.get('seed', 42) if self._benchmark_config else 42,
+                    'seed': self._benchmark_config['seed'],
                     'simulation_length': int((episode_config['timeout'] + TIMEOUT_EXTENSION_SECONDS) * 30)  # Convert seconds to frames (30 FPS), with timeout extension (must be int)
                 },
                 'scene': {
@@ -382,7 +320,7 @@ class BenchmarkRunner:
                     'camera_num': 0
                 },
                 'character': {
-                    'asset_path': _get_character_asset_path(),
+                    'asset_path': config_utils.asset_path('DEFAULT_CHARACTER_ASSET_PATH'),
                     'command_file': str(tmp_root / "benchmark_character_commands.txt"),
                     'num': episode_config['num_people']
                 },
@@ -712,7 +650,7 @@ class BenchmarkRunner:
         self._settings.set("/exts/isaacsim.replicator.agent/debug_print", self.debug_print)
         self._settings.set(
             "/exts/isaacsim.replicator.agent/asset_settings/default_biped_assets_path",
-            _get_biped_asset_path(),
+            config_utils.asset_path('DEFAULT_BIPED_ASSET_PATH'),
         )
 
         # Crash reporter
@@ -1091,9 +1029,9 @@ class BenchmarkRunner:
         print(f"Detected scene type: {scene_type}")
 
         # Get episode configuration with sensible defaults
-        num_people = self.state.config.get('num_people', 3)
-        robot_type = self.state.config.get('robot_type', 'nova_carter')
-        seed = self._benchmark_config.get('seed', 42) if self._benchmark_config else 42
+        num_people = self.state.config['num_people']
+        robot_type = self.state.config['robot_type']
+        seed = self._benchmark_config['seed']
 
         print(f"Episode config - People: {num_people}, Robot: {robot_type}, Seed: {seed}")
 
@@ -1128,7 +1066,7 @@ class BenchmarkRunner:
         """Generate character commands for the given scene type."""
         # Get run_id from environment for unique temp paths (multi-instance support)
         run_id = os.environ.get('BENCHMARK_RUN_ID', 'default')
-        tmp_root = _benchmark_tmp_dir(self.config_file_path, run_id)
+        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, run_id)
         tmp_root.mkdir(parents=True, exist_ok=True)
         character_filename = str(tmp_root / "benchmark_character_commands.txt")
 
@@ -1151,7 +1089,7 @@ class BenchmarkRunner:
 
         # Get run_id from environment for unique temp paths (multi-instance support)
         run_id = os.environ.get('BENCHMARK_RUN_ID', 'default')
-        tmp_root = _benchmark_tmp_dir(self.config_file_path, run_id)
+        tmp_root = config_utils.benchmark_tmp_dir(self.config_file_path, run_id)
         tmp_root.mkdir(parents=True, exist_ok=True)
         robot_filename = str(tmp_root / "benchmark_robot_commands.txt")
 
@@ -1169,7 +1107,7 @@ class BenchmarkRunner:
 
 # ---------- Child process wrapper ----------
 
-def _run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str) -> int:
+def _run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict) -> int:
     """
     Child process entry point: create SimulationApp, run one episode, write results JSON, then close.
     Returns OS exit code (0 on success).
@@ -1182,21 +1120,13 @@ def _run_child_episode(config_file_path: str, episode_name: str, crash_report_pa
     # Late import inside child so parent doesn't load Isaac runtime
     from isaacsim import SimulationApp
     
-    sim_app = SimulationApp(launch_config=APP_CONFIG)
+    sim_app = SimulationApp(launch_config=config_utils.APP_CONFIG)
     
     # Helper function to create error payload with episode config
     def _create_error_payload(error_type: str, error_msg: str = "") -> dict:
         """Create error payload with episode config data."""
         error = f"{error_type}:{error_msg}" if error_msg else error_type
-        try:
-            with open(config_file_path, "r") as config_file:
-                benchmark_config = _expand_env_value(yaml.safe_load(config_file))
-            episode_config = benchmark_config.get(episode_name, {})
-            if not isinstance(episode_config, dict):
-                episode_config = {}
-        except Exception as config_error:
-            print(f"Failed to load config for error payload: {config_error}")
-            episode_config = {}
+        episode_config = config_utils.get_episode(benchmark_config, episode_name)
         return report_utils.build_episode_result(episode_name, episode_config, error=error)
 
     try:
@@ -1388,13 +1318,32 @@ def main():
     if args.navigation_method:
         os.environ['NAVIGATION_METHOD'] = args.navigation_method.lower()
 
+    if not os.path.isfile(config_file_path):
+        print("Invalid config file path. Exit.", file=sys.stderr)
+        return
+    try:
+        benchmark_config = config_utils.load_benchmark_config(config_file_path)
+        if args.navigation_method and args.navigation_method.lower() != 'ticvla':
+            raise ValueError("navigation_method must be 'ticvla'")
+        if args.child:
+            if not args.episode_name or not args.result_json:
+                raise ValueError("Child mode requires --episode_name and --result_json")
+            config_utils.get_episode(benchmark_config, args.episode_name)
+        else:
+            episodes = config_utils.select_episodes(
+                benchmark_config, start_from=args.start_from, reverse=args.reverse_episodes
+            )
+    except (OSError, yaml.YAMLError, ValueError) as exc:
+        print(f"Invalid benchmark config or episode selection: {exc}", file=sys.stderr)
+        sys.exit(2)
+
     if args.child:
         # --- Child mode: run exactly one episode and exit ---
         if not args.episode_name or not args.result_json:
             print("Child mode requires --episode_name and --result_json", file=sys.stderr)
             sys.exit(2)
         print(f"[Child] Running episode '{args.episode_name}'")
-        rc = _run_child_episode(config_file_path, args.episode_name, crash_report_path, debug_print, args.result_json)
+        rc = _run_child_episode(config_file_path, args.episode_name, crash_report_path, debug_print, args.result_json, benchmark_config)
         sys.exit(rc)
 
     # --- Parent mode: orchestrate all episodes in separate child processes ---
@@ -1411,37 +1360,9 @@ def main():
     if args.reverse_episodes:
         print("Episode Order: Reversed")
 
-    # Check config file exists
-    if not os.path.isfile(config_file_path):
-        print("Invalid config file path. Exit.", file=sys.stderr)
-        return
-
-    # Load episodes list (parent does not touch SimulationApp)
-    with open(config_file_path, "r") as f:
-        benchmark_config = yaml.safe_load(f)
-
     # Collect per-episode results
     all_results = []
-    start_from = args.start_from
-    started = start_from is None
-    items = list(benchmark_config.items())
-    if args.reverse_episodes:
-        items = list(reversed(items))
-    for episode_name, episode_config in items:
-        # Skip metadata keys that aren't episode configs (should be dicts)
-        if episode_name == "seed":
-            continue
-        if episode_name == "navigation_method":
-            continue
-        if not isinstance(episode_config, dict):
-            # Skip metadata entries that are not episode dictionaries.
-            continue
-
-        if not started:
-            if episode_name == start_from:
-                started = True
-            else:
-                continue
+    for episode_name, episode_config in episodes:
 
         print(f"\n{'=' * 50}\nLaunching episode (subprocess): {episode_name}\n{'=' * 50}")
         sys.stdout.flush()  # Ensure output is visible immediately
