@@ -3,19 +3,17 @@
 This plan moves TIC-VLA simulation from an Isaac Sim in-process behavior script to a two-process ROS 2 architecture:
 
 ```text
-machine A, now or later:
+Isaac Workstation
   Isaac Sim process
     publishes observations over ROS 2
     subscribes to velocity commands over ROS 2
 
-machine B, now or later:
-  infer_ros.py process
+Inference Machine:
+  infer_ros.py, or other VLA models
     subscribes to observations over ROS 2
-    runs TIC-VLA inference
+    runs model inference
     publishes (v, w) as geometry_msgs/Twist over ROS 2
 ```
-
-The immediate goal is to run Isaac Sim and inference as separate local processes. The later goal is to run them on separate machines without changing the policy/simulator contract.
 
 ## Current State
 
