@@ -24,6 +24,23 @@ DynaNav/run_benchmark.sh DynaNav/configs/benchmark_example.yaml
 DynaNav/run_benchmark.sh DynaNav/configs/benchmark_full.yaml
 ```
 
+### Benchmark workflow
+
+`run_benchmark.sh` starts `benchmark.py` with Isaac Sim Python. The execution path is:
+
+```text
+main() in parent process: validate config and select episodes
+  └─ run_episode_in_subprocess() for each selected episode
+       └─ main() in a new child process, with --child
+            └─ run_child_episode(): create and close SimulationApp
+                 └─ BenchmarkRunner.run_single_episode_worker()
+                      └─ BenchmarkRunner.run_episode()
+```
+
+The worker collects metrics and cleans up episode resources. The child writes one JSON result; the parent reads it and saves incremental and final results under `DynaNav/benchmark_results/<run_id>/`.
+
+The child process exits after its episode, so the next episode starts with a fresh SimulationApp. There is no separate `run_benchmark()` method in the current workflow.
+
 ## Data Collection
 
 Data collection uses Isaac Sim Python and the configs in `configs/data_collection/`:

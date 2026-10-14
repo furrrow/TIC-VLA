@@ -22,14 +22,23 @@ source .env.testing
 DynaNav/run_benchmark.sh DynaNav/configs/benchmark_example.yaml
 ```
 
-The benchmark path is still tightly coupled:
+The current benchmark runs one episode per child process. `DynaNav/run_benchmark.sh` starts `benchmark.py` with Isaac Sim Python:
 
 ```text
-DynaNav/run_benchmark.sh
-  -> Isaac Sim Python
-  -> DynaNav/benchmark.py
-  -> per-episode SimulationApp child process
-  -> DynaNav/behavior/nova_carter_test_ticvla.py
+main() in parent process: validate config and select episodes
+  └─ run_episode_in_subprocess() for each selected episode
+       └─ main() in a new child process, with --child
+            └─ run_child_episode(): create and close SimulationApp
+                 └─ BenchmarkRunner.run_single_episode_worker()
+                      └─ BenchmarkRunner.run_episode()
+```
+
+The worker collects metrics and cleans up episode resources. The child writes one JSON result; the parent reads it and saves incremental and final results under `DynaNav/benchmark_results/<run_id>/`.
+
+Within an episode, the behavior path is still tightly coupled:
+
+```text
+DynaNav/behavior/nova_carter_test_ticvla.py (or spot_test_ticvla.py)
   -> TICVLA.predict_async()
   -> predicted waypoints
   -> pure-pursuit (v, w)
