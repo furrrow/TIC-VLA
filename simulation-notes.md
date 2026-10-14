@@ -16,6 +16,11 @@ Inference Machine:
 ```
 
 ## Current State
+to run
+```bash
+source .env.testing
+DynaNav/run_benchmark.sh DynaNav/configs/benchmark_example.yaml
+```
 
 The benchmark path is still tightly coupled:
 
