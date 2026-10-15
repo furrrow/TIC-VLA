@@ -1,7 +1,7 @@
 # Original DynaNav benchmark set, normalized to the benchmark_full.yaml structure.
 # Local USD scenes are resolved through TICVLA_DYNANAV_ROOT.
 seed: 666
-navigation_method: ticvla
+navigation_method: ticvla_ros
 success_threshold: 1.5
 episode_1:
   scene: "${HOSPITAL_USD_PATH}"
