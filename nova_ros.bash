@@ -2,7 +2,10 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROBOT_CONFIG="${REPO_ROOT}/configs/robot.yaml"
 ROS_SETUP="/opt/ros/humble/setup.bash"
+
+echo "Robot config: ${ROBOT_CONFIG}"
 
 if [[ ! -f "${ROS_SETUP}" ]]; then
   echo "ROS setup not found: ${ROS_SETUP}" >&2
@@ -21,7 +24,7 @@ tmux set-option -t "${session_name}" mouse on
 tmux send-keys -t "${session_name}:0.0" \
   "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run infer_ros.py --robot sim_nova" C-m
 tmux send-keys -t "${session_name}:0.1" \
-  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run custom_utils/custom_utils/kinematic_controller_naive.py --robot sim_nova --config configs/robot.yaml" C-m
+  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run custom_utils/custom_utils/kinematic_controller_naive.py --robot sim_nova --config ${ROBOT_CONFIG}" C-m
 
 tmux select-pane -t "${session_name}:0.0"
 if [[ -n "${TMUX:-}" ]]; then
