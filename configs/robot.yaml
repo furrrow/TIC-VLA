@@ -12,8 +12,8 @@ turtle:
 ghost:
   max_v: 0.2 # m/s
   max_w: 0.3 # rad/s
-#  image_topic: "/camera/camera/color/image_raw/compressed"
-  image_topic: "/camera/camera/color/image_raw"
+  image_topic: "/camera/camera/color/image_raw/compressed"
+#  image_topic: "/camera/camera/color/image_raw"
   odom_topic: "/odom_lidar"
   policy_path_topic: "/ghost/policy_path"
   steered_waypoint_topic: "/ghost/steered_waypoint"

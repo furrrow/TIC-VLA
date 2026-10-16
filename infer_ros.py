@@ -5,6 +5,11 @@ This is the ROS companion to ``infer_video_async.py``. It loads the async
 DynaNav TIC-VLA model, subscribes to the robot camera and odometry topics from
 ``configs/robot.yaml`` in the same style as ``omnivla_ros.py``, and publishes
 the waypoint/path topics consumed by the external PD controller.
+
+Instruction handling depends on the robot profile. ``sim_nova`` waits for an
+episode message and replaces the CLI instruction with the message's instruction
+at every new episode. Real-robot profiles do not subscribe to the episode topic;
+they keep using ``--instruction`` for the lifetime of the process.
 """
 
 from __future__ import annotations
@@ -89,75 +94,6 @@ def resolve_config_path(value: str | None, config_path: Path) -> str | None:
             return str(candidate)
     return str(candidates[0])
 
-
-def parse_args() -> tuple[argparse.Namespace, list[str]]:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-r", "--robot", default="husky", help="Robot key in configs/robot.yaml")
-    parser.add_argument("--config", default=str(DEFAULT_CONFIG), help="Robot YAML config path")
-    parser.add_argument("--bag", default=None, help="SQLite ROS 2 bag/file for topic discovery; replay separately")
-    parser.add_argument("--inspect-bag", action="store_true")
-    parser.add_argument("--image-topic", help="Override camera topic from robot config")
-    parser.add_argument("--image-type", choices=("raw", "compressed"))
-    parser.add_argument("--odom-topic", help="Override odometry topic from robot config")
-    parser.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT)
-    parser.add_argument("--base-model", default=DEFAULT_BASE_MODEL)
-    parser.add_argument("--device", default="cuda:0")
-    parser.add_argument("--robot-type", default="wheeled robot", help="Robot description supplied to the VLM")
-    parser.add_argument("-i", "--instruction", default=DEFAULT_INSTRUCTION)
-    parser.add_argument("--episode-topic", default="/isaacsim/episode", help="Episode metadata topic for sim_nova")
-    parser.add_argument("--rate", type=float, default=None, help="Inference timer rate. Defaults to config frame_rate")
-    parser.add_argument("--history-len", type=int, default=DEFAULT_HISTORY_LEN)
-    parser.add_argument(
-        "--history-interval-seconds",
-        type=float,
-        default=3.0,
-        help="Seconds between VLM context frames, matching async video's -9/-6/-3/current pattern.",
-    )
-    parser.add_argument("--metric-waypoint-spacing", type=float, default=1.0)
-    parser.add_argument("--waypoint-idx", type=int, default=None, help="Path index published to waypoint_topic")
-    parser.add_argument("--frame-id", default="base_link", help="Frame for predicted relative policy path")
-    parser.add_argument("--camera-matrix", default=None, help="Calibration JSON for projected overlay")
-    parser.add_argument("--show", action="store_true")
-    parser.add_argument("--print-response", action="store_true", default=True, help="Print VLM model text outputs")
-    parser.add_argument("--quiet-response", action="store_false", dest="print_response", help="Suppress VLM outputs")
-    args, ros_args = parser.parse_known_args()
-
-    if ros_args and ros_args[0] != "--ros-args":
-        parser.error(f"Unrecognized arguments: {ros_args}")
-    if args.inspect_bag and not args.bag:
-        parser.error("--inspect-bag requires --bag")
-    if args.history_len < 1:
-        parser.error("--history-len must be >= 1")
-    if not math.isfinite(args.history_interval_seconds) or args.history_interval_seconds <= 0:
-        parser.error("--history-interval-seconds must be finite and > 0")
-    if args.metric_waypoint_spacing <= 0:
-        parser.error("--metric-waypoint-spacing must be > 0")
-    if args.rate is not None and (not math.isfinite(args.rate) or args.rate <= 0):
-        parser.error("--rate must be finite and > 0")
-
-    if args.bag:
-        topics = bag_topics(args.bag)
-        if args.inspect_bag:
-            for name, kind in topics:
-                print(f"{name}\t{kind}")
-            return args, ros_args
-        candidates = [
-            (name, kind)
-            for name, kind in topics
-            if kind in ("sensor_msgs/msg/Image", "sensor_msgs/msg/CompressedImage")
-        ]
-        if args.image_topic:
-            candidates = [(name, kind) for name, kind in candidates if name == args.image_topic]
-        if len(candidates) != 1:
-            parser.error(f"Select --image-topic from bag camera topics: {candidates or topics}")
-        args.image_topic, kind = candidates[0]
-        actual = "compressed" if kind.endswith("/CompressedImage") else "raw"
-        if args.image_type and args.image_type != actual:
-            parser.error("--image-type conflicts with bag metadata")
-        args.image_type = actual
-    return args, ros_args
-
-
 def stamp_to_ns(stamp: Any) -> int:
     return stamp.sec * 1_000_000_000 + stamp.nanosec
 
@@ -208,6 +144,8 @@ class TICVLAROSNode(Node):
         self.bridge = CvBridge()
         self.lock = Lock()
         self.episode_id: str | None = None
+        # For real robots this remains the CLI instruction. For sim_nova,
+        # episode_callback() overwrites it before inference is allowed to run.
         self.instruction = args.instruction
         self.episode_generation = 0
         self.pending_episode_reset = False
@@ -243,7 +181,9 @@ class TICVLAROSNode(Node):
         odom_topic = args.odom_topic or robot_config["odom_topic"]
         self.compressed_img_topic = args.image_type == "compressed" if args.image_type else "compressed" in image_topic
         policy_path_topic = robot_config["policy_path_topic"]
-        waypoint_topic = robot_config["waypoint_topic"]
+        # A direct waypoint output is optional. The SteerNav pipeline consumes
+        # policy_path_topic instead and publishes its own steered waypoint.
+        waypoint_topic = robot_config.get("waypoint_topic")
         sampled_actions_topic = robot_config["sampled_actions_topic"]
         overlay_topic = robot_config["overlay_topic"]
 
@@ -292,8 +232,10 @@ class TICVLAROSNode(Node):
                 qos_profile=episode_qos, callback_group=self.input_group,
             )
         # Nova Carter's Isaac bridge selects a lookahead point from policy_path.
-        self.waypoint_pub = None if self.require_episode else self.create_publisher(
-            Float32MultiArray, waypoint_topic, qos_profile=reliable_qos
+        self.waypoint_pub = (
+            None
+            if self.require_episode or waypoint_topic is None
+            else self.create_publisher(Float32MultiArray, waypoint_topic, qos_profile=reliable_qos)
         )
         self.sampled_actions_pub = self.create_publisher(Float32MultiArray, sampled_actions_topic,
                                                          qos_profile=best_effort_qos)
@@ -312,10 +254,25 @@ class TICVLAROSNode(Node):
         self.get_logger().info(f"Using robot config for: {args.robot}")
         self.get_logger().info(f"IMAGE_TOPIC: {image_topic} compressed_img_topic: {self.compressed_img_topic}")
         self.get_logger().info(f"ODOM_TOPIC: {odom_topic}")
-        self.get_logger().info(f"WAYPOINT_TOPIC: {waypoint_topic}")
-        self.get_logger().info("Model ready. Waiting for episode, image observations, and odometry..." if self.require_episode else "Model ready. Waiting for image observations and odometry...")
+        self.get_logger().info(
+            f"WAYPOINT_TOPIC: {waypoint_topic}"
+            if waypoint_topic is not None
+            else "WAYPOINT_TOPIC: disabled (publishing policy path for a downstream steering node)"
+        )
+        if self.require_episode:
+            self.get_logger().info(
+                f"Simulation instruction mode: waiting for {args.episode_topic}; "
+                "each new episode will overwrite --instruction and reset inference state."
+            )
+            self.get_logger().info("Model ready. Waiting for episode, image observations, and odometry...")
+        else:
+            self.get_logger().info(
+                f"Fixed instruction mode: no episode subscription; using --instruction: {self.instruction}"
+            )
+            self.get_logger().info("Model ready. Waiting for image observations and odometry...")
 
     def episode_callback(self, msg: String) -> None:
+        """Replace the sim_nova instruction and reset state for a new episode."""
         try:
             episode = json.loads(msg.data)
             episode_id = episode["episode_id"]
@@ -613,6 +570,84 @@ class TICVLAROSNode(Node):
         if response and self.args.print_response:
             self.get_logger().info(str(response))
 
+def parse_args() -> tuple[argparse.Namespace, list[str]]:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("-r", "--robot", default="husky", help="Robot key in configs/robot.yaml")
+    parser.add_argument("--config", default=str(DEFAULT_CONFIG), help="Robot YAML config path")
+    parser.add_argument("--bag", default=None, help="SQLite ROS 2 bag/file for topic discovery; replay separately")
+    parser.add_argument("--inspect-bag", action="store_true")
+    parser.add_argument("--image-topic", help="Override camera topic from robot config")
+    parser.add_argument("--image-type", choices=("raw", "compressed"))
+    parser.add_argument("--odom-topic", help="Override odometry topic from robot config")
+    parser.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT)
+    parser.add_argument("--base-model", default=DEFAULT_BASE_MODEL)
+    parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--robot-type", default="wheeled robot", help="Robot description supplied to the VLM")
+    parser.add_argument(
+        "-i",
+        "--instruction",
+        default=DEFAULT_INSTRUCTION,
+        help=(
+            "Fixed instruction for real-robot profiles. For sim_nova, this is only "
+            "an initial value and is overwritten by each episode message."
+        ),
+    )
+    parser.add_argument(
+        "--episode-topic",
+        default="/isaacsim/episode",
+        help="Episode metadata topic used only by sim_nova to update the instruction and reset state.",
+    )
+    parser.add_argument("--rate", type=float, default=None, help="Inference timer rate. Defaults to config frame_rate")
+    parser.add_argument("--history-len", type=int, default=DEFAULT_HISTORY_LEN)
+    parser.add_argument(
+        "--history-interval-seconds",
+        type=float,
+        default=3.0,
+        help="Seconds between VLM context frames, matching async video's -9/-6/-3/current pattern.",
+    )
+    parser.add_argument("--metric-waypoint-spacing", type=float, default=1.0)
+    parser.add_argument("--waypoint-idx", type=int, default=None, help="Path index published to waypoint_topic")
+    parser.add_argument("--frame-id", default="base_link", help="Frame for predicted relative policy path")
+    parser.add_argument("--camera-matrix", default=None, help="Calibration JSON for projected overlay")
+    parser.add_argument("--show", action="store_true")
+    parser.add_argument("--print-response", action="store_true", default=True, help="Print VLM model text outputs")
+    parser.add_argument("--quiet-response", action="store_false", dest="print_response", help="Suppress VLM outputs")
+    args, ros_args = parser.parse_known_args()
+
+    if ros_args and ros_args[0] != "--ros-args":
+        parser.error(f"Unrecognized arguments: {ros_args}")
+    if args.inspect_bag and not args.bag:
+        parser.error("--inspect-bag requires --bag")
+    if args.history_len < 1:
+        parser.error("--history-len must be >= 1")
+    if not math.isfinite(args.history_interval_seconds) or args.history_interval_seconds <= 0:
+        parser.error("--history-interval-seconds must be finite and > 0")
+    if args.metric_waypoint_spacing <= 0:
+        parser.error("--metric-waypoint-spacing must be > 0")
+    if args.rate is not None and (not math.isfinite(args.rate) or args.rate <= 0):
+        parser.error("--rate must be finite and > 0")
+
+    if args.bag:
+        topics = bag_topics(args.bag)
+        if args.inspect_bag:
+            for name, kind in topics:
+                print(f"{name}\t{kind}")
+            return args, ros_args
+        candidates = [
+            (name, kind)
+            for name, kind in topics
+            if kind in ("sensor_msgs/msg/Image", "sensor_msgs/msg/CompressedImage")
+        ]
+        if args.image_topic:
+            candidates = [(name, kind) for name, kind in candidates if name == args.image_topic]
+        if len(candidates) != 1:
+            parser.error(f"Select --image-topic from bag camera topics: {candidates or topics}")
+        args.image_topic, kind = candidates[0]
+        actual = "compressed" if kind.endswith("/CompressedImage") else "raw"
+        if args.image_type and args.image_type != actual:
+            parser.error("--image-type conflicts with bag metadata")
+        args.image_type = actual
+    return args, ros_args
 
 def main() -> int:
     args, ros_args = parse_args()
