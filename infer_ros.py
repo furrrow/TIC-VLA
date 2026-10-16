@@ -128,6 +128,21 @@ def sample_history_paths(
     return selected
 
 
+def select_lookahead_index(path_xy: np.ndarray, lookahead_distance: float) -> int:
+    """Select the first path point at the requested polyline arc length."""
+    if len(path_xy) == 0:
+        raise ValueError("Cannot select a waypoint from an empty path.")
+    if len(path_xy) == 1:
+        return 0
+
+    segment_lengths = np.linalg.norm(np.diff(path_xy, axis=0), axis=1)
+    arc_lengths = np.concatenate(([0.0], np.cumsum(segment_lengths)))
+    index = int(np.searchsorted(arc_lengths, lookahead_distance, side="left"))
+    if len(path_xy) >= 5:
+        return int(np.clip(index, 2, len(path_xy) - 3))
+    return min(index, len(path_xy) - 1)
+
+
 class TICVLAROSNode(Node):
     def __init__(
             self,
@@ -169,11 +184,13 @@ class TICVLAROSNode(Node):
         self.show_overlay = False
 
         self.rate = float(args.rate or config.get("frame_rate", 10))
-        self.waypoint_idx = int(
-            args.waypoint_idx
-            if args.waypoint_idx is not None
-            else config.get("waypoint_idx", 5)
+        self.lookahead_distance = float(
+            args.lookahead_distance
+            if args.lookahead_distance is not None
+            else robot_config.get("lookahead_distance", 1.0)
         )
+        if not math.isfinite(self.lookahead_distance) or self.lookahead_distance < 0:
+            raise ValueError("lookahead_distance must be finite and >= 0")
         self.history_interval_ns = int(args.history_interval_seconds * 1_000_000_000)
         self.history_window_ns = self.history_interval_ns * max(1, args.history_len)
 
@@ -181,8 +198,8 @@ class TICVLAROSNode(Node):
         odom_topic = args.odom_topic or robot_config["odom_topic"]
         self.compressed_img_topic = args.image_type == "compressed" if args.image_type else "compressed" in image_topic
         policy_path_topic = robot_config["policy_path_topic"]
-        # A direct waypoint output is optional. The SteerNav pipeline consumes
-        # policy_path_topic instead and publishes its own steered waypoint.
+        # Publish both outputs: the normal controller consumes waypoint_topic,
+        # while SteerNav consumes policy_path_topic and publishes a steered waypoint.
         waypoint_topic = robot_config.get("waypoint_topic")
         sampled_actions_topic = robot_config["sampled_actions_topic"]
         overlay_topic = robot_config["overlay_topic"]
@@ -231,10 +248,9 @@ class TICVLAROSNode(Node):
                 String, args.episode_topic, self.episode_callback,
                 qos_profile=episode_qos, callback_group=self.input_group,
             )
-        # Nova Carter's Isaac bridge selects a lookahead point from policy_path.
         self.waypoint_pub = (
             None
-            if self.require_episode or waypoint_topic is None
+            if waypoint_topic is None
             else self.create_publisher(Float32MultiArray, waypoint_topic, qos_profile=reliable_qos)
         )
         self.sampled_actions_pub = self.create_publisher(Float32MultiArray, sampled_actions_topic,
@@ -502,7 +518,7 @@ class TICVLAROSNode(Node):
         if not np.isfinite(path_xy).all():
             raise ValueError("Model returned non-finite waypoints.")
 
-        chosen_idx = min(max(self.waypoint_idx, 0), len(path_xy) - 1)
+        chosen_idx = select_lookahead_index(path_xy, self.lookahead_distance)
         if self.waypoint_pub is not None:
             chosen_waypoint = path_xy[chosen_idx]
             waypoint_msg = Float32MultiArray()
@@ -555,9 +571,12 @@ class TICVLAROSNode(Node):
         if elapsed >= 1.0:
             inference_rate = self.inference_count / elapsed
             detail = (
-                f"path_points={len(path_xy)} (bridge selects 1 m lookahead)"
+                f"path_points={len(path_xy)} (no waypoint topic configured)"
                 if self.waypoint_pub is None
-                else f"waypoint[{chosen_idx}]={chosen_waypoint.tolist()}"
+                else (
+                    f"waypoint[{chosen_idx}]={chosen_waypoint.tolist()} "
+                    f"lookahead={self.lookahead_distance:.2f}m"
+                )
             )
             self.get_logger().info(
                 f"Inference rate: {inference_rate:.2f} Hz | "
@@ -606,7 +625,12 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
         help="Seconds between VLM context frames, matching async video's -9/-6/-3/current pattern.",
     )
     parser.add_argument("--metric-waypoint-spacing", type=float, default=1.0)
-    parser.add_argument("--waypoint-idx", type=int, default=None, help="Path index published to waypoint_topic")
+    parser.add_argument(
+        "--lookahead-distance",
+        type=float,
+        default=None,
+        help="Waypoint lookahead in meters. Defaults to the robot configuration.",
+    )
     parser.add_argument("--frame-id", default="base_link", help="Frame for predicted relative policy path")
     parser.add_argument("--camera-matrix", default=None, help="Calibration JSON for projected overlay")
     parser.add_argument("--show", action="store_true")
@@ -624,6 +648,10 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
         parser.error("--history-interval-seconds must be finite and > 0")
     if args.metric_waypoint_spacing <= 0:
         parser.error("--metric-waypoint-spacing must be > 0")
+    if args.lookahead_distance is not None and (
+        not math.isfinite(args.lookahead_distance) or args.lookahead_distance < 0
+    ):
+        parser.error("--lookahead-distance must be finite and >= 0")
     if args.rate is not None and (not math.isfinite(args.rate) or args.rate <= 0):
         parser.error("--rate must be finite and > 0")
 

@@ -67,6 +67,7 @@ if tmux has-session -t "${session_name}" 2>/dev/null; then
   echo "tmux session already exists: ${session_name}" >&2
   exit 1
 fi
+# set up tmux session
 tmux new-session -d -s "${session_name}" -c "${REPO_ROOT}"
 inference_pane="$(tmux display-message -p -t "${session_name}:0.0" '#{pane_id}')"
 controller_pane="$(tmux split-window -h -P -F '#{pane_id}' -t "${inference_pane}" -c "${REPO_ROOT}")"
@@ -74,9 +75,11 @@ tmux set-option -t "${session_name}" mouse on
 tmux select-pane -t "${inference_pane}" -T "TIC-VLA inference"
 tmux select-pane -t "${controller_pane}" -T "Waypoint controller"
 
+# run inference for TICVLA
 tmux send-keys -t "${inference_pane}" \
   "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run infer_ros.py --robot sim_nova" C-m
 
+# run steering node if steered
 controller_flags="--simulation-episode-control"
 if [[ "${MODE}" == "steered" ]]; then
   controller_flags="--steer ${controller_flags}"
@@ -87,6 +90,7 @@ if [[ "${MODE}" == "steered" ]]; then
   tmux select-layout -t "${session_name}:0" tiled
 fi
 
+# run controller, note: controller_flags have --steer option when steered
 tmux send-keys -t "${controller_pane}" \
   "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run custom_utils/custom_utils/kinematic_controller_naive.py --robot sim_nova --config ${ROBOT_CONFIG} ${controller_flags}" C-m
 

@@ -65,13 +65,12 @@ run_benchmark.sh
         -> BenchmarkRunner owns scene, people, physics, goal and metrics
         -> nova_carter_ros_bridge.py
            publishes camera, odometry and episode metadata
-           subscribes to policy path and cmd_vel
-           selects an approximately 1 m lookahead waypoint
+           subscribes to cmd_vel
            applies Twist to Nova Carter wheels
 
 persistent external ROS processes:
   infer_ros.py
-    camera + odometry + episode metadata -> full body-frame path
+    camera + odometry + episode metadata -> full body-frame path + lookahead waypoint
 
   kinematic_controller_naive.py
     selected waypoint -> geometry_msgs/Twist
@@ -113,7 +112,7 @@ run_icra_dispatch.sh
 | Observation transport | Compressed ROS image plus odometry | Image path and JSON HTTP request |
 | Policy execution | Asynchronous wall-clock inference | Synchronous; simulation waits for the response |
 | Policy output | Full body-frame path | Waypoints or a model-specific native action |
-| Waypoint selection | Isaac ROS bridge selects roughly 1 m lookahead | In-simulator DynaNav controller |
+| Waypoint selection | External ROS inference node uses configured lookahead | In-simulator DynaNav controller |
 | Low-level control | Separate ROS node publishes `Twist` | Controller runs in the simulator process |
 | Robot command | ROS `/isaacsim/cmd_vel` | Direct simulator wheel/action command |
 | Episode reset | Transient-local episode message and inference generation guard | Episode/frame metadata and policy reset, followed by reset audit |

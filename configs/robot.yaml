@@ -2,6 +2,7 @@
 turtle:
   max_v: 0.1 # m/s
   max_w: 0.2 # rad/s
+  lookahead_distance: 1.0 # m
   image_topic: "/turtle1/image_compressed"
   policy_waypoint_topic: "/turtle1/policy_waypoint"
   steered_waypoint_topic: "/turtle1/steered_waypoint"
@@ -12,6 +13,7 @@ turtle:
 ghost:
   max_v: 0.2 # m/s
   max_w: 0.3 # rad/s
+  lookahead_distance: 1.0 # m
   image_topic: "/camera/camera/color/image_raw/compressed"
 #  image_topic: "/camera/camera/color/image_raw"
   odom_topic: "/odom_lidar"
@@ -25,6 +27,7 @@ ghost:
 husky:
   max_v: 0.2 # m/s
   max_w: 0.3 # rad/s
+  lookahead_distance: 1.0 # m
   image_topic: "/camera/camera/color/image_raw/compressed"
 #  image_topic: "/argus/ar0234_front_left/image_raw"
   waypoint_topic: "/husky/waypoint"
@@ -41,6 +44,7 @@ husky:
 sim_nova:
   max_v: 1.5 # m/s
   max_w: 1.2 # rad/s
+  lookahead_distance: 1.0 # m
   image_topic: "/isaacsim/camera/front/image_raw/compressed"
   waypoint_topic: "/sim_nova/waypoint"
   odom_topic: "/isaacsim/odom"
@@ -61,5 +65,4 @@ shrink_h: 480
 # observation rate for the robot
 frame_rate: 15
 controller_rate: 10
-waypoint_idx : 2
 cam_matrix: "cam_matrix.json"

@@ -4,10 +4,12 @@ import cv2
 import json
 import os
 import time
+from pathlib import Path
 import numpy as np
 import carb
 import omni.usd
 import omni.replicator.core as rep
+import yaml
 from omni.kit.scripting import BehaviorScript
 from isaacsim.robot.wheeled_robots.robots import WheeledRobot
 from isaacsim.robot.wheeled_robots.controllers.differential_controller import DifferentialController
@@ -17,23 +19,30 @@ import rclpy
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 import benchmark_runtime as runtime
 from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry, Path
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CompressedImage
-from std_msgs.msg import Float32MultiArray, String
+from std_msgs.msg import String
 
 
 IMAGE_TOPIC = "/isaacsim/camera/front/image_raw/compressed"
 ODOM_TOPIC = "/isaacsim/odom"
 CMD_VEL_TOPIC = os.environ.get("TICVLA_CMD_VEL_TOPIC", "/isaacsim/cmd_vel")
 EPISODE_TOPIC = "/isaacsim/episode"
-POLICY_PATH_TOPIC = "/sim_nova/policy_path"
-WAYPOINT_TOPIC = "/sim_nova/waypoint"
-LOOKAHEAD_DISTANCE_M = 1.0
 COMMAND_TIMEOUT_S = 0.5
-MAX_LINEAR_SPEED = 1.5 # 0.2
-MAX_ANGULAR_SPEED = 1.2 # 0.3
 CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/front_hawk/left/camera_left"
 BASE_LINK_PATH = "/World/Robots/Nova_Carter/chassis_link"
+DEFAULT_ROBOT_CONFIG = Path(__file__).resolve().parents[2] / "configs" / "robot.yaml"
+
+
+def load_command_limits():
+    config_path = Path(os.environ.get("TICVLA_ROBOT_CONFIG", DEFAULT_ROBOT_CONFIG)).expanduser()
+    with config_path.open("r", encoding="utf-8") as config_file:
+        robot_config = yaml.safe_load(config_file)["sim_nova"]
+    max_v = float(robot_config["max_v"])
+    max_w = float(robot_config["max_w"])
+    if not np.isfinite([max_v, max_w]).all() or max_v < 0 or max_w < 0:
+        raise ValueError(f"Invalid sim_nova command limits in {config_path}: max_v={max_v}, max_w={max_w}")
+    return max_v, max_w
 
 
 class NovaCarterROSBridge(BehaviorScript):
@@ -58,6 +67,7 @@ class NovaCarterROSBridge(BehaviorScript):
         self._render_product = None
         self._annotator = None
         self._closed = False
+        self._max_linear_speed, self._max_angular_speed = load_command_limits()
 
     def on_play(self):
         self._benchmark_context.ros_cleanup = self._close
@@ -71,8 +81,6 @@ class NovaCarterROSBridge(BehaviorScript):
             self._image_pub = self._node.create_publisher(CompressedImage, IMAGE_TOPIC, 10)
             self._odom_pub = self._node.create_publisher(Odometry, ODOM_TOPIC, 10)
             self._cmd_sub = self._node.create_subscription(Twist, CMD_VEL_TOPIC, self._on_command, 10)
-            self._path_sub = self._node.create_subscription(Path, POLICY_PATH_TOPIC, self._on_path, 10)
-            self._waypoint_pub = self._node.create_publisher(Float32MultiArray, WAYPOINT_TOPIC, 10)
             episode_qos = QoSProfile(depth=1)
             episode_qos.reliability = ReliabilityPolicy.RELIABLE
             episode_qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
@@ -98,32 +106,10 @@ class NovaCarterROSBridge(BehaviorScript):
 
     def _on_command(self, msg: Twist):
         self._command = (
-            float(np.clip(msg.linear.x, -MAX_LINEAR_SPEED, MAX_LINEAR_SPEED)),
-            float(np.clip(msg.angular.z, -MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED)),
+            float(np.clip(msg.linear.x, -self._max_linear_speed, self._max_linear_speed)),
+            float(np.clip(msg.angular.z, -self._max_angular_speed, self._max_angular_speed)),
         )
         self._command_time = time.monotonic()
-
-    def _on_path(self, msg: Path):
-        points = np.asarray(
-            [[pose.pose.position.x, pose.pose.position.y] for pose in msg.poses],
-            dtype=np.float64,
-        )
-        if len(points) == 0 or not np.isfinite(points).all():
-            carb.log_warn("Ignoring empty or non-finite Nova Carter policy path")
-            return
-        if len(points) == 1:
-            index = 0
-        else:
-            segment_lengths = np.linalg.norm(np.diff(points, axis=0), axis=1)
-            arc_lengths = np.concatenate(([0.0], np.cumsum(segment_lengths)))
-            index = int(np.searchsorted(arc_lengths, LOOKAHEAD_DISTANCE_M, side="left"))
-            if len(points) >= 5:
-                index = int(np.clip(index, 2, len(points) - 3))
-            else:
-                index = min(index, len(points) - 1)
-        waypoint = Float32MultiArray()
-        waypoint.data = points[index].tolist()
-        self._waypoint_pub.publish(waypoint)
 
     def on_update(self, current_time: float, delta_time: float):
         if self._node is not None:

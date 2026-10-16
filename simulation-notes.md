@@ -11,8 +11,7 @@ Normal mode sends the TIC-VLA path directly to the waypoint controller:
 ```text
 Isaac camera + odometry
   -> infer_ros.py
-  -> /sim_nova/policy_path
-  -> Isaac bridge selects an approximately 1 m waypoint
+  -> selects the configured lookahead from /sim_nova/policy_path
   -> /sim_nova/waypoint
   -> kinematic_controller_naive.py
   -> /isaacsim/cmd_vel
@@ -44,6 +43,20 @@ BATCH_ID=scenario1_comparison_v1 ./run_nova_experiments.bash
 ```
 
 The default scenario is `DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml`.
+
+Use `--mode` to run only one pipeline instead of the default two-mode comparison:
+
+```bash
+BATCH_ID=scenario1_normal_v1 ./run_nova_experiments.bash --mode normal
+BATCH_ID=scenario1_steered_v1 ./run_nova_experiments.bash --mode steered
+```
+
+The accepted values are `normal`, `steered`, and `both`. You can combine the option with a scenario path:
+
+```bash
+BATCH_ID=scenario2_steered_v1 ./run_nova_experiments.bash \
+  --mode steered DynaNav/configs/icra_scenarios_v4/scenario2_5.yaml
+```
 
 The orchestrator performs these steps:
 
@@ -183,7 +196,7 @@ Real-robot profiles do not subscribe to `/isaacsim/episode`. They use the `--ins
 | Isaac to inference and SteerNav | `/isaacsim/odom` | `nav_msgs/Odometry` |
 | Isaac to persistent local nodes | `/isaacsim/episode` | `std_msgs/String` containing JSON |
 | TIC-VLA to Isaac/SteerNav | `/sim_nova/policy_path` | `nav_msgs/Path` |
-| Isaac bridge to normal controller | `/sim_nova/waypoint` | `std_msgs/Float32MultiArray` |
+| TIC-VLA to normal controller | `/sim_nova/waypoint` | `std_msgs/Float32MultiArray` |
 | SteerNav to steered controller | `/sim_nova/steered_waypoint` | `std_msgs/Float32MultiArray` |
 | Controller to Isaac | `/isaacsim/cmd_vel` | `geometry_msgs/Twist` |
 

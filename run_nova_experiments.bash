@@ -6,10 +6,63 @@ ROS_SETUP="/opt/ros/humble/setup.bash"
 REMOTE_HOST="${REMOTE_HOST:-isaac}"
 REMOTE_REPO="${REMOTE_REPO:-/home/isaac/Projects/TIC-VLA}"
 REMOTE_DISPLAY="${REMOTE_DISPLAY:-:1}"
-CONFIG="${1:-DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml}"
+CONFIG="DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml"
+MODE="both"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
 BATCH_ID="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
 LOG_DIR="${REPO_ROOT}/logs/orchestration/${BATCH_ID}"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [--mode normal|steered|both] [CONFIG]
+
+Run the normal experiment, the steered experiment, or both sequentially.
+CONFIG defaults to DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml.
+EOF
+}
+
+config_set=false
+while (( $# > 0 )); do
+  case "$1" in
+    --mode)
+      if (( $# < 2 )); then
+        echo "--mode requires one of: normal, steered, both." >&2
+        usage >&2
+        exit 2
+      fi
+      MODE="$2"
+      shift 2
+      ;;
+    --mode=*)
+      MODE="${1#*=}"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --*)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+    *)
+      if [[ "${config_set}" == true ]]; then
+        echo "Only one CONFIG path may be supplied." >&2
+        usage >&2
+        exit 2
+      fi
+      CONFIG="$1"
+      config_set=true
+      shift
+      ;;
+  esac
+done
+
+if [[ "${MODE}" != "normal" && "${MODE}" != "steered" && "${MODE}" != "both" ]]; then
+  echo "Invalid mode '${MODE}'; expected normal, steered, or both." >&2
+  exit 2
+fi
 
 if [[ ! "${CONFIG}" =~ ^[A-Za-z0-9_./-]+\.yaml$ ]]; then
   echo "Config must be a relative YAML path containing only letters, numbers, _, -, ., and /." >&2
@@ -98,6 +151,7 @@ run_mode() {
   echo
   echo "=== ${mode}: run_id=${run_id} ==="
   active_session="${session}"
+  # runs nova_ros.bash
   "${REPO_ROOT}/nova_ros.bash" "${mode}" --detach --session-name "${session}"
   wait_until_ready "${mode}" "${session}"
 
@@ -144,17 +198,26 @@ run_mode() {
 }
 
 echo "Batch ID: ${BATCH_ID}"
+echo "Mode: ${MODE}"
 echo "Scenario: ${CONFIG}"
 echo "Remote: ${REMOTE_HOST}:${REMOTE_REPO} (DISPLAY=${REMOTE_DISPLAY})"
 echo "Local logs: ${LOG_DIR}"
-
+# preflight check for remote machine:
 ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
-  "cd ${REMOTE_REPO} && test -S /tmp/.X11-unix/X${display_number} && test -f ${CONFIG} && test -x DynaNav/run_benchmark.sh && export DISPLAY=${REMOTE_DISPLAY} && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && bash -u -c 'source .env.testing'"
+  "cd ${REMOTE_REPO} && { test -S /tmp/.X11-unix/X${display_number} || { echo 'ERROR: Remote X display ${REMOTE_DISPLAY} is unavailable. Check whether the remote machine is logged in to a graphical desktop session.' >&2; exit 1; }; } && test -f ${CONFIG} && test -x DynaNav/run_benchmark.sh && export DISPLAY=${REMOTE_DISPLAY} && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && bash -u -c 'source .env.testing'"
 
-run_mode normal
-run_mode steered
+if [[ "${MODE}" == "normal" || "${MODE}" == "both" ]]; then
+  run_mode normal
+fi
+if [[ "${MODE}" == "steered" || "${MODE}" == "both" ]]; then
+  run_mode steered
+fi
 
 echo
-echo "Both experiments completed successfully."
-echo "Remote run IDs: ${BATCH_ID}_normal, ${BATCH_ID}_steered"
+echo "Requested experiment mode '${MODE}' completed successfully."
+if [[ "${MODE}" == "both" ]]; then
+  echo "Remote run IDs: ${BATCH_ID}_normal, ${BATCH_ID}_steered"
+else
+  echo "Remote run ID: ${BATCH_ID}_${MODE}"
+fi
 echo "Local orchestration logs: ${LOG_DIR}"

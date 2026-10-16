@@ -25,7 +25,7 @@ The three configs are compatible with the current local benchmark configuration 
 - 40-second configured timeout
 - 1.5 m success threshold
 
-When run locally, `benchmark.py` starts a fresh Isaac Sim child for every episode. `nova_carter_ros_bridge.py` publishes the front camera, odometry and episode metadata. The long-running `infer_ros.py` process publishes a body-frame policy path, the bridge selects an approximately 1 m lookahead waypoint, and the separate ROS controller publishes `Twist` commands back to Isaac.
+When run locally, `benchmark.py` starts a fresh Isaac Sim child for every episode. `nova_carter_ros_bridge.py` publishes the front camera, odometry and episode metadata. The long-running `infer_ros.py` process publishes a body-frame policy path and its configured lookahead waypoint, and the separate ROS controller publishes `Twist` commands back to Isaac.
 
 Start the inference and controller processes from the repository root:
 

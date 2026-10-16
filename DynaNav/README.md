@@ -47,8 +47,9 @@ The `ticvla_ros` method publishes Nova Carter's forward camera as
 `sensor_msgs/CompressedImage` on `/isaacsim/camera/front/image_raw/compressed` and
 base-frame velocity and pose as `nav_msgs/Odometry` on `/isaacsim/odom`. It
 subscribes to `geometry_msgs/Twist` on `/isaacsim/cmd_vel` and applies its
-`linear.x` and `angular.z` to the wheels. Commands are limited to 1.5 m/s and
-1.2 rad/s, and the robot stops if no command arrives for 0.5 seconds. Set
+`linear.x` and `angular.z` to the wheels. Commands are limited using `max_v` and
+`max_w` from the `sim_nova` profile in `configs/robot.yaml`, and the robot stops
+if no command arrives for 0.5 seconds. Set
 `TICVLA_CMD_VEL_TOPIC` in the Isaac terminal to override the command topic.
 Spot is not supported in this preview.
 
@@ -63,10 +64,9 @@ episode before inference, uses its instruction, and resets model and observation
 history on each new episode ID. Other robot profiles continue using
 `--instruction`.
 For `sim_nova`, inference publishes the full predicted path on
-`/sim_nova/policy_path`. The Isaac bridge publishes `/sim_nova/waypoint` using
-the first point about 1 meter along that path, clamped to indices 2 through
-`T-3` for paths of at least five points. The global `waypoint_idx` setting and
-`--waypoint-idx` apply only to other robot profiles.
+`/sim_nova/policy_path` and selects `/sim_nova/waypoint` using the configured
+`lookahead_distance`. The selection uses path arc length and is clamped to
+indices 2 through `T-3` for paths of at least five points.
 
 Isaac's ROS 2 bridge extension supplies an `rclpy` build compatible with its
 Python 3.11 runtime. `run_benchmark.sh` sources `.env.testing` to use its
@@ -99,6 +99,10 @@ The `sim_nova` entry in `configs/robot.yaml` uses the same image, odometry,
 and velocity topics for the waypoint controller.
 
 Use the same `ROS_DOMAIN_ID` from `.env.testing` in the ROS inspection terminal.
+
+To connect OmniVLA or another external policy to these topics, follow the
+[VLA adapter guide](VLA_ADAPTER_GUIDE.md). It defines the ROS message contract,
+episode reset behavior, coordinate convention, and model-specific checks.
 
 ## Data Collection
 
