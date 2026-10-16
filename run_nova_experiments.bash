@@ -91,7 +91,7 @@ run_mode() {
 
   echo "Starting simulator benchmark on ${REMOTE_HOST}..."
   ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
-    "cd ${REMOTE_REPO} && DynaNav/run_benchmark.sh ${CONFIG} --run_id ${run_id}" \
+    "cd ${REMOTE_REPO} && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && DynaNav/run_benchmark.sh ${CONFIG} --run_id ${run_id}" \
     2>&1 | tee "${LOG_DIR}/${mode}.log"
 
   echo "Remote ${mode} benchmark completed."
@@ -105,7 +105,7 @@ echo "Remote: ${REMOTE_HOST}:${REMOTE_REPO}"
 echo "Local logs: ${LOG_DIR}"
 
 ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
-  "cd ${REMOTE_REPO} && test -f ${CONFIG} && test -x DynaNav/run_benchmark.sh"
+  "cd ${REMOTE_REPO} && test -f ${CONFIG} && test -x DynaNav/run_benchmark.sh && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && bash -u -c 'source .env.testing'"
 
 run_mode normal
 run_mode steered
