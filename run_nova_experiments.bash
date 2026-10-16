@@ -5,6 +5,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROS_SETUP="/opt/ros/humble/setup.bash"
 REMOTE_HOST="${REMOTE_HOST:-isaac}"
 REMOTE_REPO="${REMOTE_REPO:-/home/isaac/Projects/TIC-VLA}"
+REMOTE_DISPLAY="${REMOTE_DISPLAY:-:1}"
 CONFIG="${1:-DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml}"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
 BATCH_ID="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
@@ -18,6 +19,12 @@ if [[ ! "${REMOTE_REPO}" =~ ^/[A-Za-z0-9_./-]+$ ]]; then
   echo "REMOTE_REPO must be an absolute path containing only letters, numbers, _, -, ., and /." >&2
   exit 2
 fi
+if [[ ! "${REMOTE_DISPLAY}" =~ ^:[0-9]+(\.[0-9]+)?$ ]]; then
+  echo "REMOTE_DISPLAY must be an X display such as :0 or :1." >&2
+  exit 2
+fi
+display_number="${REMOTE_DISPLAY#:}"
+display_number="${display_number%%.*}"
 if [[ ! "${BATCH_ID}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
   echo "BATCH_ID may contain only letters, numbers, dots, underscores, and hyphens." >&2
   exit 2
@@ -82,6 +89,11 @@ run_mode() {
   local mode="$1"
   local run_id="${BATCH_ID}_${mode}"
   local session="nova_${run_id}"
+  local status_file="${LOG_DIR}/.${mode}.$$.status"
+  local remote_command=""
+  local remote_pane=""
+  local watcher_pid=""
+  local remote_status=""
 
   echo
   echo "=== ${mode}: run_id=${run_id} ==="
@@ -89,23 +101,55 @@ run_mode() {
   "${REPO_ROOT}/nova_ros.bash" "${mode}" --detach --session-name "${session}"
   wait_until_ready "${mode}" "${session}"
 
-  echo "Starting simulator benchmark on ${REMOTE_HOST}..."
-  ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
-    "cd ${REMOTE_REPO} && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && DynaNav/run_benchmark.sh ${CONFIG} --run_id ${run_id}" \
-    2>&1 | tee "${LOG_DIR}/${mode}.log"
+  echo "Starting simulator benchmark on ${REMOTE_HOST} in a visible tmux pane..."
+  remote_command="set -o pipefail; ssh -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && export DISPLAY=${REMOTE_DISPLAY} && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && DynaNav/run_benchmark.sh ${CONFIG} --run_id ${run_id}' 2>&1 | tee ${LOG_DIR}/${mode}.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
+  remote_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${session}:0" -c "${REPO_ROOT}" /bin/bash -lc "${remote_command}")"
+  tmux select-pane -t "${remote_pane}" -T "Isaac ${mode} status"
+  tmux select-layout -t "${session}:0" tiled
+
+  (
+    while tmux has-session -t "${session}" 2>/dev/null && [[ ! -s "${status_file}" ]]; do
+      sleep 1
+    done
+    if tmux has-session -t "${session}" 2>/dev/null; then
+      sleep 3
+      tmux kill-session -t "${session}"
+    fi
+  ) &
+  watcher_pid=$!
+
+  echo "Attaching to ${session}; it will close shortly after the remote benchmark exits."
+  if [[ -n "${TMUX:-}" ]]; then
+    echo "Run this orchestrator outside an existing tmux client so it can display its experiment session." >&2
+    tmux kill-session -t "${session}"
+    wait "${watcher_pid}" || true
+    return 1
+  fi
+  tmux attach-session -t "${session}" || true
+  wait "${watcher_pid}" || true
+  active_session=""
+
+  if [[ ! -s "${status_file}" ]]; then
+    echo "The ${mode} tmux session ended before the remote benchmark reported status." >&2
+    return 1
+  fi
+  remote_status="$(<"${status_file}")"
+  if [[ "${remote_status}" != "0" ]]; then
+    echo "Remote ${mode} benchmark failed with status ${remote_status}." >&2
+    return "${remote_status}"
+  fi
 
   echo "Remote ${mode} benchmark completed."
-  cleanup_session
   sleep 5
 }
 
 echo "Batch ID: ${BATCH_ID}"
 echo "Scenario: ${CONFIG}"
-echo "Remote: ${REMOTE_HOST}:${REMOTE_REPO}"
+echo "Remote: ${REMOTE_HOST}:${REMOTE_REPO} (DISPLAY=${REMOTE_DISPLAY})"
 echo "Local logs: ${LOG_DIR}"
 
 ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
-  "cd ${REMOTE_REPO} && test -f ${CONFIG} && test -x DynaNav/run_benchmark.sh && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && bash -u -c 'source .env.testing'"
+  "cd ${REMOTE_REPO} && test -S /tmp/.X11-unix/X${display_number} && test -f ${CONFIG} && test -x DynaNav/run_benchmark.sh && export DISPLAY=${REMOTE_DISPLAY} && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && bash -u -c 'source .env.testing'"
 
 run_mode normal
 run_mode steered

@@ -71,6 +71,8 @@ tmux new-session -d -s "${session_name}" -c "${REPO_ROOT}"
 inference_pane="$(tmux display-message -p -t "${session_name}:0.0" '#{pane_id}')"
 controller_pane="$(tmux split-window -h -P -F '#{pane_id}' -t "${inference_pane}" -c "${REPO_ROOT}")"
 tmux set-option -t "${session_name}" mouse on
+tmux select-pane -t "${inference_pane}" -T "TIC-VLA inference"
+tmux select-pane -t "${controller_pane}" -T "Waypoint controller"
 
 tmux send-keys -t "${inference_pane}" \
   "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run infer_ros.py --robot sim_nova" C-m
@@ -79,6 +81,7 @@ controller_flags="--simulation-episode-control"
 if [[ "${MODE}" == "steered" ]]; then
   controller_flags="--steer ${controller_flags}"
   steernav_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${controller_pane}" -c "${STEERNAV_ROOT}")"
+  tmux select-pane -t "${steernav_pane}" -T "SteerNav"
   tmux send-keys -t "${steernav_pane}" \
     "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run steernav/ros_inference.py --robot sim_nova" C-m
   tmux select-layout -t "${session_name}:0" tiled

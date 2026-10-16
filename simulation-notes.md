@@ -48,16 +48,18 @@ The default scenario is `DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml`.
 The orchestrator performs these steps:
 
 1. Verify over `ssh isaac` that the scenario and remote benchmark launcher exist under `/home/isaac/Projects/TIC-VLA`, and confirm that `.env.testing` can be sourced with strict unset-variable checking.
-2. Start `nova_ros.bash normal` in a named, detached local tmux session.
+2. Start `nova_ros.bash normal` in a named local tmux session.
 3. Wait until TIC-VLA reports `Model ready` and the controller reports that it registered.
-4. Run the five-episode scenario on the simulator with run ID `<BATCH_ID>_normal`.
+4. Add a pane that runs the five-episode scenario over SSH with run ID `<BATCH_ID>_normal`, then attach your terminal to the session.
 5. Stop only the local tmux session created for the normal run.
-6. Start `nova_ros.bash steered` in a new detached tmux session.
+6. Start `nova_ros.bash steered` in a new local tmux session.
 7. Wait for TIC-VLA, SteerNav, and the controller to report readiness.
-8. Run the same remote scenario with run ID `<BATCH_ID>_steered`.
+8. Add the remote simulator-status pane, attach your terminal, and run the same scenario with run ID `<BATCH_ID>_steered`.
 9. Stop the steered tmux session after the benchmark finishes.
 
 The two runs are sequential. This prevents their ROS nodes from sharing topics and ensures both modes use the same scenario geometry and pedestrian idle times.
+
+The normal session shows three tiled panes: TIC-VLA inference, controller output, and remote Isaac benchmark status. The steered session shows four panes by adding SteerNav output. Although `nova_ros.bash` initially creates the sessions in detached mode for setup, `run_nova_experiments.bash` attaches your terminal after readiness and remote launch. Run the orchestrator outside another tmux client. Each session closes three seconds after its remote benchmark finishes, then the orchestrator proceeds to the next mode.
 
 Choose a unique, descriptive batch ID for every comparison:
 
@@ -87,11 +89,19 @@ Deployment overrides:
 | --- | --- |
 | `REMOTE_HOST` | `isaac` |
 | `REMOTE_REPO` | `/home/isaac/Projects/TIC-VLA` |
+| `REMOTE_DISPLAY` | `:1` |
 | `STEERNAV_ROOT` | `/home/jim/Projects/steernav` |
 | `READY_TIMEOUT_SECONDS` | `600` |
 | `BATCH_ID` | Current timestamp |
 
 The orchestrator calls `DynaNav/run_benchmark.sh` on the simulator directly so it can pass the selected scenario and run ID. It does not use the remote `run_sim.bash`, which may be hardcoded to a different scenario suite.
+
+The benchmark uses `headless: false`. The orchestrator exports `DISPLAY=:1` by default and verifies the corresponding X socket before loading local models. The Isaac window appears on the simulator machine's graphical desktop, not on the local machine running the SSH command. Override `REMOTE_DISPLAY` if the simulator desktop uses another display:
+
+```bash
+REMOTE_DISPLAY=:0 BATCH_ID=scenario1_comparison_v1 \
+  ./run_nova_experiments.bash
+```
 
 ## Results and logs
 
