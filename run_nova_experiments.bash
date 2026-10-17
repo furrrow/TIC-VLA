@@ -2,11 +2,10 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROS_SETUP="/opt/ros/humble/setup.bash"
 REMOTE_HOST="${REMOTE_HOST:-isaac}"
 REMOTE_REPO="${REMOTE_REPO:-/home/isaac/Projects/TIC-VLA}"
 REMOTE_DISPLAY="${REMOTE_DISPLAY:-:1}"
-CONFIG="DynaNav/configs/icra_scenarios_v4/scenario3_5.yaml"
+SCENARIO="DynaNav/configs/icra_scenarios_v4/scenario3_5.yaml"
 MODE="both"
 CONTROLLER_DT="0.75"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
@@ -15,13 +14,12 @@ LOG_DIR="${REPO_ROOT}/logs/orchestration/${BATCH_ID}"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--mode normal|steered|both] [CONFIG]
+Usage: $(basename "$0") [--mode normal|steered|both] [--scenario FILE]
 
 Run the normal experiment, the steered experiment, or both sequentially.
 EOF
 }
 
-config_set=false
 while (( $# > 0 )); do
   case "$1" in
     --mode)
@@ -37,6 +35,19 @@ while (( $# > 0 )); do
       MODE="${1#*=}"
       shift
       ;;
+    -s|--scenario)
+      if (( $# < 2 )); then
+        echo "$1 requires a scenario file." >&2
+        usage >&2
+        exit 2
+      fi
+      SCENARIO="$2"
+      shift 2
+      ;;
+    --scenario=*)
+      SCENARIO="${1#*=}"
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -47,14 +58,9 @@ while (( $# > 0 )); do
       exit 2
       ;;
     *)
-      if [[ "${config_set}" == true ]]; then
-        echo "Only one CONFIG path may be supplied." >&2
-        usage >&2
-        exit 2
-      fi
-      CONFIG="$1"
-      config_set=true
-      shift
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 2
       ;;
   esac
 done
@@ -64,8 +70,8 @@ if [[ "${MODE}" != "normal" && "${MODE}" != "steered" && "${MODE}" != "both" ]];
   exit 2
 fi
 
-if [[ ! "${CONFIG}" =~ ^[A-Za-z0-9_./-]+\.yaml$ ]]; then
-  echo "Config must be a relative YAML path containing only letters, numbers, _, -, ., and /." >&2
+if [[ ! "${SCENARIO}" =~ ^[A-Za-z0-9_./-]+\.yaml$ ]]; then
+  echo "Scenario must be a relative YAML path containing only letters, numbers, _, -, ., and /." >&2
   exit 2
 fi
 if [[ ! "${REMOTE_REPO}" =~ ^/[A-Za-z0-9_./-]+$ ]]; then
@@ -76,8 +82,6 @@ if [[ ! "${REMOTE_DISPLAY}" =~ ^:[0-9]+(\.[0-9]+)?$ ]]; then
   echo "REMOTE_DISPLAY must be an X display such as :0 or :1." >&2
   exit 2
 fi
-display_number="${REMOTE_DISPLAY#:}"
-display_number="${display_number%%.*}"
 if [[ ! "${BATCH_ID}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
   echo "BATCH_ID may contain only letters, numbers, dots, underscores, and hyphens." >&2
   exit 2
@@ -86,15 +90,23 @@ if [[ ! "${READY_TIMEOUT_SECONDS}" =~ ^[0-9]+$ || "${READY_TIMEOUT_SECONDS}" -eq
   echo "READY_TIMEOUT_SECONDS must be a positive integer." >&2
   exit 2
 fi
-if [[ ! -f "${ROS_SETUP}" ]]; then
-  echo "ROS setup not found: ${ROS_SETUP}" >&2
-  exit 1
-fi
-
 mkdir -p "${LOG_DIR}"
 active_session=""
+active_remote_job=""
+
+stop_remote_job() {
+  if [[ -z "${active_remote_job}" ]]; then
+    return 0
+  fi
+  echo "Stopping remote simulator job ${active_remote_job} on ${REMOTE_HOST}..."
+  ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
+    "cd ${REMOTE_REPO} && ./run_sim.bash --stop ${active_remote_job}" || \
+    echo "Warning: could not confirm that remote simulator job ${active_remote_job} stopped." >&2
+  active_remote_job=""
+}
 
 cleanup_session() {
+  stop_remote_job
   if [[ -n "${active_session}" ]] && tmux has-session -t "${active_session}" 2>/dev/null; then
     echo "Stopping local tmux session ${active_session}"
     tmux kill-session -t "${active_session}"
@@ -156,7 +168,8 @@ run_mode() {
   wait_until_ready "${mode}" "${session}"
 
   echo "Starting simulator benchmark on ${REMOTE_HOST} in a visible tmux pane..."
-  remote_command="set -o pipefail; ssh -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && export DISPLAY=${REMOTE_DISPLAY} && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && DynaNav/run_benchmark.sh ${CONFIG} --run_id ${run_id}' 2>&1 | tee ${LOG_DIR}/${mode}.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
+  active_remote_job="${run_id}"
+  remote_command="set -o pipefail; ssh -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} -- --run_id ${run_id}' 2>&1 | tee ${LOG_DIR}/${mode}.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
   remote_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${session}:0" -c "${REPO_ROOT}" /bin/bash -lc "${remote_command}")"
   tmux select-pane -t "${remote_pane}" -T "Isaac ${mode} status"
   tmux select-layout -t "${session}:0" tiled
@@ -188,6 +201,7 @@ run_mode() {
     return 1
   fi
   remote_status="$(<"${status_file}")"
+  active_remote_job=""
   if [[ "${remote_status}" != "0" ]]; then
     echo "Remote ${mode} benchmark failed with status ${remote_status}." >&2
     return "${remote_status}"
@@ -199,12 +213,11 @@ run_mode() {
 
 echo "Batch ID: ${BATCH_ID}"
 echo "Mode: ${MODE}"
-echo "Scenario: ${CONFIG}"
+echo "Scenario: ${SCENARIO}"
 echo "Remote: ${REMOTE_HOST}:${REMOTE_REPO} (DISPLAY=${REMOTE_DISPLAY})"
 echo "Local logs: ${LOG_DIR}"
-# preflight check for remote machine:
 ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
-  "cd ${REMOTE_REPO} && { test -S /tmp/.X11-unix/X${display_number} || { echo 'ERROR: Remote X display ${REMOTE_DISPLAY} is unavailable. Check whether the remote machine is logged in to a graphical desktop session.' >&2; exit 1; }; } && test -f ${CONFIG} && test -x DynaNav/run_benchmark.sh && export DISPLAY=${REMOTE_DISPLAY} && export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-} && bash -u -c 'source .env.testing'"
+  "cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --check --scenario ${SCENARIO}"
 
 if [[ "${MODE}" == "normal" || "${MODE}" == "both" ]]; then
   run_mode normal

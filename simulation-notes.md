@@ -73,13 +73,14 @@ session uses another display, override it when launching:
 DISPLAY=:0 ./run_sim.bash
 ```
 
-`run_sim.bash` sources `.env.testing` and currently runs
-`DynaNav/configs/icra_scenarios_v4/all_scenarios_15.yaml`. To select a specific
-scenario or set a run ID, invoke the benchmark launcher directly instead:
+`run_sim.bash` sources `.env.testing` and defaults to
+`DynaNav/configs/icra_scenarios_v4/scenario3_5.yaml`. Select another scenario
+file with `--scenario`; pass benchmark options such as a run ID after `--`:
 
 ```bash
-DynaNav/run_benchmark.sh \
-  DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml \
+./run_sim.bash \
+  --scenario DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml \
+  -- \
   --run_id manual_scenario1_normal
 ```
 
@@ -129,24 +130,30 @@ The accepted values are `normal`, `steered`, and `both`. You can combine the opt
 
 ```bash
 BATCH_ID=scenario2_steered_v1 ./run_nova_experiments.bash \
-  --mode steered DynaNav/configs/icra_scenarios_v4/scenario2_5.yaml
+  --mode steered \
+  --scenario DynaNav/configs/icra_scenarios_v4/scenario2_5.yaml
 ```
 
 The orchestrator performs these steps:
 
-1. Verify over `ssh isaac` that the scenario and remote benchmark launcher exist under `/home/isaac/Projects/TIC-VLA`, and confirm that `.env.testing` can be sourced with strict unset-variable checking.
+1. Ask the remote `run_sim.bash --check` command to validate the scenario, display, benchmark launcher, environment and Isaac Sim Python installation.
 2. Start `nova_ros.bash normal` in a named local tmux session.
 3. Wait until TIC-VLA reports `Model ready` and the controller reports that it registered.
 4. Add a pane that runs the five-episode scenario over SSH with run ID `<BATCH_ID>_normal`, then attach your terminal to the session.
-5. Stop only the local tmux session created for the normal run.
+5. Stop the tracked remote simulator process group and the local tmux session created for the normal run.
 6. Start `nova_ros.bash steered` in a new local tmux session.
 7. Wait for TIC-VLA, SteerNav, and the controller to report readiness.
 8. Add the remote simulator-status pane, attach your terminal, and run the same scenario with run ID `<BATCH_ID>_steered`.
-9. Stop the steered tmux session after the benchmark finishes.
+9. Stop the tracked remote simulator process group and the steered tmux session after the benchmark finishes.
 
 The two runs are sequential. This prevents their ROS nodes from sharing topics and ensures both modes use the same scenario geometry and pedestrian idle times.
 
 The normal session shows three tiled panes: TIC-VLA inference, controller output, and remote Isaac benchmark status. The steered session shows four panes by adding SteerNav output. Although `nova_ros.bash` initially creates the sessions in detached mode for setup, `run_nova_experiments.bash` attaches your terminal after readiness and remote launch. Run the orchestrator outside another tmux client. Each session closes three seconds after its remote benchmark finishes, then the orchestrator proceeds to the next mode.
+
+If the orchestrator is interrupted, it asks the remote `run_sim.bash` supervisor
+to stop the benchmark process group. The supervisor sends `SIGINT` first so the
+episode can close `SimulationApp`, then uses `SIGTERM` and `SIGKILL` only if the
+process group remains alive.
 
 Choose a unique, descriptive batch ID for every comparison:
 
@@ -159,7 +166,7 @@ To select another scenario, pass its repository-relative path:
 ```bash
 BATCH_ID=icra_v4_s2_checkpoint76000_r1 \
   ./run_nova_experiments.bash \
-  DynaNav/configs/icra_scenarios_v4/scenario2_5.yaml
+  --scenario DynaNav/configs/icra_scenarios_v4/scenario2_5.yaml
 ```
 
 The default local readiness timeout is 600 seconds. Increase it when model loading takes longer:
@@ -181,7 +188,10 @@ Deployment overrides:
 | `READY_TIMEOUT_SECONDS` | `600` |
 | `BATCH_ID` | Current timestamp |
 
-The orchestrator calls `DynaNav/run_benchmark.sh` on the simulator directly so it can pass the selected scenario and run ID. It does not use the remote `run_sim.bash`, which may be hardcoded to a different scenario suite.
+The orchestrator calls `run_sim.bash` on the simulator with the selected
+scenario, run ID and a tracked job ID. `run_sim.bash` delegates to
+`DynaNav/run_benchmark.sh` and owns cleanup of the benchmark and episode child
+processes.
 
 The benchmark uses `headless: false`. The orchestrator exports `DISPLAY=:1` by default and verifies the corresponding X socket before loading local models. The Isaac window appears on the simulator machine's graphical desktop, not on the local machine running the SSH command. Override `REMOTE_DISPLAY` if the simulator desktop uses another display:
 
