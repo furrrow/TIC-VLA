@@ -33,6 +33,73 @@ Isaac camera + odometry
 
 The controller uses `--simulation-episode-control` in both modes. It publishes zero velocity while waiting for an episode, clears its waypoint on a new episode, and waits for a fresh waypoint before moving. In steered mode, SteerNav also clears its image, path, detection, tracker, velocity, and timing state for every new episode ID.
 
+## Manual operation
+
+Use two terminals for a manual run. In the first terminal on this computer, start
+the desired local pipeline:
+
+```bash
+cd /home/jim/Projects/TIC-VLA
+./nova_ros.bash normal
+# Or, for the SteerNav pipeline:
+./nova_ros.bash steered
+```
+
+Leave that terminal running. `nova_ros.bash` opens a tmux session containing
+the inference and controller processes (plus SteerNav in steered mode). Wait
+until the local processes are ready before starting the simulator.
+
+In a second terminal, SSH into the simulator machine and run its simulation
+wrapper:
+
+```bash
+ssh isaac
+cd /home/isaac/Projects/TIC-VLA
+./run_sim.bash
+```
+
+The wrapper defaults to `DISPLAY=:1`, which is the simulator machine's local
+desktop, so the Isaac Sim window appears on its monitor. If that machine's X
+session uses another display, override it when launching:
+
+```bash
+DISPLAY=:0 ./run_sim.bash
+```
+
+`run_sim.bash` sources `.env.testing` and currently runs
+`DynaNav/configs/icra_scenarios_v4/all_scenarios_15.yaml`. To select a specific
+scenario or set a run ID, invoke the benchmark launcher directly instead:
+
+```bash
+DynaNav/run_benchmark.sh \
+  DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml \
+  --run_id manual_scenario1_normal
+```
+
+When the simulation finishes, return to the local `nova_ros.bash` terminal,
+detach with `Ctrl-b`, then `d`, and stop the session using the
+`TMUX_SESSION=<name>` printed at startup:
+
+```bash
+tmux kill-session -t <name>
+```
+
+For automation or background use, assign a session name and detach:
+
+```bash
+./nova_ros.bash normal --detach --session-name nova_manual_normal
+./nova_ros.bash steered --detach --session-name nova_manual_steered
+```
+
+Inspect or stop a detached session with:
+
+```bash
+tmux attach -t nova_manual_normal
+tmux kill-session -t nova_manual_normal
+```
+
+Do not run normal and steered local pipelines simultaneously because they use the same ROS topics and node names.
+
 ## Automated two-machine comparison
 
 Use `run_nova_experiments.bash` from the local TIC-VLA repository to run normal and steered experiments sequentially on the same scenario:
@@ -133,41 +200,6 @@ The local machine records streamed remote output at:
 ```
 
 If a readiness check or remote benchmark fails, the orchestrator exits and stops its active local tmux session. It does not remove unrelated tmux sessions. It stops after a failed normal run rather than continuing with a steered result from invalid conditions.
-
-## Manual operation
-
-Start either pipeline locally:
-
-```bash
-./nova_ros.bash normal
-./nova_ros.bash steered
-```
-
-For automation or background use, assign a session name and detach:
-
-```bash
-./nova_ros.bash normal --detach --session-name nova_manual_normal
-./nova_ros.bash steered --detach --session-name nova_manual_steered
-```
-
-Inspect or stop a detached session with:
-
-```bash
-tmux attach -t nova_manual_normal
-tmux kill-session -t nova_manual_normal
-```
-
-After the local processes are ready, start a scenario on the simulator:
-
-```bash
-ssh isaac
-cd /home/isaac/Projects/TIC-VLA
-DynaNav/run_benchmark.sh \
-  DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml \
-  --run_id manual_scenario1_normal
-```
-
-Do not run normal and steered local pipelines simultaneously because they use the same ROS topics and node names.
 
 ## Episode instructions and reset behavior
 

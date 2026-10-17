@@ -2,7 +2,7 @@
 turtle:
   max_v: 0.1 # m/s
   max_w: 0.2 # rad/s
-  lookahead_distance: 1.0 # m
+  lookahead_distance: 0.3 # m
   image_topic: "/turtle1/image_compressed"
   policy_waypoint_topic: "/turtle1/policy_waypoint"
   steered_waypoint_topic: "/turtle1/steered_waypoint"
@@ -13,7 +13,7 @@ turtle:
 ghost:
   max_v: 0.2 # m/s
   max_w: 0.3 # rad/s
-  lookahead_distance: 1.0 # m
+  lookahead_distance: 0.3 # m
   image_topic: "/camera/camera/color/image_raw/compressed"
 #  image_topic: "/camera/camera/color/image_raw"
   odom_topic: "/odom_lidar"
@@ -27,7 +27,7 @@ ghost:
 husky:
   max_v: 0.2 # m/s
   max_w: 0.3 # rad/s
-  lookahead_distance: 1.0 # m
+  lookahead_distance: 0.3 # m
   image_topic: "/camera/camera/color/image_raw/compressed"
 #  image_topic: "/argus/ar0234_front_left/image_raw"
   waypoint_topic: "/husky/waypoint"
@@ -49,7 +49,6 @@ sim_nova:
   waypoint_topic: "/sim_nova/waypoint"
   odom_topic: "/isaacsim/odom"
   policy_path_topic: "/sim_nova/policy_path"
-  steered_path_topic: "/sim_nova/steered_path"
   steered_waypoint_topic: "/sim_nova/steered_waypoint"
   goal_topic: "/sim_nova/next_goal"
   reached_goal_topic: "/sim_nova/reached_goal"
