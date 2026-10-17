@@ -44,7 +44,7 @@ husky:
 sim_nova:
   max_v: 1.5 # m/s
   max_w: 1.2 # rad/s
-  lookahead_distance: 1.0 # m
+  lookahead_distance: 0.6 # m
   image_topic: "/isaacsim/camera/front/image_raw/compressed"
   waypoint_topic: "/sim_nova/waypoint"
   odom_topic: "/isaacsim/odom"

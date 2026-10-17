@@ -8,6 +8,8 @@ STEERNAV_ROOT="${STEERNAV_ROOT:-/home/jim/Projects/steernav}"
 MODE="normal"
 DETACH=false
 SESSION_NAME=""
+CONTROLLER_DT="0.75"
+LOG_ROOT="${NOVA_ROS_LOG_ROOT:-${REPO_ROOT}/logs/nova_ros}"
 
 if [[ $# -gt 0 && ( "$1" == "normal" || "$1" == "steered" ) ]]; then
   MODE="$1"
@@ -28,13 +30,21 @@ while [[ $# -gt 0 ]]; do
       SESSION_NAME="$2"
       shift 2
       ;;
+    --dt)
+      if [[ $# -lt 2 ]]; then
+        echo "--dt requires a value" >&2
+        exit 2
+      fi
+      CONTROLLER_DT="$2"
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: $0 [normal|steered] [--detach] [--session-name NAME]"
+      echo "Usage: $0 [normal|steered] [--detach] [--session-name NAME] [--dt SECONDS]"
       exit 0
       ;;
     *)
       echo "Unknown argument: $1" >&2
-      echo "Usage: $0 [normal|steered] [--detach] [--session-name NAME]" >&2
+      echo "Usage: $0 [normal|steered] [--detach] [--session-name NAME] [--dt SECONDS]" >&2
       exit 2
       ;;
   esac
@@ -44,9 +54,14 @@ if [[ -n "${SESSION_NAME}" && ! "${SESSION_NAME}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
   echo "Session name may contain only letters, numbers, dots, underscores, and hyphens." >&2
   exit 2
 fi
+if [[ ! "${CONTROLLER_DT}" =~ ^[0-9]+([.][0-9]+)?$ ]] || [[ ! "${CONTROLLER_DT}" =~ [1-9] ]]; then
+  echo "Controller dt must be a positive number of seconds." >&2
+  exit 2
+fi
 
 echo "Mode: ${MODE}"
 echo "Robot config: ${ROBOT_CONFIG}"
+echo "Controller dt: ${CONTROLLER_DT}s"
 
 if [[ ! -f "${ROS_SETUP}" ]]; then
   echo "ROS setup not found: ${ROS_SETUP}" >&2
@@ -67,6 +82,23 @@ if tmux has-session -t "${session_name}" 2>/dev/null; then
   echo "tmux session already exists: ${session_name}" >&2
   exit 1
 fi
+
+log_dir="${LOG_ROOT}/${session_name}"
+mkdir -p "${log_dir}"
+inference_log="${log_dir}/inference.log"
+controller_log="${log_dir}/controller.log"
+steernav_log="${log_dir}/steernav.log"
+
+run_in_pane() {
+  local pane="$1"
+  local log_file="$2"
+  local command="$3"
+  local quoted_log
+  printf -v quoted_log '%q' "${log_file}"
+  tmux send-keys -t "${pane}" \
+    "set -o pipefail; export PYTHONUNBUFFERED=1; ( ${command} ) 2>&1 | tee -a ${quoted_log}" C-m
+}
+
 # set up tmux session
 tmux new-session -d -s "${session_name}" -c "${REPO_ROOT}"
 inference_pane="$(tmux display-message -p -t "${session_name}:0.0" '#{pane_id}')"
@@ -76,8 +108,8 @@ tmux select-pane -t "${inference_pane}" -T "TIC-VLA inference"
 tmux select-pane -t "${controller_pane}" -T "Waypoint controller"
 
 # run inference for TICVLA
-tmux send-keys -t "${inference_pane}" \
-  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run infer_ros.py --robot sim_nova" C-m
+run_in_pane "${inference_pane}" "${inference_log}" \
+  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run infer_ros.py --robot sim_nova"
 
 # run steering node if steered
 controller_flags="--simulation-episode-control"
@@ -85,17 +117,18 @@ if [[ "${MODE}" == "steered" ]]; then
   controller_flags="--steer ${controller_flags}"
   steernav_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${controller_pane}" -c "${STEERNAV_ROOT}")"
   tmux select-pane -t "${steernav_pane}" -T "SteerNav"
-  tmux send-keys -t "${steernav_pane}" \
-    "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run steernav/ros_inference.py --robot sim_nova" C-m
+  run_in_pane "${steernav_pane}" "${steernav_log}" \
+    "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run steernav/ros_inference.py --robot sim_nova"
   tmux select-layout -t "${session_name}:0" tiled
 fi
 
 # run controller, note: controller_flags have --steer option when steered
-tmux send-keys -t "${controller_pane}" \
-  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run custom_utils/custom_utils/kinematic_controller_naive.py --robot sim_nova --config ${ROBOT_CONFIG} ${controller_flags}" C-m
+run_in_pane "${controller_pane}" "${controller_log}" \
+  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run custom_utils/custom_utils/kinematic_controller_naive.py --robot sim_nova --config ${ROBOT_CONFIG} --dt ${CONTROLLER_DT} ${controller_flags}"
 
 tmux select-pane -t "${inference_pane}"
 echo "TMUX_SESSION=${session_name}"
+echo "LOG_DIR=${log_dir}"
 if [[ "${DETACH}" == true ]]; then
   exit 0
 elif [[ -n "${TMUX:-}" ]]; then

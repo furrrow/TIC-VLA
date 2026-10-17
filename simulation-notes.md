@@ -49,6 +49,13 @@ Leave that terminal running. `nova_ros.bash` opens a tmux session containing
 the inference and controller processes (plus SteerNav in steered mode). Wait
 until the local processes are ready before starting the simulator.
 
+Each pane is also saved under `logs/nova_ros/<TMUX_SESSION>/` as
+`inference.log`, `controller.log`, and, in steered mode, `steernav.log`. To
+copy visible terminal text, hold Shift while selecting with the mouse. For
+older output, press `Ctrl-b`, then `[`, scroll or select in tmux copy mode, and
+press Enter to copy the selection. Press `q` to leave copy mode without
+copying.
+
 In a second terminal, SSH into the simulator machine and run its simulation
 wrapper:
 

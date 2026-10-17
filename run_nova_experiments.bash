@@ -6,8 +6,9 @@ ROS_SETUP="/opt/ros/humble/setup.bash"
 REMOTE_HOST="${REMOTE_HOST:-isaac}"
 REMOTE_REPO="${REMOTE_REPO:-/home/isaac/Projects/TIC-VLA}"
 REMOTE_DISPLAY="${REMOTE_DISPLAY:-:1}"
-CONFIG="DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml"
+CONFIG="DynaNav/configs/icra_scenarios_v4/scenario3_5.yaml"
 MODE="both"
+CONTROLLER_DT="0.75"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
 BATCH_ID="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
 LOG_DIR="${REPO_ROOT}/logs/orchestration/${BATCH_ID}"
@@ -17,7 +18,6 @@ usage() {
 Usage: $(basename "$0") [--mode normal|steered|both] [CONFIG]
 
 Run the normal experiment, the steered experiment, or both sequentially.
-CONFIG defaults to DynaNav/configs/icra_scenarios_v4/scenario1_5.yaml.
 EOF
 }
 
@@ -152,7 +152,7 @@ run_mode() {
   echo "=== ${mode}: run_id=${run_id} ==="
   active_session="${session}"
   # runs nova_ros.bash
-  "${REPO_ROOT}/nova_ros.bash" "${mode}" --detach --session-name "${session}"
+  "${REPO_ROOT}/nova_ros.bash" "${mode}" --detach --session-name "${session}" --dt "${CONTROLLER_DT}"
   wait_until_ready "${mode}" "${session}"
 
   echo "Starting simulator benchmark on ${REMOTE_HOST} in a visible tmux pane..."
