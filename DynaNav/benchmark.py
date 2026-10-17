@@ -32,6 +32,25 @@ from scripted_humans import generate_scripted_commands
 
 SIMULATION_FPS = runtime.SIMULATION_FPS
 
+
+def _print_collision_warning(collision_type, episode_name, details):
+    """Print an immediately visible collision banner, even through buffered logs."""
+    label = f"COLLISION WARNING: {collision_type}"
+    context = f"episode={episode_name or 'UNKNOWN'} | {details}"
+    width = max(78, len(label) + 8, len(context) + 8)
+    border = "!" * width
+    use_color = hasattr(sys.stderr, "isatty") and sys.stderr.isatty()
+    emphasis = "\033[1;31m" if use_color else ""
+    reset = "\033[0m" if use_color else ""
+    print(
+        f"\n{emphasis}{border}\n"
+        f"!!! {label}\n"
+        f"!!! {context}\n"
+        f"{border}{reset}\n",
+        file=sys.stderr,
+        flush=True,
+    )
+
 @dataclass
 class EpisodeState:
     """Tracking data that starts fresh for each episode."""
@@ -46,6 +65,8 @@ class EpisodeState:
     failure_reason: str | None = None
     robot_path: list[np.ndarray] = field(default_factory=list)
     human_collision_detected: bool = False
+    human_collision_count: int = 0
+    active_human_collisions: set[str] = field(default_factory=set)
     start_position: np.ndarray | None = None
     simulation_frame_count: int = 0
     start_frame: int = 0
@@ -208,6 +229,7 @@ class BenchmarkRunner:
             spl=self._calculate_spl(success),
             path_length=self._calculate_path_length(),
             human_collision=self.state.human_collision_detected,
+            human_collision_count=self.state.human_collision_count,
             physical_collision=self.state.physical_collision_detected,
             physical_collision_count=self.state.max_contact_consecutive_frames,
             failure_reason=self.state.failure_reason,
@@ -421,7 +443,12 @@ class BenchmarkRunner:
                 # advance one frame
                 await app.next_update_async()
 
+            self.state.failure_reason = (
+                f"Timed out after {timeout_frames / SIMULATION_FPS:.1f}s "
+                f"({timeout_frames} frames) without reaching the goal"
+            )
         except Exception as e:
+            self.state.failure_reason = f"Navigation error: {e}"
             print(f"Warning: Error during navigation: {e}")
         finally:
             # Restore capture and timeline state after success, failure, or setup error.
@@ -539,6 +566,7 @@ class BenchmarkRunner:
         excluded_paths = [
             "/World/Characters/Biped_Setup/biped_demo_meters"
         ]
+        colliding_now = set()
         
         for character_prim in character_root_prim.GetChildren():
             if character_prim.IsValid() and character_prim.IsActive():
@@ -567,11 +595,22 @@ class BenchmarkRunner:
                 robot_2d = self.state.robot_position[:2]
                 char_2d = char_pos[:2]
                 distance = np.linalg.norm(robot_2d - char_2d)
-
-                # print(f"distance: {distance:.2f} to {skelroot_prim.GetPath().pathString} ")
+                if distance < (self.human_collision_threshold + 0.1):
+                    print(f"distance: {distance:.2f} to {skelroot_prim.GetPath().pathString} ")
                 if distance < self.human_collision_threshold:
-                    self.state.human_collision_detected = True
-                    print(f"\n!! Collision detected with {skelroot_prim.GetPath().pathString} at distance {distance:.2f}m")
+                    colliding_now.add(skelroot_path)
+                    if skelroot_path not in self.state.active_human_collisions:
+                        self.state.human_collision_count += 1
+                        _print_collision_warning(
+                            "HUMAN",
+                            self.state.name,
+                            f"character={skelroot_path} | distance={distance:.2f} m "
+                            f"(< {self.human_collision_threshold:.2f} m) | "
+                            f"frame={self.state.simulation_frame_count} | "
+                            f"collision_count={self.state.human_collision_count}",
+                        )
+        self.state.active_human_collisions = colliding_now
+        self.state.human_collision_detected = self.state.human_collision_count > 0
 
     def _find_character_skelroot(self, character_root_prim):
         """Find the SkelRoot prim of a character (the actual animated part)."""
@@ -976,11 +1015,14 @@ class BenchmarkRunner:
                     and self.state.contact_consecutive_frames >= self._contact_duration_threshold_frames
                 ):
                     self.state.physical_collision_detected = True
-                    print(
-                        "\n!! Contact sensor detected sustained collision "
-                        f"({self.state.contact_consecutive_frames} frames >= "
-                        f"{self._contact_duration_threshold_frames}, "
-                        f"force >= {self._contact_threshold:.1f} N)"
+                    _print_collision_warning(
+                        "PHYSICAL CONTACT",
+                        self.state.name,
+                        f"sustained_frames={self.state.contact_consecutive_frames} "
+                        f"(threshold={self._contact_duration_threshold_frames}) | "
+                        f"force={float(reading.value):.1f} N "
+                        f"(threshold={self._contact_threshold:.1f} N) | "
+                        f"frame={self.state.simulation_frame_count}",
                     )
             else:
                 self.state.contact_consecutive_frames = 0
@@ -1248,6 +1290,10 @@ def _normalize_result(raw: dict, episode_name: str, episode_config: dict) -> dic
         normalized['physical_collision_count'] = int(normalized.get('physical_collision_count', 0))
     except Exception:
         normalized['physical_collision_count'] = 0
+    try:
+        normalized['human_collision_count'] = int(normalized.get('human_collision_count', 0))
+    except Exception:
+        normalized['human_collision_count'] = 0
     normalized['success'] = bool(normalized.get('success', False))
     normalized['physical_collision_detected'] = bool(normalized.get('physical_collision_detected', False))
     return normalized

@@ -31,6 +31,7 @@ class EpisodeMetrics:
     spl: float = 0.0
     path_length: float = 0.0
     human_collision: bool = False
+    human_collision_count: int = 0
     physical_collision: bool = False
     physical_collision_count: int = 0
     failure_reason: str | None = None
@@ -57,6 +58,7 @@ def build_episode_result(
         "success_rate": 1.0 if metrics.success else 0.0,
         "collision": float(metrics.human_collision or metrics.physical_collision),
         "human_collision": float(metrics.human_collision),
+        "human_collision_count": metrics.human_collision_count,
         "physical_collision": float(metrics.physical_collision),
         "spl": metrics.spl,
         "path_length": metrics.path_length,
@@ -84,6 +86,7 @@ def summarize_results(results: list[dict]) -> dict:
         "successful_episodes": successful,
         "failed_episodes": total - successful,
         "success_rate_percent": successful / total * 100 if total else 0.0,
+        "total_human_collisions": sum(int(r.get("human_collision_count", 0) or 0) for r in results),
         "average_metrics": {
             "navigation_error_m": average(finite_errors),
             "total_collision_rate_percent": average([binary_metric(r, "collision", "collision_rate") for r in results]) * 100,
@@ -107,6 +110,7 @@ def _aggregate_lines(summary: dict) -> list[str]:
         f"Average Navigation Error (NE): {metrics['navigation_error_m']:.2f}m",
         f"Total Collision Rate (human OR physical): {metrics['total_collision_rate_percent']:.1f}%",
         f"Human Collision Rate: {metrics['human_collision_rate_percent']:.1f}%",
+        f"Total Human Collisions: {summary['total_human_collisions']}",
         f"Physical Contact Rate: {metrics['physical_contact_rate_percent']:.1f}%",
         f"Average Success weighted by Path Length: {metrics['spl']:.3f}",
         f"Average Path Length: {metrics['path_length_m']:.2f}m",
@@ -121,16 +125,24 @@ def _episode_lines(result: dict) -> list[str]:
     duration = result.get("duration", 0.0)
     frames = result.get("duration_frames", 0)
     scene = str(result.get("scene", "")).split("/")[-1] if result.get("scene") else "N/A"
-    return [
+    lines = [
         f"{result.get('episode', 'UNKNOWN')}: {status} | {collision} {physical} ({duration:.1f}s, {int(frames)} frames)",
         f"  Scene: {scene}",
         f"  Robot: {result.get('robot_type', 'N/A')}",
         f"  Instruction: {result.get('instruction', '')}",
+    ]
+    if not result.get("success"):
+        failure_reason = result.get("failure_reason") or result.get("error") or "Goal not reached"
+        lines.append(f"  Failure Reason: {failure_reason}")
+    lines.extend([
+        f"  Human Collisions: {int(result.get('human_collision_count', 0) or 0)}",
+        f"  Physical Collision: {'Yes' if binary_metric(result, 'physical_collision', 'physical_collision_rate') > 0 else 'No'}",
         f"  Navigation Error: {result.get('navigation_error', 0.0):.2f}m",
         f"  Success Rate: {result.get('success_rate', 0.0):.3f}",
         f"  Success weighted by Path Length: {result.get('spl', 0.0):.3f}",
         f"  Path Length: {result.get('path_length', 0.0):.2f}m",
-    ]
+    ])
+    return lines
 
 
 def print_final_results(results: list[dict]) -> None:
