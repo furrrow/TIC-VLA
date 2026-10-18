@@ -66,6 +66,7 @@ class EpisodeState:
     robot_path: list[np.ndarray] = field(default_factory=list)
     human_collision_detected: bool = False
     human_collision_count: int = 0
+    min_human_distance_m: float | None = None
     active_human_collisions: set[str] = field(default_factory=set)
     start_position: np.ndarray | None = None
     simulation_frame_count: int = 0
@@ -237,6 +238,7 @@ class BenchmarkRunner:
             path_length=self._calculate_path_length(),
             human_collision=self.state.human_collision_detected,
             human_collision_count=self.state.human_collision_count,
+            min_human_distance_m=self.state.min_human_distance_m,
             physical_collision=self.state.physical_collision_detected,
             physical_collision_count=self.state.max_contact_consecutive_frames,
             failure_reason=self.state.failure_reason,
@@ -613,6 +615,11 @@ class BenchmarkRunner:
                 robot_2d = self.state.robot_position[:2]
                 char_2d = char_pos[:2]
                 distance = np.linalg.norm(robot_2d - char_2d)
+                if (
+                    self.state.min_human_distance_m is None
+                    or distance < self.state.min_human_distance_m
+                ):
+                    self.state.min_human_distance_m = float(distance)
                 if distance < (self.human_collision_threshold + 0.1):
                     print(f"distance: {distance:.2f} to {skelroot_prim.GetPath().pathString} ")
                 if distance < self.human_collision_threshold:
@@ -1320,6 +1327,13 @@ def _normalize_result(
             normalized[k] = float(normalized.get(k, defaults[k]))
         except Exception:
             normalized[k] = float(defaults[k])
+    min_human_distance = normalized.get('min_human_distance_m')
+    try:
+        normalized['min_human_distance_m'] = (
+            float(min_human_distance) if min_human_distance is not None else None
+        )
+    except Exception:
+        normalized['min_human_distance_m'] = None
     try:
         normalized['duration_frames'] = int(normalized.get('duration_frames', defaults['duration_frames']))
     except Exception:

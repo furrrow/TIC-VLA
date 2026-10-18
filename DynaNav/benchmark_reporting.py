@@ -32,6 +32,7 @@ class EpisodeMetrics:
     path_length: float = 0.0
     human_collision: bool = False
     human_collision_count: int = 0
+    min_human_distance_m: float | None = None
     physical_collision: bool = False
     physical_collision_count: int = 0
     failure_reason: str | None = None
@@ -62,6 +63,7 @@ def build_episode_result(
         "collision": float(metrics.human_collision or metrics.physical_collision),
         "human_collision": float(metrics.human_collision),
         "human_collision_count": metrics.human_collision_count,
+        "min_human_distance_m": metrics.min_human_distance_m,
         "physical_collision": float(metrics.physical_collision),
         "spl": metrics.spl,
         "path_length": metrics.path_length,
@@ -80,6 +82,11 @@ def summarize_results(results: list[dict]) -> dict:
     successful = sum(1 for result in results if result.get("success"))
     navigation_errors = [result.get("navigation_error", float("inf")) for result in results]
     finite_errors = [value for value in navigation_errors if np.isfinite(value)]
+    human_distances = [
+        result.get("min_human_distance_m") for result in results
+        if result.get("min_human_distance_m") is not None
+        and np.isfinite(result.get("min_human_distance_m"))
+    ]
 
     def average(values) -> float:
         return float(np.mean(values)) if values else 0.0
@@ -100,6 +107,7 @@ def summarize_results(results: list[dict]) -> dict:
             "navigation_error_m": average(finite_errors),
             "total_collision_rate_percent": average([binary_metric(r, "collision", "collision_rate") for r in results]) * 100,
             "human_collision_rate_percent": average([binary_metric(r, "human_collision", "human_collision_rate") for r in results]) * 100,
+            "min_human_distance_m": average(human_distances) if human_distances else None,
             "physical_contact_rate_percent": average([binary_metric(r, "physical_collision", "physical_collision_rate") for r in results]) * 100,
             "spl": average([r.get("spl", 0.0) for r in results]),
             "path_length_m": average([r.get("path_length", 0.0) for r in results]),
@@ -111,6 +119,10 @@ def summarize_results(results: list[dict]) -> dict:
 
 def _aggregate_lines(summary: dict) -> list[str]:
     metrics = summary["average_metrics"]
+    min_human_distance = metrics.get("min_human_distance_m")
+    min_human_distance_text = (
+        f"{min_human_distance:.2f}m" if min_human_distance is not None else "N/A"
+    )
     return [
         f"Inference Method: {summary.get('inference_method', 'unspecified')}",
         f"Experiment Mode: {summary.get('experiment_mode', 'unspecified')}",
@@ -122,6 +134,7 @@ def _aggregate_lines(summary: dict) -> list[str]:
         f"Total Collision Rate (human OR physical): {metrics['total_collision_rate_percent']:.1f}%",
         f"Human Collision Rate: {metrics['human_collision_rate_percent']:.1f}%",
         f"Total Human Collisions: {summary['total_human_collisions']}",
+        f"Average Minimum Distance to Human: {min_human_distance_text}",
         f"Physical Contact Rate: {metrics['physical_contact_rate_percent']:.1f}%",
         f"Average Success weighted by Path Length: {metrics['spl']:.3f}",
         f"Average Path Length: {metrics['path_length_m']:.2f}m",
@@ -136,6 +149,10 @@ def _episode_lines(result: dict) -> list[str]:
     duration = result.get("duration", 0.0)
     frames = result.get("duration_frames", 0)
     scene = str(result.get("scene", "")).split("/")[-1] if result.get("scene") else "N/A"
+    min_human_distance = result.get("min_human_distance_m")
+    min_human_distance_text = (
+        f"{min_human_distance:.2f}m" if min_human_distance is not None else "N/A"
+    )
     lines = [
         f"{result.get('episode', 'UNKNOWN')}: {status} | {collision} {physical} ({duration:.1f}s, {int(frames)} frames)",
         f"  Inference Method: {result.get('inference_method', 'unspecified')}",
@@ -149,6 +166,7 @@ def _episode_lines(result: dict) -> list[str]:
         lines.append(f"  Failure Reason: {failure_reason}")
     lines.extend([
         f"  Human Collisions: {int(result.get('human_collision_count', 0) or 0)}",
+        f"  Minimum Distance to Human: {min_human_distance_text}",
         f"  Physical Collision: {'Yes' if binary_metric(result, 'physical_collision', 'physical_collision_rate') > 0 else 'No'}",
         f"  Navigation Error: {result.get('navigation_error', 0.0):.2f}m",
         f"  Success Rate: {result.get('success_rate', 0.0):.3f}",
