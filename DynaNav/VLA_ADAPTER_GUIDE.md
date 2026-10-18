@@ -97,8 +97,9 @@ episode reset and stale-command safety.
 
 ## OmniVLA notes
 
-OmniVLA now provides a complete reference adapter at
-`/home/jim/Projects/OmniVLA/inference/omnivla_ros.py`. Its relevant choices are:
+OmniVLA provides an adapter at
+`/home/jim/Projects/OmniVLA/inference/omnivla_ros.py`. When synchronizing it with
+the current TIC-VLA contract, preserve these model-specific choices:
 
 - Isaac evaluation uses OmniVLA's language-only modality (`lan_prompt=True`,
   with pose, image, and satellite goals disabled). Pose and goal-image values are
@@ -110,9 +111,9 @@ OmniVLA now provides a complete reference adapter at
 - The node uses generation IDs to discard inference results completed after an
   episode change, processes each image sequence once, validates `(T, 2+)` output,
   preserves the camera timestamp, and publishes `/started` after its first path.
-- Simulation publishes only the full policy path. The Isaac bridge chooses the
-  waypoint; direct waypoint publication remains available for real-robot
-  profiles.
+- Simulation must publish both the full policy path and its arc-length-selected
+  waypoint. SteerNav consumes the path; the normal controller consumes the
+  waypoint directly. The Isaac bridge does not select this waypoint.
 - Repository and checkpoint paths are resolved from the source file instead of
   the launcher's working directory. The maintained wrapper is named
   `run_omnivla.py`; downstream imports no longer depend on a parallel
@@ -121,8 +122,11 @@ OmniVLA now provides a complete reference adapter at
 Two calibration questions still require empirical validation for a new OmniVLA
 checkpoint. Confirm that its output uses robot-frame `x` forward and `y` left,
 and confirm `metric_waypoint_spacing`. The current wrapper uses `0.38` m while
-upstream OmniVLA commonly uses `0.1` m. This scale directly changes the bridge's
-1 m lookahead point.
+upstream OmniVLA commonly uses `0.1` m. This scale directly changes the
+trajectory geometry and the inference adapter's 1 m lookahead point.
+
+The implementation checklist for that synchronization is captured in the
+[OmniVLA simulation and steering prompt](OMNIVLA_SIM_STEERING_PROMPT.md).
 
 The benchmark method remains `ticvla_ros`: that name currently selects the
 generic Nova Carter ROS sensor/path bridge, even when the external policy is a
@@ -142,8 +146,9 @@ NaVILA emits metric commands such as `move forward 75 cm` and heading commands
 such as `turn left 30 degrees`. Translation commands become evenly spaced
 `base_link` path points in meters. Because the Isaac bridge consumes `(x, y)`
 positions rather than heading vectors, pure turns become a short-radius arc;
-`--rotation-path-radius` controls that radius. The simulation profile publishes
-only the path and leaves waypoint selection to the Isaac bridge.
+`--rotation-path-radius` controls that radius. Its adapter should follow the same
+path-and-waypoint publication contract above; older NaVILA snapshots that
+publish only the path need the same migration.
 
 Run `nova_ros.bash` for an interactive normal or steered session, or
 `run_nova_experiments.bash` to run both modes sequentially against the remote
@@ -156,10 +161,12 @@ Keep model launchers in the model repository because each VLA has its own Python
 environment. A useful setup has two scripts:
 
 - a local tmux launcher that sources ROS, sets `ROS_DOMAIN_ID`, starts inference,
-  starts the episode-aware controller, and optionally starts SteerNav;
+  starts the episode-aware controller, and optionally starts SteerNav. Pass
+  `use_sim_time:=true` to every ROS node and capture each pane to its own log;
 - an experiment orchestrator that waits for local readiness, starts DynaNav over
-  SSH, streams logs, and runs normal and steered modes sequentially so they never
-  share live ROS topics.
+  SSH through `run_sim.bash`, records its unique job ID, stops that job during
+  cleanup, streams logs, and runs normal and steered modes sequentially so they
+  never share live ROS topics.
 
 Validate repository paths, scenario paths, session names, the remote X display,
 and SSH access before loading the model. Use unique run IDs and keep simulator
@@ -179,12 +186,14 @@ DynaNav/run_benchmark.sh DynaNav/configs/benchmark_single.yaml
 source /opt/ros/humble/setup.bash
 export ROS_DOMAIN_ID=42
 python custom_utils/custom_utils/kinematic_controller_naive.py \
-  --robot sim_nova --simulation-episode-control --dt 1.5
+  --robot sim_nova --simulation-episode-control --dt 0.75 \
+  --ros-args -p use_sim_time:=true
 
 # Model terminal (example; use the adapter in the model repository)
 source /opt/ros/humble/setup.bash
 export ROS_DOMAIN_ID=42
-uv run python inference/<model>_ros.py --robot sim_nova
+uv run python inference/<model>_ros.py --robot sim_nova \
+  --ros-args -p use_sim_time:=true
 ```
 
 Before enabling motion, inspect one episode and confirm that the camera and odom

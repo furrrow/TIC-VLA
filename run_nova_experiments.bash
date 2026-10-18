@@ -8,13 +8,14 @@ REMOTE_DISPLAY="${REMOTE_DISPLAY:-:1}"
 SCENARIO="DynaNav/configs/icra_scenarios_v4/scenario3_5.yaml"
 MODE="both"
 CONTROLLER_DT="0.75"
+INFERENCE_METHOD="${INFERENCE_METHOD:-TIC-VLA}"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
 BATCH_ID="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
 LOG_DIR="${REPO_ROOT}/logs/orchestration/${BATCH_ID}"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--mode normal|steered|both] [--scenario FILE]
+Usage: $(basename "$0") [--mode normal|steered|both] [--scenario FILE] [--inference-method NAME]
 
 Run the normal experiment, the steered experiment, or both sequentially.
 EOF
@@ -46,6 +47,19 @@ while (( $# > 0 )); do
       ;;
     --scenario=*)
       SCENARIO="${1#*=}"
+      shift
+      ;;
+    --inference-method)
+      if (( $# < 2 )); then
+        echo "--inference-method requires a model name." >&2
+        usage >&2
+        exit 2
+      fi
+      INFERENCE_METHOD="$2"
+      shift 2
+      ;;
+    --inference-method=*)
+      INFERENCE_METHOD="${1#*=}"
       shift
       ;;
     -h|--help)
@@ -84,6 +98,10 @@ if [[ ! "${REMOTE_DISPLAY}" =~ ^:[0-9]+(\.[0-9]+)?$ ]]; then
 fi
 if [[ ! "${BATCH_ID}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
   echo "BATCH_ID may contain only letters, numbers, dots, underscores, and hyphens." >&2
+  exit 2
+fi
+if [[ ! "${INFERENCE_METHOD}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+  echo "Inference method may contain only letters, numbers, dots, underscores, and hyphens." >&2
   exit 2
 fi
 if [[ ! "${READY_TIMEOUT_SECONDS}" =~ ^[0-9]+$ || "${READY_TIMEOUT_SECONDS}" -eq 0 ]]; then
@@ -169,7 +187,7 @@ run_mode() {
 
   echo "Starting simulator benchmark on ${REMOTE_HOST} in a visible tmux pane..."
   active_remote_job="${run_id}"
-  remote_command="set -o pipefail; ssh -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} -- --run_id ${run_id} --experiment_mode ${mode}' 2>&1 | tee ${LOG_DIR}/${mode}.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
+  remote_command="set -o pipefail; ssh -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} -- --run_id ${run_id} --experiment_mode ${mode} --inference_method ${INFERENCE_METHOD}' 2>&1 | tee ${LOG_DIR}/${mode}.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
   remote_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${session}:0" -c "${REPO_ROOT}" /bin/bash -lc "${remote_command}")"
   tmux select-pane -t "${remote_pane}" -T "Isaac ${mode} status"
   tmux select-layout -t "${session}:0" tiled
@@ -213,6 +231,7 @@ run_mode() {
 
 echo "Batch ID: ${BATCH_ID}"
 echo "Mode: ${MODE}"
+echo "Inference method: ${INFERENCE_METHOD}"
 echo "Scenario: ${SCENARIO}"
 echo "Remote: ${REMOTE_HOST}:${REMOTE_REPO} (DISPLAY=${REMOTE_DISPLAY})"
 echo "Local logs: ${LOG_DIR}"

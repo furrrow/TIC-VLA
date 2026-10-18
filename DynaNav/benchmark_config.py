@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 
-GLOBAL_KEYS = {"seed", "navigation_method", "success_threshold"}
+GLOBAL_KEYS = {"seed", "navigation_method", "inference_method", "success_threshold"}
 EPISODE_KEYS = {
     "scene", "start", "start_yaw", "goal", "instruction", "timeout",
     "num_people", "robot_type", "success_threshold",
@@ -76,7 +76,15 @@ def load_benchmark_config(path):
     method = config.get("navigation_method", "ticvla_ros")
     if not isinstance(method, str) or method.lower() not in ("ticvla", "ticvla_ros"):
         raise ValueError("navigation_method must be 'ticvla' or 'ticvla_ros'")
-    validated = {"seed": seed, "navigation_method": method.lower(), "success_threshold": threshold}
+    inference_method = config.get("inference_method", "TIC-VLA")
+    if not isinstance(inference_method, str) or not inference_method.strip():
+        raise ValueError("inference_method must be a nonempty string")
+    validated = {
+        "seed": seed,
+        "navigation_method": method.lower(),
+        "inference_method": inference_method.strip(),
+        "success_threshold": threshold,
+    }
 
     for name, episode in config.items():
         if name in GLOBAL_KEYS:

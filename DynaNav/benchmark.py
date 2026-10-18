@@ -80,7 +80,8 @@ class EpisodeState:
 class BenchmarkRunner:
     def __init__(
         self, sim_app, config_file_path, crash_report_path, debug_print, run_id,
-        navigation_method, experiment_mode, terminate_on_human_collision=False,
+        navigation_method, inference_method, experiment_mode,
+        terminate_on_human_collision=False,
     ):
         self._sim_app = sim_app
         self._sim_app.set_setting("/app/scripting/ignoreWarningDialog", True)
@@ -90,6 +91,7 @@ class BenchmarkRunner:
         self.debug_print = debug_print
         self.run_id = run_id
         self.navigation_method = navigation_method
+        self.inference_method = inference_method
         self.experiment_mode = experiment_mode
         self.terminate_on_human_collision = terminate_on_human_collision
         self.behavior_context = None
@@ -240,7 +242,9 @@ class BenchmarkRunner:
             failure_reason=self.state.failure_reason,
         )
         return report_utils.build_episode_result(
-            episode_name, episode_config, metrics, experiment_mode=self.experiment_mode
+            episode_name, episode_config, metrics,
+            experiment_mode=self.experiment_mode,
+            inference_method=self.inference_method,
         )
 
     def _load_benchmark_config(self):
@@ -1157,7 +1161,7 @@ class BenchmarkRunner:
 
 # ---------- Child process wrapper ----------
 
-def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str, experiment_mode: str, terminate_on_human_collision: bool = False) -> int:
+def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str, inference_method: str, experiment_mode: str, terminate_on_human_collision: bool = False) -> int:
     """
     Child process entry point: create SimulationApp, run one episode, write results JSON, then close.
     Returns OS exit code (0 on success).
@@ -1173,13 +1177,17 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
         error = f"{error_type}:{error_msg}" if error_msg else error_type
         episode_config = config_utils.get_episode(benchmark_config, episode_name)
         return report_utils.build_episode_result(
-            episode_name, episode_config, experiment_mode=experiment_mode, error=error
+            episode_name, episode_config,
+            experiment_mode=experiment_mode,
+            inference_method=inference_method,
+            error=error,
         )
 
     try:
         runner = BenchmarkRunner(
             sim_app, os.path.abspath(config_file_path), crash_report_path, debug_print,
-            run_id, navigation_method, experiment_mode, terminate_on_human_collision,
+            run_id, navigation_method, inference_method, experiment_mode,
+            terminate_on_human_collision,
         )
 
         from omni.kit.async_engine import run_coroutine
@@ -1236,7 +1244,7 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
 
 # ---------- Parent process orchestration ----------
 
-def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, experiment_mode: str = "normal", terminate_on_human_collision: bool = False) -> dict:
+def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, inference_method: str = "TIC-VLA", experiment_mode: str = "normal", terminate_on_human_collision: bool = False) -> dict:
     """Start benchmark.py --child; its main() dispatches to run_child_episode()."""
     with tempfile.TemporaryDirectory() as td:
         out_json = os.path.join(td, f"{episode_name}_result.json")
@@ -1249,6 +1257,7 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
             "--result_json", out_json,
             "--child",
             "--run_id", run_id,
+            "--inference_method", inference_method,
             "--experiment_mode", experiment_mode,
         ]
         if crash_report_path:
@@ -1280,14 +1289,19 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
             return {"episode": episode_name, "success": False, "error": "no_result_file"}
 
 
-def _normalize_result(raw: dict, episode_name: str, episode_config: dict, experiment_mode: str = "normal") -> dict:
+def _normalize_result(
+    raw: dict, episode_name: str, episode_config: dict,
+    experiment_mode: str = "normal", inference_method: str = "TIC-VLA",
+) -> dict:
     """Ensure required keys exist so final printer never crashes."""
     # Ensure episode_config is a dict
     if not isinstance(episode_config, dict):
         episode_config = {}
     
     defaults = report_utils.build_episode_result(
-        episode_name, episode_config, experiment_mode=experiment_mode
+        episode_name, episode_config,
+        experiment_mode=experiment_mode,
+        inference_method=inference_method,
     )
     normalized = {**defaults, **(raw or {})}
     # Read legacy metric names before defaults fill in the current names.
@@ -1339,6 +1353,11 @@ def parse_args():
         choices=['ticvla', 'ticvla_ros'],
         help="Navigation method; ticvla_ros publishes Nova Carter sensor topics."
     )
+    parser.add_argument(
+        "--inference_method",
+        default=None,
+        help="Model name recorded in results, such as TIC-VLA or OmniVLA.",
+    )
 
     # Run ID for multi-instance support (allows running multiple benchmarks simultaneously)
     parser.add_argument("--run_id", default=None, help="Unique run ID for this benchmark instance. If not provided, auto-generated from timestamp. Use different IDs to run multiple benchmarks in parallel.")
@@ -1383,6 +1402,7 @@ def main():
     try:
         benchmark_config = config_utils.load_benchmark_config(config_file_path)
         navigation_method = args.navigation_method or benchmark_config['navigation_method']
+        inference_method = args.inference_method or benchmark_config['inference_method']
         if args.navigation_method and args.navigation_method.lower() not in ('ticvla', 'ticvla_ros'):
             raise ValueError("navigation_method must be 'ticvla' or 'ticvla_ros'")
         if args.child:
@@ -1404,7 +1424,8 @@ def main():
         print(f"[Child] Running episode '{args.episode_name}'")
         rc = run_child_episode(
             config_file_path, args.episode_name, crash_report_path, debug_print,
-            args.result_json, benchmark_config, run_id, navigation_method, experiment_mode,
+            args.result_json, benchmark_config, run_id, navigation_method,
+            inference_method, experiment_mode,
             args.terminate_on_human_collision,
         )
         sys.exit(rc)
@@ -1415,6 +1436,7 @@ def main():
     print("Debug Print:", debug_print)
     print("Run ID:", run_id)
     print(f"Navigation Method: {navigation_method} (resolved from command-line or config)")
+    print(f"Inference Method: {inference_method}")
     print(f"Experiment Mode: {experiment_mode}")
     print(f"Terminate On Human Collision: {args.terminate_on_human_collision}")
     if args.start_from:
@@ -1436,10 +1458,13 @@ def main():
             debug_print=debug_print,
             run_id=run_id,
             navigation_method=navigation_method,
+            inference_method=inference_method,
             experiment_mode=experiment_mode,
             terminate_on_human_collision=args.terminate_on_human_collision,
         )
-        normalized = _normalize_result(raw, episode_name, episode_config, experiment_mode)
+        normalized = _normalize_result(
+            raw, episode_name, episode_config, experiment_mode, inference_method
+        )
         all_results.append(normalized)
         
         # Save results incrementally after each episode
