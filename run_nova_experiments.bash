@@ -15,9 +15,10 @@ LOG_DIR="${REPO_ROOT}/logs/orchestration/${BATCH_ID}"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--mode normal|steered|both] [--scenario FILE] [--inference-method NAME]
+Usage: $(basename "$0") [--mode normal|steered|no-velocity|both|ablation] [--scenario FILE] [--inference-method NAME]
 
-Run the normal experiment, the steered experiment, or both sequentially.
+Run one experiment mode, both existing modes, or an ablation of normal,
+steered, and steered without velocity compensation.
 EOF
 }
 
@@ -25,7 +26,7 @@ while (( $# > 0 )); do
   case "$1" in
     --mode)
       if (( $# < 2 )); then
-        echo "--mode requires one of: normal, steered, both." >&2
+        echo "--mode requires one of: normal, steered, no-velocity, both, ablation." >&2
         usage >&2
         exit 2
       fi
@@ -79,8 +80,8 @@ while (( $# > 0 )); do
   esac
 done
 
-if [[ "${MODE}" != "normal" && "${MODE}" != "steered" && "${MODE}" != "both" ]]; then
-  echo "Invalid mode '${MODE}'; expected normal, steered, or both." >&2
+if [[ "${MODE}" != "normal" && "${MODE}" != "steered" && "${MODE}" != "no-velocity" && "${MODE}" != "both" && "${MODE}" != "ablation" ]]; then
+  echo "Invalid mode '${MODE}'; expected normal, steered, no-velocity, both, or ablation." >&2
   exit 2
 fi
 
@@ -238,16 +239,21 @@ echo "Local logs: ${LOG_DIR}"
 ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
   "cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --check --scenario ${SCENARIO}"
 
-if [[ "${MODE}" == "normal" || "${MODE}" == "both" ]]; then
+if [[ "${MODE}" == "normal" || "${MODE}" == "both" || "${MODE}" == "ablation" ]]; then
   run_mode normal
 fi
-if [[ "${MODE}" == "steered" || "${MODE}" == "both" ]]; then
+if [[ "${MODE}" == "steered" || "${MODE}" == "both" || "${MODE}" == "ablation" ]]; then
   run_mode steered
+fi
+if [[ "${MODE}" == "no-velocity" || "${MODE}" == "ablation" ]]; then
+  run_mode no-velocity
 fi
 
 echo
 echo "Requested experiment mode '${MODE}' completed successfully."
-if [[ "${MODE}" == "both" ]]; then
+if [[ "${MODE}" == "ablation" ]]; then
+  echo "Remote run IDs: ${BATCH_ID}_normal, ${BATCH_ID}_steered, ${BATCH_ID}_no-velocity"
+elif [[ "${MODE}" == "both" ]]; then
   echo "Remote run IDs: ${BATCH_ID}_normal, ${BATCH_ID}_steered"
 else
   echo "Remote run ID: ${BATCH_ID}_${MODE}"

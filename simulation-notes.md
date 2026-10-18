@@ -43,14 +43,16 @@ cd /home/jim/Projects/TIC-VLA
 ./nova_ros.bash normal
 # Or, for the SteerNav pipeline:
 ./nova_ros.bash steered
+# Or, for SteerNav without object velocity compensation:
+./nova_ros.bash no-velocity
 ```
 
 Leave that terminal running. `nova_ros.bash` opens a tmux session containing
-the inference and controller processes (plus SteerNav in steered mode). Wait
+the inference and controller processes (plus SteerNav in either steering mode). Wait
 until the local processes are ready before starting the simulator.
 
 Each pane is also saved under `logs/nova_ros/<TMUX_SESSION>/` as
-`inference.log`, `controller.log`, and, in steered mode, `steernav.log`. To
+`inference.log`, `controller.log`, and, in either steering mode, `steernav.log`. To
 copy visible terminal text, hold Shift while selecting with the mouse. For
 older output, press `Ctrl-b`, then `[`, scroll or select in tmux copy mode, and
 press Enter to copy the selection. Press `q` to leave copy mode without
@@ -106,7 +108,7 @@ tmux attach -t nova_manual_normal
 tmux kill-session -t nova_manual_normal
 ```
 
-Do not run normal and steered local pipelines simultaneously because they use the same ROS topics and node names.
+Do not run these local pipelines simultaneously because they use the same ROS topics and node names.
 
 ## Automated two-machine comparison
 
@@ -124,9 +126,17 @@ Use `--mode` to run only one pipeline instead of the default two-mode comparison
 ```bash
 BATCH_ID=scenario1_normal_v1 ./run_nova_experiments.bash --mode normal
 BATCH_ID=scenario1_steered_v1 ./run_nova_experiments.bash --mode steered
+BATCH_ID=scenario1_no_velocity_v1 ./run_nova_experiments.bash --mode no-velocity
 ```
 
-The accepted values are `normal`, `steered`, and `both`. You can combine the option with a scenario path:
+Use `--mode ablation` to run `normal`, `steered`, and `no-velocity` sequentially:
+
+```bash
+BATCH_ID=scenario1_ablation_v1 ./run_nova_experiments.bash --mode ablation
+```
+
+The accepted values are `normal`, `steered`, `no-velocity`, `both`, and
+`ablation`. You can combine the option with a scenario path:
 
 ```bash
 BATCH_ID=scenario2_steered_v1 ./run_nova_experiments.bash \
@@ -145,8 +155,9 @@ The orchestrator performs these steps:
 7. Wait for TIC-VLA, SteerNav, and the controller to report readiness.
 8. Add the remote simulator-status pane, attach your terminal, and run the same scenario with run ID `<BATCH_ID>_steered`.
 9. Stop the tracked remote simulator process group and the steered tmux session after the benchmark finishes.
+10. In `ablation` mode, repeat the steering run with SteerNav's `--no-velocity` option and run ID `<BATCH_ID>_no-velocity`.
 
-The two runs are sequential. This prevents their ROS nodes from sharing topics and ensures both modes use the same scenario geometry and pedestrian idle times.
+The runs are sequential. This prevents their ROS nodes from sharing topics and ensures all modes use the same scenario geometry and pedestrian idle times.
 
 The normal session shows three tiled panes: TIC-VLA inference, controller output, and remote Isaac benchmark status. The steered session shows four panes by adding SteerNav output. Although `nova_ros.bash` initially creates the sessions in detached mode for setup, `run_nova_experiments.bash` attaches your terminal after readiness and remote launch. Run the orchestrator outside another tmux client. Each session closes three seconds after its remote benchmark finishes, then the orchestrator proceeds to the next mode.
 

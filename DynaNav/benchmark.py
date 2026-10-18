@@ -1362,7 +1362,7 @@ def parse_args():
     # Run ID for multi-instance support (allows running multiple benchmarks simultaneously)
     parser.add_argument("--run_id", default=None, help="Unique run ID for this benchmark instance. If not provided, auto-generated from timestamp. Use different IDs to run multiple benchmarks in parallel.")
     parser.add_argument(
-        "--experiment_mode", "--mode", choices=["normal", "steered"], default="normal",
+        "--experiment_mode", "--mode", choices=["normal", "steered", "no-velocity"], default="normal",
         help="Controller mode to record in benchmark results (default: normal).",
     )
 
