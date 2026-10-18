@@ -16,10 +16,12 @@ from isaacsim.robot.wheeled_robots.controllers.differential_controller import Di
 from isaacsim.core.utils.rotations import quat_to_rot_matrix
 
 import rclpy
+from builtin_interfaces.msg import Time
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 import benchmark_runtime as runtime
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
@@ -32,6 +34,15 @@ COMMAND_TIMEOUT_S = 0.5
 CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/front_hawk/left/camera_left"
 BASE_LINK_PATH = "/World/Robots/Nova_Carter/chassis_link"
 DEFAULT_ROBOT_CONFIG = Path(__file__).resolve().parents[2] / "configs" / "robot.yaml"
+
+
+def simulation_time_msg(current_time: float) -> Time:
+    """Convert Isaac simulation seconds to a normalized ROS timestamp."""
+    total_ns = max(0, round(float(current_time) * 1_000_000_000))
+    return Time(
+        sec=total_ns // 1_000_000_000,
+        nanosec=total_ns % 1_000_000_000,
+    )
 
 
 def load_command_limits():
@@ -80,6 +91,7 @@ class NovaCarterROSBridge(BehaviorScript):
             self._node = rclpy.create_node("ticvla_simulation")
             self._image_pub = self._node.create_publisher(CompressedImage, IMAGE_TOPIC, 10)
             self._odom_pub = self._node.create_publisher(Odometry, ODOM_TOPIC, 10)
+            self._clock_pub = self._node.create_publisher(Clock, "/clock", 10)
             self._cmd_sub = self._node.create_subscription(Twist, CMD_VEL_TOPIC, self._on_command, 10)
             episode_qos = QoSProfile(depth=1)
             episode_qos.reliability = ReliabilityPolicy.RELIABLE
@@ -114,7 +126,13 @@ class NovaCarterROSBridge(BehaviorScript):
     def on_update(self, current_time: float, delta_time: float):
         if self._node is not None:
             rclpy.spin_once(self._node, timeout_sec=0.0)
-        if self._closed or self._node is None or not self._robot.is_valid():
+        if self._closed or self._node is None:
+            return
+        stamp = simulation_time_msg(current_time)
+        clock = Clock()
+        clock.clock = stamp
+        self._clock_pub.publish(clock)
+        if not self._robot.is_valid():
             return
         command = self._command if self._command_time is not None and time.monotonic() - self._command_time < COMMAND_TIMEOUT_S else (0.0, 0.0)
         stage = omni.usd.get_context().get_stage()
@@ -128,9 +146,7 @@ class NovaCarterROSBridge(BehaviorScript):
         action = self._controller.forward(command=np.asarray(command, dtype=np.float32))
         self._robot.apply_wheel_actions(action)
 
-        # Both messages describe this update. Node/system time is used until
-        # the benchmark publishes /clock and opts into simulation time.
-        stamp = self._node.get_clock().now().to_msg()
+        # Both messages describe this update and share its simulation timestamp.
         rotation = transform.ExtractRotation().GetQuat()
         q_wxyz = np.array([rotation.GetReal(), *rotation.GetImaginary()], dtype=np.float64)
         world_from_base = quat_to_rot_matrix(q_wxyz)

@@ -2,7 +2,7 @@ seed: 36
 navigation_method: ticvla_ros
 success_threshold: 1.5
 episode_v4_s1_01:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 4.0
   - -1.2
@@ -35,7 +35,7 @@ episode_v4_s1_01:
     yaw_degrees: -148.319901
   physical_human_metrics: true
 episode_v4_s1_02:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 4.0
   - -1.2
@@ -65,7 +65,7 @@ episode_v4_s1_02:
     yaw_degrees: -148.319901
   physical_human_metrics: true
 episode_v4_s1_03:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 4.0
   - -1.2
@@ -95,7 +95,7 @@ episode_v4_s1_03:
     yaw_degrees: -148.319901
   physical_human_metrics: true
 episode_v4_s1_04:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 4.0
   - -1.2
@@ -125,7 +125,7 @@ episode_v4_s1_04:
     yaw_degrees: -148.319901
   physical_human_metrics: true
 episode_v4_s1_05:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 4.0
   - -1.2
@@ -155,7 +155,7 @@ episode_v4_s1_05:
     yaw_degrees: -148.319901
   physical_human_metrics: true
 episode_v4_s2_01:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 19.0
   - 25.0
@@ -201,7 +201,7 @@ episode_v4_s2_01:
     initial_idle: 4.302
   physical_human_metrics: true
 episode_v4_s2_02:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 19.0
   - 25.0
@@ -244,7 +244,7 @@ episode_v4_s2_02:
     initial_idle: 3.75
   physical_human_metrics: true
 episode_v4_s2_03:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 19.0
   - 25.0
@@ -287,7 +287,7 @@ episode_v4_s2_03:
     initial_idle: 3.691
   physical_human_metrics: true
 episode_v4_s2_04:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 19.0
   - 25.0
@@ -330,7 +330,7 @@ episode_v4_s2_04:
     initial_idle: 3.489
   physical_human_metrics: true
 episode_v4_s2_05:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - 19.0
   - 25.0
@@ -373,7 +373,7 @@ episode_v4_s2_05:
     initial_idle: 3.627
   physical_human_metrics: true
 episode_v4_s3_01:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -432,7 +432,7 @@ episode_v4_s3_01:
     initial_idle: 5.349
   physical_human_metrics: true
 episode_v4_s3_02:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -488,7 +488,7 @@ episode_v4_s3_02:
     initial_idle: 4.276
   physical_human_metrics: true
 episode_v4_s3_03:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -544,7 +544,7 @@ episode_v4_s3_03:
     initial_idle: 5.089
   physical_human_metrics: true
 episode_v4_s3_04:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -600,7 +600,7 @@ episode_v4_s3_04:
     initial_idle: 4.344
   physical_human_metrics: true
 episode_v4_s3_05:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0

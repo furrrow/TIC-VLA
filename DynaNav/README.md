@@ -46,7 +46,13 @@ The child process exits after its episode, so the next episode starts with a fre
 The `ticvla_ros` method publishes Nova Carter's forward camera as
 `sensor_msgs/CompressedImage` on `/isaacsim/camera/front/image_raw/compressed` and
 base-frame velocity and pose as `nav_msgs/Odometry` on `/isaacsim/odom`. It
-subscribes to `geometry_msgs/Twist` on `/isaacsim/cmd_vel` and applies its
+publishes the same Isaac simulation timestamp on `/clock`; image and odometry
+messages produced by one simulation update carry identical timestamps. ROS
+consumers should set `use_sim_time:=true`. Sensor timestamps can jump backward
+when a new episode starts, so consumers should clear timestamped history on the
+transient-local `/isaacsim/episode` reset signal or when they detect a backward
+timestamp jump.
+The bridge subscribes to `geometry_msgs/Twist` on `/isaacsim/cmd_vel` and applies its
 `linear.x` and `angular.z` to the wheels. Commands are limited using `max_v` and
 `max_w` from the `sim_nova` profile in `configs/robot.yaml`, and the robot stops
 if no command arrives for 0.5 seconds. Set
@@ -85,6 +91,7 @@ export ROS_DOMAIN_ID=42
 ros2 node list
 ros2 topic hz /isaacsim/camera/front/image_raw/compressed
 ros2 topic hz /isaacsim/odom
+ros2 topic echo /clock --once
 ros2 topic echo /isaacsim/odom --once
 ros2 topic echo /isaacsim/episode std_msgs/msg/String --qos-durability transient_local --once
 ```

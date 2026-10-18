@@ -246,7 +246,7 @@ class BenchmarkRunner:
         self.state = EpisodeState(
             name=episode_name,
             config=episode_config,
-            start_time=time.time(),
+            start_time=time.monotonic(),
             goal_threshold=episode_config['success_threshold'],
         )
 

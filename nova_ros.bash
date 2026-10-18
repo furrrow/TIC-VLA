@@ -109,7 +109,7 @@ tmux select-pane -t "${controller_pane}" -T "Waypoint controller"
 
 # run inference for TICVLA
 run_in_pane "${inference_pane}" "${inference_log}" \
-  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run infer_ros.py --robot sim_nova"
+  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run infer_ros.py --robot sim_nova --ros-args -p use_sim_time:=true"
 
 # run steering node if steered
 controller_flags="--simulation-episode-control"
@@ -118,13 +118,13 @@ if [[ "${MODE}" == "steered" ]]; then
   steernav_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${controller_pane}" -c "${STEERNAV_ROOT}")"
   tmux select-pane -t "${steernav_pane}" -T "SteerNav"
   run_in_pane "${steernav_pane}" "${steernav_log}" \
-    "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run steernav/ros_inference.py --robot sim_nova"
+    "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run steernav/ros_inference.py --robot sim_nova --debug-motion --ros-args -p use_sim_time:=true"
   tmux select-layout -t "${session_name}:0" tiled
 fi
 
 # run controller, note: controller_flags have --steer option when steered
 run_in_pane "${controller_pane}" "${controller_log}" \
-  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run custom_utils/custom_utils/kinematic_controller_naive.py --robot sim_nova --config ${ROBOT_CONFIG} --dt ${CONTROLLER_DT} ${controller_flags}"
+  "source ${ROS_SETUP} && export ROS_DOMAIN_ID=42 && uv run custom_utils/custom_utils/kinematic_controller_naive.py --robot sim_nova --config ${ROBOT_CONFIG} --dt ${CONTROLLER_DT} ${controller_flags} --ros-args -p use_sim_time:=true"
 
 tmux select-pane -t "${inference_pane}"
 echo "TMUX_SESSION=${session_name}"
