@@ -116,7 +116,8 @@ run_in_pane "${inference_pane}" "${inference_log}" \
 controller_flags="--simulation-episode-control"
 if [[ "${MODE}" != "normal" ]]; then
   controller_flags="--steer ${controller_flags}"
-  steernav_flags="--debug-motion"
+#  steernav_flags="--debug-motion"
+  steernav_flags=""
   if [[ "${MODE}" == "no-velocity" ]]; then
     steernav_flags="${steernav_flags} --no-velocity"
   fi
