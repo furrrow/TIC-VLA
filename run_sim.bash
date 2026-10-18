@@ -7,11 +7,12 @@ SCENARIO="${DEFAULT_SCENARIO}"
 CHECK_ONLY=false
 JOB_ID=""
 STOP_JOB_ID=""
+INFERENCE_METHOD=""
 STATE_DIR="${TMPDIR:-/tmp}/ticvla-run-sim"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [-s FILE | --scenario FILE] [--job-id ID] [-- BENCHMARK_ARGS...]
+Usage: $(basename "$0") [-s FILE | --scenario FILE] [--inference-method NAME] [--job-id ID] [-- BENCHMARK_ARGS...]
        $(basename "$0") --check [-s FILE | --scenario FILE]
        $(basename "$0") --stop JOB_ID
 
@@ -19,6 +20,8 @@ Launch the DynaNav benchmark in Isaac Sim.
 
 Options:
   -s, --scenario FILE  Scenario file (default: ${DEFAULT_SCENARIO})
+      --inference-method NAME
+                         Model name recorded in benchmark results
       --job-id ID       Track the benchmark as a stoppable remote job
       --stop JOB_ID     Stop a tracked benchmark and its Isaac Sim child
       --check           Validate the scenario and simulator environment
@@ -56,6 +59,19 @@ while (( $# > 0 )); do
       ;;
     --job-id=*)
       JOB_ID="${1#*=}"
+      shift
+      ;;
+    --inference-method|--inference_method)
+      if (( $# < 2 )); then
+        echo "$1 requires a model name." >&2
+        usage >&2
+        exit 2
+      fi
+      INFERENCE_METHOD="$2"
+      shift 2
+      ;;
+    --inference-method=*|--inference_method=*)
+      INFERENCE_METHOD="${1#*=}"
       shift
       ;;
     --stop)
@@ -148,6 +164,13 @@ if [[ -n "${JOB_ID}" ]] && ! validate_job_id "${JOB_ID}"; then
   echo "Job ID may contain only letters, numbers, dots, underscores, and hyphens." >&2
   exit 2
 fi
+if [[ -n "${INFERENCE_METHOD}" ]]; then
+  if [[ ! "${INFERENCE_METHOD}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+    echo "Inference method may contain only letters, numbers, dots, underscores, and hyphens." >&2
+    exit 2
+  fi
+  benchmark_args+=("--inference_method" "${INFERENCE_METHOD}")
+fi
 
 if [[ "${SCENARIO}" != /* ]]; then
   SCENARIO="${REPO_ROOT}/${SCENARIO}"
@@ -191,6 +214,9 @@ fi
 
 echo "Launching Isaac Sim on DISPLAY=${DISPLAY}"
 echo "Scenario file: ${SCENARIO}"
+if [[ -n "${INFERENCE_METHOD}" ]]; then
+  echo "Inference method: ${INFERENCE_METHOD}"
+fi
 
 if [[ -z "${JOB_ID}" ]]; then
   exec DynaNav/run_benchmark.sh "${SCENARIO}" "${benchmark_args[@]}"

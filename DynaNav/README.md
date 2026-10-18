@@ -120,9 +120,6 @@ Use the same `ROS_DOMAIN_ID` from `.env.testing` in the ROS inspection terminal.
 To connect OmniVLA or another external policy to these topics, follow the
 [VLA adapter guide](VLA_ADAPTER_GUIDE.md). It defines the ROS message contract,
 episode reset behavior, coordinate convention, and model-specific checks.
-The [OmniVLA implementation prompt](OMNIVLA_SIM_STEERING_PROMPT.md) is a
-self-contained task specification for bringing that repository up to the
-current normal and SteerNav-controlled pipeline.
 
 ## Data Collection
 
