@@ -17,4 +17,5 @@ if [[ "${CONFIG}" != /* ]]; then
 fi
 
 cd "${TICVLA_DYNANAV_ROOT}"
-exec "${ISAAC_SIM_PYTHON}" benchmark.py -c "${CONFIG}" "$@"
+exec "${ISAAC_SIM_PYTHON}" benchmark.py -c "${CONFIG}" \
+  --terminate-on-human-collision "$@"

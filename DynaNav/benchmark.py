@@ -78,7 +78,10 @@ class EpisodeState:
 
 
 class BenchmarkRunner:
-    def __init__(self, sim_app, config_file_path, crash_report_path, debug_print, run_id, navigation_method, experiment_mode):
+    def __init__(
+        self, sim_app, config_file_path, crash_report_path, debug_print, run_id,
+        navigation_method, experiment_mode, terminate_on_human_collision=False,
+    ):
         self._sim_app = sim_app
         self._sim_app.set_setting("/app/scripting/ignoreWarningDialog", True)
         # Inputs
@@ -88,6 +91,7 @@ class BenchmarkRunner:
         self.run_id = run_id
         self.navigation_method = navigation_method
         self.experiment_mode = experiment_mode
+        self.terminate_on_human_collision = terminate_on_human_collision
         self.behavior_context = None
 
         self.results = []
@@ -432,6 +436,13 @@ class BenchmarkRunner:
                 if self.debug_print and (self.state.simulation_frame_count % SIMULATION_FPS == 0):
                     print(f"Simulation frame count: {self.state.simulation_frame_count}")
                 self.behavior_context.frame_count = self.state.simulation_frame_count
+
+                if self.terminate_on_human_collision and self.state.human_collision_detected:
+                    self.state.failure_reason = (
+                        "Terminated after detecting a collision with a pedestrian"
+                    )
+                    print(f"Episode failed early: {self.state.failure_reason}")
+                    return False
 
                 failure_reason = self.behavior_context.failure_reason
                 if failure_reason:
@@ -1146,7 +1157,7 @@ class BenchmarkRunner:
 
 # ---------- Child process wrapper ----------
 
-def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str, experiment_mode: str) -> int:
+def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str, experiment_mode: str, terminate_on_human_collision: bool = False) -> int:
     """
     Child process entry point: create SimulationApp, run one episode, write results JSON, then close.
     Returns OS exit code (0 on success).
@@ -1168,7 +1179,7 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
     try:
         runner = BenchmarkRunner(
             sim_app, os.path.abspath(config_file_path), crash_report_path, debug_print,
-            run_id, navigation_method, experiment_mode,
+            run_id, navigation_method, experiment_mode, terminate_on_human_collision,
         )
 
         from omni.kit.async_engine import run_coroutine
@@ -1225,7 +1236,7 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
 
 # ---------- Parent process orchestration ----------
 
-def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, experiment_mode: str = "normal") -> dict:
+def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, experiment_mode: str = "normal", terminate_on_human_collision: bool = False) -> dict:
     """Start benchmark.py --child; its main() dispatches to run_child_episode()."""
     with tempfile.TemporaryDirectory() as td:
         out_json = os.path.join(td, f"{episode_name}_result.json")
@@ -1246,6 +1257,8 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
             cmd += ["--debug_print"]
         if navigation_method:
             cmd += ["--navigation_method", navigation_method]
+        if terminate_on_human_collision:
+            cmd += ["--terminate-on-human-collision"]
 
         proc = subprocess.run(cmd)  # inherit stdio by default
         if proc.returncode != 0:
@@ -1340,6 +1353,11 @@ def parse_args():
     parser.add_argument("--result_json", default=None, help="File path to write single-episode JSON result (child mode)")
     parser.add_argument("--start_from", default=None, help="Episode name to start from (inclusive) in parent mode")
     parser.add_argument("--reverse_episodes", action="store_true", help="Run episodes in reverse order")
+    parser.add_argument(
+        "--terminate-on-human-collision",
+        action="store_true",
+        help="End an episode immediately and mark it failed when a pedestrian collision is detected.",
+    )
 
     args, _ = parser.parse_known_args()
     return args
@@ -1378,7 +1396,6 @@ def main():
     except (OSError, yaml.YAMLError, ValueError) as exc:
         print(f"Invalid benchmark config or episode selection: {exc}", file=sys.stderr)
         sys.exit(2)
-
     if args.child:
         # --- Child mode: run exactly one episode and exit ---
         if not args.episode_name or not args.result_json:
@@ -1388,6 +1405,7 @@ def main():
         rc = run_child_episode(
             config_file_path, args.episode_name, crash_report_path, debug_print,
             args.result_json, benchmark_config, run_id, navigation_method, experiment_mode,
+            args.terminate_on_human_collision,
         )
         sys.exit(rc)
 
@@ -1398,6 +1416,7 @@ def main():
     print("Run ID:", run_id)
     print(f"Navigation Method: {navigation_method} (resolved from command-line or config)")
     print(f"Experiment Mode: {experiment_mode}")
+    print(f"Terminate On Human Collision: {args.terminate_on_human_collision}")
     if args.start_from:
         print("Start From:", args.start_from)
     if args.reverse_episodes:
@@ -1418,6 +1437,7 @@ def main():
             run_id=run_id,
             navigation_method=navigation_method,
             experiment_mode=experiment_mode,
+            terminate_on_human_collision=args.terminate_on_human_collision,
         )
         normalized = _normalize_result(raw, episode_name, episode_config, experiment_mode)
         all_results.append(normalized)

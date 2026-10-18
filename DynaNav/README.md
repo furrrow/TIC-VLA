@@ -24,6 +24,16 @@ DynaNav/run_benchmark.sh DynaNav/configs/benchmark_example.yaml
 DynaNav/run_benchmark.sh DynaNav/configs/benchmark_full.yaml
 ```
 
+The shell launcher stops an episode at the first detected pedestrian collision
+and records it as a failure:
+
+```bash
+DynaNav/run_benchmark.sh DynaNav/configs/benchmark_full.yaml
+```
+
+The launcher supplies `--terminate-on-human-collision` to `benchmark.py` by
+default. Direct `benchmark.py` invocations still require the option explicitly.
+
 ### Benchmark workflow
 
 `run_benchmark.sh` starts `benchmark.py` with Isaac Sim Python. The execution path is:
