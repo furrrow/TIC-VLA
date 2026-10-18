@@ -78,7 +78,7 @@ class EpisodeState:
 
 
 class BenchmarkRunner:
-    def __init__(self, sim_app, config_file_path, crash_report_path, debug_print, run_id, navigation_method):
+    def __init__(self, sim_app, config_file_path, crash_report_path, debug_print, run_id, navigation_method, experiment_mode):
         self._sim_app = sim_app
         self._sim_app.set_setting("/app/scripting/ignoreWarningDialog", True)
         # Inputs
@@ -87,6 +87,7 @@ class BenchmarkRunner:
         self.debug_print = debug_print
         self.run_id = run_id
         self.navigation_method = navigation_method
+        self.experiment_mode = experiment_mode
         self.behavior_context = None
 
         self.results = []
@@ -234,7 +235,9 @@ class BenchmarkRunner:
             physical_collision_count=self.state.max_contact_consecutive_frames,
             failure_reason=self.state.failure_reason,
         )
-        return report_utils.build_episode_result(episode_name, episode_config, metrics)
+        return report_utils.build_episode_result(
+            episode_name, episode_config, metrics, experiment_mode=self.experiment_mode
+        )
 
     def _load_benchmark_config(self):
         """Load the benchmark configuration from YAML file."""
@@ -1143,7 +1146,7 @@ class BenchmarkRunner:
 
 # ---------- Child process wrapper ----------
 
-def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str) -> int:
+def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str, experiment_mode: str) -> int:
     """
     Child process entry point: create SimulationApp, run one episode, write results JSON, then close.
     Returns OS exit code (0 on success).
@@ -1158,10 +1161,15 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
         """Create error payload with episode config data."""
         error = f"{error_type}:{error_msg}" if error_msg else error_type
         episode_config = config_utils.get_episode(benchmark_config, episode_name)
-        return report_utils.build_episode_result(episode_name, episode_config, error=error)
+        return report_utils.build_episode_result(
+            episode_name, episode_config, experiment_mode=experiment_mode, error=error
+        )
 
     try:
-        runner = BenchmarkRunner(sim_app, os.path.abspath(config_file_path), crash_report_path, debug_print, run_id, navigation_method)
+        runner = BenchmarkRunner(
+            sim_app, os.path.abspath(config_file_path), crash_report_path, debug_print,
+            run_id, navigation_method, experiment_mode,
+        )
 
         from omni.kit.async_engine import run_coroutine
         task = run_coroutine(runner.run_single_episode_worker(episode_name))
@@ -1217,7 +1225,7 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
 
 # ---------- Parent process orchestration ----------
 
-def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None) -> dict:
+def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, experiment_mode: str = "normal") -> dict:
     """Start benchmark.py --child; its main() dispatches to run_child_episode()."""
     with tempfile.TemporaryDirectory() as td:
         out_json = os.path.join(td, f"{episode_name}_result.json")
@@ -1230,6 +1238,7 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
             "--result_json", out_json,
             "--child",
             "--run_id", run_id,
+            "--experiment_mode", experiment_mode,
         ]
         if crash_report_path:
             cmd += ["--crash_report_path", crash_report_path]
@@ -1258,13 +1267,15 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
             return {"episode": episode_name, "success": False, "error": "no_result_file"}
 
 
-def _normalize_result(raw: dict, episode_name: str, episode_config: dict) -> dict:
+def _normalize_result(raw: dict, episode_name: str, episode_config: dict, experiment_mode: str = "normal") -> dict:
     """Ensure required keys exist so final printer never crashes."""
     # Ensure episode_config is a dict
     if not isinstance(episode_config, dict):
         episode_config = {}
     
-    defaults = report_utils.build_episode_result(episode_name, episode_config)
+    defaults = report_utils.build_episode_result(
+        episode_name, episode_config, experiment_mode=experiment_mode
+    )
     normalized = {**defaults, **(raw or {})}
     # Read legacy metric names before defaults fill in the current names.
     for key, legacy_key in (
@@ -1318,6 +1329,10 @@ def parse_args():
 
     # Run ID for multi-instance support (allows running multiple benchmarks simultaneously)
     parser.add_argument("--run_id", default=None, help="Unique run ID for this benchmark instance. If not provided, auto-generated from timestamp. Use different IDs to run multiple benchmarks in parallel.")
+    parser.add_argument(
+        "--experiment_mode", "--mode", choices=["normal", "steered"], default="normal",
+        help="Controller mode to record in benchmark results (default: normal).",
+    )
 
     # Child/parent flow
     parser.add_argument("--child", action="store_true", help="Run a single episode worker and exit")
@@ -1335,6 +1350,7 @@ def main():
     config_file_path = args.config_file
     crash_report_path = args.crash_report_path
     debug_print = args.debug_print
+    experiment_mode = args.experiment_mode
 
     # Generate or use provided run_id for multi-instance support
     if args.run_id:
@@ -1369,7 +1385,10 @@ def main():
             print("Child mode requires --episode_name and --result_json", file=sys.stderr)
             sys.exit(2)
         print(f"[Child] Running episode '{args.episode_name}'")
-        rc = run_child_episode(config_file_path, args.episode_name, crash_report_path, debug_print, args.result_json, benchmark_config, run_id, navigation_method)
+        rc = run_child_episode(
+            config_file_path, args.episode_name, crash_report_path, debug_print,
+            args.result_json, benchmark_config, run_id, navigation_method, experiment_mode,
+        )
         sys.exit(rc)
 
     # --- Parent mode: orchestrate all episodes in separate child processes ---
@@ -1378,6 +1397,7 @@ def main():
     print("Debug Print:", debug_print)
     print("Run ID:", run_id)
     print(f"Navigation Method: {navigation_method} (resolved from command-line or config)")
+    print(f"Experiment Mode: {experiment_mode}")
     if args.start_from:
         print("Start From:", args.start_from)
     if args.reverse_episodes:
@@ -1397,8 +1417,9 @@ def main():
             debug_print=debug_print,
             run_id=run_id,
             navigation_method=navigation_method,
+            experiment_mode=experiment_mode,
         )
-        normalized = _normalize_result(raw, episode_name, episode_config)
+        normalized = _normalize_result(raw, episode_name, episode_config, experiment_mode)
         all_results.append(normalized)
         
         # Save results incrementally after each episode

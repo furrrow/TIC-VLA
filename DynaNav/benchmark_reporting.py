@@ -39,12 +39,13 @@ class EpisodeMetrics:
 
 def build_episode_result(
     episode_name: str, episode_config: dict, metrics: EpisodeMetrics | None = None,
-    *, error: str | None = None,
+    *, experiment_mode: str = "normal", error: str | None = None,
 ) -> dict:
     """Build the common child/legacy/error result schema."""
     metrics = metrics or EpisodeMetrics()
     result = {
         "episode": episode_name,
+        "experiment_mode": experiment_mode,
         "scene": episode_config.get("scene"),
         "start": episode_config.get("start"),
         "goal": episode_config.get("goal"),
@@ -81,7 +82,10 @@ def summarize_results(results: list[dict]) -> dict:
     def average(values) -> float:
         return float(np.mean(values)) if values else 0.0
 
+    modes = {str(result.get("experiment_mode", "unspecified")) for result in results}
+    experiment_mode = next(iter(modes)) if len(modes) == 1 else "mixed"
     return {
+        "experiment_mode": experiment_mode,
         "total_episodes": total,
         "successful_episodes": successful,
         "failed_episodes": total - successful,
@@ -103,6 +107,7 @@ def summarize_results(results: list[dict]) -> dict:
 def _aggregate_lines(summary: dict) -> list[str]:
     metrics = summary["average_metrics"]
     return [
+        f"Experiment Mode: {summary.get('experiment_mode', 'unspecified')}",
         f"Total Episodes: {summary['total_episodes']}",
         f"Successful: {summary['successful_episodes']}",
         f"Failed: {summary['failed_episodes']}",
@@ -127,6 +132,7 @@ def _episode_lines(result: dict) -> list[str]:
     scene = str(result.get("scene", "")).split("/")[-1] if result.get("scene") else "N/A"
     lines = [
         f"{result.get('episode', 'UNKNOWN')}: {status} | {collision} {physical} ({duration:.1f}s, {int(frames)} frames)",
+        f"  Experiment Mode: {result.get('experiment_mode', 'unspecified')}",
         f"  Scene: {scene}",
         f"  Robot: {result.get('robot_type', 'N/A')}",
         f"  Instruction: {result.get('instruction', '')}",
