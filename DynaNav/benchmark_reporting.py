@@ -61,6 +61,7 @@ def build_episode_result(
         "duration_frames": metrics.duration_frames,
         "navigation_error": metrics.navigation_error,
         "closest_goal_distance_m": metrics.closest_goal_distance_m,
+        "success_rate": 1.0 if metrics.success else 0.0,
         "collision": float(metrics.human_collision or metrics.physical_collision),
         "human_collision": float(metrics.human_collision),
         "human_collision_count": metrics.human_collision_count,
@@ -110,6 +111,7 @@ def summarize_results(results: list[dict]) -> dict:
         "total_episodes": total,
         "successful_episodes": successful,
         "failed_episodes": total - successful,
+        "success_rate_percent": successful / total * 100 if total else 0.0,
         "total_human_collisions": sum(int(r.get("human_collision_count", 0) or 0) for r in results),
         "median_metrics": {
             "navigation_error_m": median(finite_errors),
@@ -142,6 +144,7 @@ def _aggregate_lines(summary: dict) -> list[str]:
         f"Total Episodes: {summary['total_episodes']}",
         f"Successful: {summary['successful_episodes']}",
         f"Failed: {summary['failed_episodes']}",
+        f"Success Rate (SR): {summary['success_rate_percent']:.1f}%",
         f"Median Navigation Error (NE): {metrics['navigation_error_m']:.2f}m",
         f"Total Collision Rate (human OR physical): {metrics['total_collision_rate_percent']:.1f}%",
         f"Human Collision Rate: {metrics['human_collision_rate_percent']:.1f}%",
@@ -187,6 +190,7 @@ def _episode_lines(result: dict) -> list[str]:
         f"  Physical Collision: {'Yes' if binary_metric(result, 'physical_collision', 'physical_collision_rate') > 0 else 'No'}",
         f"  Navigation Error: {result.get('navigation_error', 0.0):.2f}m",
         f"  Closest Goal Distance: {closest_goal_distance_text}",
+        f"  Success Rate: {result.get('success_rate', 0.0):.3f}",
         f"  Success weighted by Path Length: {result.get('spl', 0.0):.3f}",
         f"  Path Length: {result.get('path_length', 0.0):.2f}m",
     ])

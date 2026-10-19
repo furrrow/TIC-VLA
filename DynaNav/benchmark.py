@@ -75,11 +75,12 @@ class EpisodeState:
     contact_consecutive_frames: int = 0
     max_contact_consecutive_frames: int = 0
     goal_threshold: float = 0.5
+    success_criteria_met: bool = False
     closest_goal_distance_m: float | None = None
     initial_goal_distance_m: float | None = None
     moving_away_consecutive_frames: int = 0
-    moving_away_distance_buffer_m: float = 1.0
-    moving_away_grace_frames: int = 60
+    moving_away_distance_buffer_m: float = 0.5
+    moving_away_grace_frames: int = 30
     moving_away_min_progress_m: float = 0.5
     position_error_logged: bool = False
 
@@ -475,31 +476,39 @@ class BenchmarkRunner:
                     print(f"Episode failed early: {failure_reason}")
                     return False
 
-                # reached goal?
-                if self._is_goal_reached():
-                    return True
+                if self._update_success_criteria(distance):
+                    print(
+                        "Success criterion met: robot came within "
+                        f"{self.state.goal_threshold:.2f}m of the goal"
+                    )
 
                 if self.terminate_when_moving_away and moving_away:
                     grace_seconds = self.state.moving_away_grace_frames / SIMULATION_FPS
-                    self.state.failure_reason = (
+                    termination_reason = (
                         "Terminated after moving away from the goal for "
                         f"{grace_seconds:.1f}s: current distance {distance:.2f}m, "
                         f"closest distance {self.state.closest_goal_distance_m:.2f}m, "
                         f"buffer {self.state.moving_away_distance_buffer_m:.2f}m"
                     )
-                    print(f"Episode failed early: {self.state.failure_reason}")
-                    return False
+                    if self.state.success_criteria_met:
+                        print(f"Episode completed: {termination_reason}")
+                    else:
+                        self.state.failure_reason = termination_reason
+                        print(f"Episode failed early: {termination_reason}")
+                    return self.state.success_criteria_met
 
                 # advance one frame
                 await app.next_update_async()
 
-            self.state.failure_reason = (
-                f"Timed out after {timeout_frames / SIMULATION_FPS:.1f}s "
-                f"({timeout_frames} frames) without reaching the goal"
-            )
+            if not self.state.success_criteria_met:
+                self.state.failure_reason = (
+                    f"Timed out after {timeout_frames / SIMULATION_FPS:.1f}s "
+                    f"({timeout_frames} frames) without reaching the goal"
+                )
         except Exception as e:
             self.state.failure_reason = f"Navigation error: {e}"
             print(f"Warning: Error during navigation: {e}")
+            return False
         finally:
             # Restore capture and timeline state after success, failure, or setup error.
             for action in (
@@ -517,7 +526,7 @@ class BenchmarkRunner:
             except Exception as cleanup_error:
                 print(f"Warning: Failed to update app after navigation cleanup: {cleanup_error}")
 
-        return False
+        return self.state.success_criteria_met
 
     async def _update_robot_position(self):
         """Update the current robot position."""
@@ -579,13 +588,14 @@ class BenchmarkRunner:
                     self.state.position_error_logged = True
 
 
-    def _is_goal_reached(self):
-        """Check if robot has reached the goal."""
-        if self.state.robot_position is None or self.state.goal_position is None:
+    def _update_success_criteria(self, distance):
+        """Latch success after the robot first enters the goal threshold."""
+        if self.state.success_criteria_met or not np.isfinite(distance):
             return False
-
-        distance = self._get_distance_to_goal()
-        return distance < self.state.goal_threshold
+        if float(distance) < self.state.goal_threshold:
+            self.state.success_criteria_met = True
+            return True
+        return False
 
     def _get_distance_to_goal(self):
         """Get distance to goal."""
@@ -1377,9 +1387,8 @@ def _normalize_result(
     normalized.pop('collision_rate', None)
     normalized.pop('human_collision_rate', None)
     normalized.pop('physical_collision_rate', None)
-    normalized.pop('success_rate', None)
     # Coerce numeric types for safety
-    for k in ['duration', 'navigation_error', 'collision', 'human_collision', 'physical_collision', 'spl', 'path_length']:
+    for k in ['duration', 'navigation_error', 'success_rate', 'collision', 'human_collision', 'physical_collision', 'spl', 'path_length']:
         try:
             normalized[k] = float(normalized.get(k, defaults[k]))
         except Exception:

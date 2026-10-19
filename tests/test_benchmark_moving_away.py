@@ -44,6 +44,16 @@ class MovingAwayTrackingTests(unittest.TestCase):
 
         self.assertFalse(any(runner._update_goal_distance_tracking(value) for value in distances))
 
+    def test_success_is_latched_without_terminating_distance_tracking(self):
+        runner = self.make_runner()
+        runner.state.goal_threshold = 1.5
+
+        self.assertFalse(runner._update_success_criteria(1.5))
+        self.assertTrue(runner._update_success_criteria(1.49))
+        self.assertTrue(runner.state.success_criteria_met)
+        self.assertFalse(runner._update_success_criteria(3.0))
+        self.assertTrue(runner.state.success_criteria_met)
+
 
 class MovingAwayConfigAndReportingTests(unittest.TestCase):
     def test_config_defaults_and_reporting(self):
@@ -62,8 +72,8 @@ episode_1:
             config = benchmark_config.load_benchmark_config(stream.name)
 
         episode = config["episode_1"]
-        self.assertEqual(episode["moving_away_distance_buffer_m"], 1.0)
-        self.assertEqual(episode["moving_away_grace_seconds"], 2.0)
+        self.assertEqual(episode["moving_away_distance_buffer_m"], 0.5)
+        self.assertEqual(episode["moving_away_grace_seconds"], 1.0)
         self.assertEqual(episode["moving_away_min_progress_m"], 0.5)
 
         result = benchmark_reporting.build_episode_result(
@@ -74,7 +84,7 @@ episode_1:
         self.assertEqual(result["closest_goal_distance_m"], 2.25)
         self.assertEqual(summary["median_metrics"]["closest_goal_distance_m"], 2.25)
 
-    def test_aggregate_reporting_uses_medians_and_omits_success_rate(self):
+    def test_aggregate_reporting_uses_medians_and_reports_success_rate(self):
         results = [
             {
                 "success": success,
@@ -99,10 +109,10 @@ episode_1:
         self.assertEqual(metrics["navigation_error_m"], 3.0)
         self.assertEqual(metrics["closest_goal_distance_m"], 4.0)
         self.assertEqual(metrics["path_length_m"], 20.0)
-        self.assertNotIn("success_rate_percent", summary)
+        self.assertAlmostEqual(summary["success_rate_percent"], 200 / 3)
 
         aggregate_lines = benchmark_reporting._aggregate_lines(summary)
-        self.assertFalse(any("Success Rate" in line for line in aggregate_lines))
+        self.assertTrue(any("Success Rate (SR): 66.7%" in line for line in aggregate_lines))
         human_index = next(i for i, line in enumerate(aggregate_lines) if line.startswith("Human Collision Rate"))
         self.assertTrue(aggregate_lines[human_index + 1].startswith("Physical Collision Rate"))
         self.assertTrue(aggregate_lines[human_index + 2].startswith("Median Closest Goal Distance"))

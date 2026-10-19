@@ -91,11 +91,11 @@ def load_benchmark_config(path):
         "inference_method": inference_method.strip(),
         "success_threshold": threshold,
         "moving_away_distance_buffer_m": _number(
-            config.get("moving_away_distance_buffer_m", 1.0),
+            config.get("moving_away_distance_buffer_m", 0.5),
             "moving_away_distance_buffer_m", positive=True,
         ),
         "moving_away_grace_seconds": _number(
-            config.get("moving_away_grace_seconds", 2.0),
+            config.get("moving_away_grace_seconds", 1.0),
             "moving_away_grace_seconds", positive=True,
         ),
         "moving_away_min_progress_m": _number(
