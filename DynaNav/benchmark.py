@@ -75,6 +75,12 @@ class EpisodeState:
     contact_consecutive_frames: int = 0
     max_contact_consecutive_frames: int = 0
     goal_threshold: float = 1.5
+    closest_goal_distance_m: float | None = None
+    initial_goal_distance_m: float | None = None
+    moving_away_consecutive_frames: int = 0
+    moving_away_distance_buffer_m: float = 1.0
+    moving_away_grace_frames: int = 60
+    moving_away_min_progress_m: float = 0.5
     position_error_logged: bool = False
 
 
@@ -82,7 +88,7 @@ class BenchmarkRunner:
     def __init__(
         self, sim_app, config_file_path, crash_report_path, debug_print, run_id,
         navigation_method, inference_method, experiment_mode,
-        terminate_on_human_collision=False,
+        terminate_on_human_collision=False, terminate_when_moving_away=False,
     ):
         self._sim_app = sim_app
         self._sim_app.set_setting("/app/scripting/ignoreWarningDialog", True)
@@ -95,6 +101,7 @@ class BenchmarkRunner:
         self.inference_method = inference_method
         self.experiment_mode = experiment_mode
         self.terminate_on_human_collision = terminate_on_human_collision
+        self.terminate_when_moving_away = terminate_when_moving_away
         self.behavior_context = None
 
         self.results = []
@@ -234,6 +241,7 @@ class BenchmarkRunner:
             success=success,
             duration_frames=self.state.simulation_frame_count - self.state.start_frame,
             navigation_error=self._get_distance_to_goal(),
+            closest_goal_distance_m=self.state.closest_goal_distance_m,
             spl=self._calculate_spl(success),
             path_length=self._calculate_path_length(),
             human_collision=self.state.human_collision_detected,
@@ -261,6 +269,11 @@ class BenchmarkRunner:
             config=episode_config,
             start_time=time.monotonic(),
             goal_threshold=episode_config['success_threshold'],
+            moving_away_distance_buffer_m=episode_config['moving_away_distance_buffer_m'],
+            moving_away_grace_frames=max(
+                1, int(episode_config['moving_away_grace_seconds'] * SIMULATION_FPS)
+            ),
+            moving_away_min_progress_m=episode_config['moving_away_min_progress_m'],
         )
 
         # Set up simulation for this episode
@@ -438,6 +451,8 @@ class BenchmarkRunner:
                 # per-frame: update pos, check goal/collisions, count frames
                 await self._update_robot_position()
                 self.state.simulation_frame_count += 1
+                distance = self._get_distance_to_goal()
+                moving_away = self._update_goal_distance_tracking(distance)
                 # Avoid printing every frame (can flood logs and slow down Isaac Sim).
                 if self.debug_print and (self.state.simulation_frame_count % SIMULATION_FPS == 0):
                     distance = self._get_distance_to_goal()
@@ -463,6 +478,17 @@ class BenchmarkRunner:
                 # reached goal?
                 if self._is_goal_reached():
                     return True
+
+                if self.terminate_when_moving_away and moving_away:
+                    grace_seconds = self.state.moving_away_grace_frames / SIMULATION_FPS
+                    self.state.failure_reason = (
+                        "Terminated after moving away from the goal for "
+                        f"{grace_seconds:.1f}s: current distance {distance:.2f}m, "
+                        f"closest distance {self.state.closest_goal_distance_m:.2f}m, "
+                        f"buffer {self.state.moving_away_distance_buffer_m:.2f}m"
+                    )
+                    print(f"Episode failed early: {self.state.failure_reason}")
+                    return False
 
                 # advance one frame
                 await app.next_update_async()
@@ -570,6 +596,30 @@ class BenchmarkRunner:
         robot_2d = self.state.robot_position[:2]
         goal_2d = self.state.goal_position[:2]
         return np.linalg.norm(robot_2d - goal_2d)
+
+    def _update_goal_distance_tracking(self, distance):
+        """Track closest approach and report sustained regression from it."""
+        if not np.isfinite(distance):
+            return False
+        distance = float(distance)
+        if self.state.initial_goal_distance_m is None:
+            self.state.initial_goal_distance_m = distance
+            self.state.closest_goal_distance_m = distance
+            return False
+
+        if distance < self.state.closest_goal_distance_m:
+            self.state.closest_goal_distance_m = distance
+
+        progress = self.state.initial_goal_distance_m - self.state.closest_goal_distance_m
+        armed = progress >= self.state.moving_away_min_progress_m
+        beyond_buffer = distance > (
+            self.state.closest_goal_distance_m + self.state.moving_away_distance_buffer_m
+        )
+        if armed and beyond_buffer:
+            self.state.moving_away_consecutive_frames += 1
+        else:
+            self.state.moving_away_consecutive_frames = 0
+        return self.state.moving_away_consecutive_frames >= self.state.moving_away_grace_frames
 
     async def _check_collisions(self):
         """Check for collisions with humans/characters."""
@@ -1172,7 +1222,7 @@ class BenchmarkRunner:
 
 # ---------- Child process wrapper ----------
 
-def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str, inference_method: str, experiment_mode: str, terminate_on_human_collision: bool = False) -> int:
+def run_child_episode(config_file_path: str, episode_name: str, crash_report_path: str, debug_print: bool, result_json_path: str, benchmark_config: dict, run_id: str, navigation_method: str, inference_method: str, experiment_mode: str, terminate_on_human_collision: bool = False, terminate_when_moving_away: bool = False) -> int:
     """
     Child process entry point: create SimulationApp, run one episode, write results JSON, then close.
     Returns OS exit code (0 on success).
@@ -1198,7 +1248,7 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
         runner = BenchmarkRunner(
             sim_app, os.path.abspath(config_file_path), crash_report_path, debug_print,
             run_id, navigation_method, inference_method, experiment_mode,
-            terminate_on_human_collision,
+            terminate_on_human_collision, terminate_when_moving_away,
         )
 
         from omni.kit.async_engine import run_coroutine
@@ -1255,7 +1305,7 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
 
 # ---------- Parent process orchestration ----------
 
-def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, inference_method: str = "TIC-VLA", experiment_mode: str = "normal", terminate_on_human_collision: bool = False) -> dict:
+def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, inference_method: str = "TIC-VLA", experiment_mode: str = "normal", terminate_on_human_collision: bool = False, terminate_when_moving_away: bool = False) -> dict:
     """Start benchmark.py --child; its main() dispatches to run_child_episode()."""
     with tempfile.TemporaryDirectory() as td:
         out_json = os.path.join(td, f"{episode_name}_result.json")
@@ -1279,6 +1329,8 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
             cmd += ["--navigation_method", navigation_method]
         if terminate_on_human_collision:
             cmd += ["--terminate-on-human-collision"]
+        if terminate_when_moving_away:
+            cmd += ["--terminate-when-moving-away"]
 
         proc = subprocess.run(cmd)  # inherit stdio by default
         if proc.returncode != 0:
@@ -1331,6 +1383,13 @@ def _normalize_result(
             normalized[k] = float(normalized.get(k, defaults[k]))
         except Exception:
             normalized[k] = float(defaults[k])
+    closest_goal_distance = normalized.get('closest_goal_distance_m')
+    try:
+        normalized['closest_goal_distance_m'] = (
+            float(closest_goal_distance) if closest_goal_distance is not None else None
+        )
+    except Exception:
+        normalized['closest_goal_distance_m'] = None
     min_human_distance = normalized.get('min_human_distance_m')
     try:
         normalized['min_human_distance_m'] = (
@@ -1395,6 +1454,11 @@ def parse_args():
         action="store_true",
         help="End an episode immediately and mark it failed when a pedestrian collision is detected.",
     )
+    parser.add_argument(
+        "--terminate-when-moving-away", "--terminate_when_moving_away",
+        action="store_true",
+        help="End an episode when goal distance remains above its closest value plus the configured buffer.",
+    )
 
     args, _ = parser.parse_known_args()
     return args
@@ -1444,7 +1508,7 @@ def main():
             config_file_path, args.episode_name, crash_report_path, debug_print,
             args.result_json, benchmark_config, run_id, navigation_method,
             inference_method, experiment_mode,
-            args.terminate_on_human_collision,
+            args.terminate_on_human_collision, args.terminate_when_moving_away,
         )
         sys.exit(rc)
 
@@ -1457,6 +1521,7 @@ def main():
     print(f"Inference Method: {inference_method}")
     print(f"Experiment Mode: {experiment_mode}")
     print(f"Terminate On Human Collision: {args.terminate_on_human_collision}")
+    print(f"Terminate When Moving Away: {args.terminate_when_moving_away}")
     if args.start_from:
         print("Start From:", args.start_from)
     if args.reverse_episodes:
@@ -1479,6 +1544,7 @@ def main():
             inference_method=inference_method,
             experiment_mode=experiment_mode,
             terminate_on_human_collision=args.terminate_on_human_collision,
+            terminate_when_moving_away=args.terminate_when_moving_away,
         )
         normalized = _normalize_result(
             raw, episode_name, episode_config, experiment_mode, inference_method

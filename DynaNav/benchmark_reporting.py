@@ -28,6 +28,7 @@ class EpisodeMetrics:
     success: bool = False
     duration_frames: int = 0
     navigation_error: float = float("inf")
+    closest_goal_distance_m: float | None = None
     spl: float = 0.0
     path_length: float = 0.0
     human_collision: bool = False
@@ -59,6 +60,7 @@ def build_episode_result(
         "duration": metrics.duration_frames / SIMULATION_FPS,
         "duration_frames": metrics.duration_frames,
         "navigation_error": metrics.navigation_error,
+        "closest_goal_distance_m": metrics.closest_goal_distance_m,
         "success_rate": 1.0 if metrics.success else 0.0,
         "collision": float(metrics.human_collision or metrics.physical_collision),
         "human_collision": float(metrics.human_collision),
@@ -87,6 +89,11 @@ def summarize_results(results: list[dict]) -> dict:
         if result.get("min_human_distance_m") is not None
         and np.isfinite(result.get("min_human_distance_m"))
     ]
+    closest_goal_distances = [
+        result.get("closest_goal_distance_m") for result in results
+        if result.get("closest_goal_distance_m") is not None
+        and np.isfinite(result.get("closest_goal_distance_m"))
+    ]
 
     def average(values) -> float:
         return float(np.mean(values)) if values else 0.0
@@ -105,6 +112,7 @@ def summarize_results(results: list[dict]) -> dict:
         "total_human_collisions": sum(int(r.get("human_collision_count", 0) or 0) for r in results),
         "average_metrics": {
             "navigation_error_m": average(finite_errors),
+            "closest_goal_distance_m": average(closest_goal_distances) if closest_goal_distances else None,
             "total_collision_rate_percent": average([binary_metric(r, "collision", "collision_rate") for r in results]) * 100,
             "human_collision_rate_percent": average([binary_metric(r, "human_collision", "human_collision_rate") for r in results]) * 100,
             "min_human_distance_m": average(human_distances) if human_distances else None,
@@ -123,6 +131,10 @@ def _aggregate_lines(summary: dict) -> list[str]:
     min_human_distance_text = (
         f"{min_human_distance:.2f}m" if min_human_distance is not None else "N/A"
     )
+    closest_goal_distance = metrics.get("closest_goal_distance_m")
+    closest_goal_distance_text = (
+        f"{closest_goal_distance:.2f}m" if closest_goal_distance is not None else "N/A"
+    )
     return [
         f"Inference Method: {summary.get('inference_method', 'unspecified')}",
         f"Experiment Mode: {summary.get('experiment_mode', 'unspecified')}",
@@ -131,6 +143,7 @@ def _aggregate_lines(summary: dict) -> list[str]:
         f"Failed: {summary['failed_episodes']}",
         f"Success Rate (SR): {summary['success_rate_percent']:.1f}%",
         f"Average Navigation Error (NE): {metrics['navigation_error_m']:.2f}m",
+        f"Average Closest Goal Distance: {closest_goal_distance_text}",
         f"Total Collision Rate (human OR physical): {metrics['total_collision_rate_percent']:.1f}%",
         f"Human Collision Rate: {metrics['human_collision_rate_percent']:.1f}%",
         f"Total Human Collisions: {summary['total_human_collisions']}",
@@ -153,6 +166,10 @@ def _episode_lines(result: dict) -> list[str]:
     min_human_distance_text = (
         f"{min_human_distance:.2f}m" if min_human_distance is not None else "N/A"
     )
+    closest_goal_distance = result.get("closest_goal_distance_m")
+    closest_goal_distance_text = (
+        f"{closest_goal_distance:.2f}m" if closest_goal_distance is not None else "N/A"
+    )
     lines = [
         f"{result.get('episode', 'UNKNOWN')}: {status} | {collision} {physical} ({duration:.1f}s, {int(frames)} frames)",
         f"  Inference Method: {result.get('inference_method', 'unspecified')}",
@@ -169,6 +186,7 @@ def _episode_lines(result: dict) -> list[str]:
         f"  Minimum Distance to Human: {min_human_distance_text}",
         f"  Physical Collision: {'Yes' if binary_metric(result, 'physical_collision', 'physical_collision_rate') > 0 else 'No'}",
         f"  Navigation Error: {result.get('navigation_error', 0.0):.2f}m",
+        f"  Closest Goal Distance: {closest_goal_distance_text}",
         f"  Success Rate: {result.get('success_rate', 0.0):.3f}",
         f"  Success weighted by Path Length: {result.get('spl', 0.0):.3f}",
         f"  Path Length: {result.get('path_length', 0.0):.2f}m",

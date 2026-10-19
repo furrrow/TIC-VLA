@@ -8,11 +8,17 @@ from pathlib import Path
 import yaml
 
 
-GLOBAL_KEYS = {"seed", "navigation_method", "inference_method", "success_threshold"}
+GLOBAL_KEYS = {
+    "seed", "navigation_method", "inference_method", "success_threshold",
+    "moving_away_distance_buffer_m", "moving_away_grace_seconds",
+    "moving_away_min_progress_m",
+}
 EPISODE_KEYS = {
     "scene", "start", "start_yaw", "goal", "instruction", "timeout",
     "num_people", "robot_type", "success_threshold",
     "scripted_humans", "physical_human_metrics",
+    "moving_away_distance_buffer_m", "moving_away_grace_seconds",
+    "moving_away_min_progress_m",
 }
 _VARIABLE = re.compile(r"\$\{[^}]+\}|\$[A-Za-z_][A-Za-z_0-9]*")
 
@@ -84,6 +90,18 @@ def load_benchmark_config(path):
         "navigation_method": method.lower(),
         "inference_method": inference_method.strip(),
         "success_threshold": threshold,
+        "moving_away_distance_buffer_m": _number(
+            config.get("moving_away_distance_buffer_m", 1.0),
+            "moving_away_distance_buffer_m", positive=True,
+        ),
+        "moving_away_grace_seconds": _number(
+            config.get("moving_away_grace_seconds", 2.0),
+            "moving_away_grace_seconds", positive=True,
+        ),
+        "moving_away_min_progress_m": _number(
+            config.get("moving_away_min_progress_m", 0.5),
+            "moving_away_min_progress_m", positive=True,
+        ),
     }
 
     for name, episode in config.items():
@@ -138,6 +156,13 @@ def load_benchmark_config(path):
         entry["success_threshold"] = _number(
             entry.get("success_threshold", threshold), f"episode {name!r} success_threshold", positive=True
         )
+        for field in (
+            "moving_away_distance_buffer_m", "moving_away_grace_seconds",
+            "moving_away_min_progress_m",
+        ):
+            entry[field] = _number(
+                entry.get(field, validated[field]), f"episode {name!r} {field}", positive=True
+            )
         entry["instruction"] = entry.get("instruction", "")
         if not isinstance(entry["instruction"], str):
             raise ValueError(f"episode {name!r} instruction must be a string")

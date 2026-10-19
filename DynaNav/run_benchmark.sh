@@ -18,4 +18,5 @@ fi
 
 cd "${TICVLA_DYNANAV_ROOT}"
 exec "${ISAAC_SIM_PYTHON}" benchmark.py -c "${CONFIG}" \
-  --terminate-on-human-collision "$@"
+  --terminate-on-human-collision \
+  --terminate-when-moving-away "$@"
