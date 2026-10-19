@@ -4,6 +4,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCENARIO_DIR="DynaNav/configs/icra_scenarios_v4"
 BATCH_PREFIX="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
+MODE="ablation"
 FORWARD_ARGS=()
 SCENARIOS=()
 
@@ -13,15 +14,29 @@ Usage: $(basename "$0") [--mode MODE] [--inference-method NAME] SCENARIO [SCENAR
 
 Run run_nova_experiments.bash once for each scenario. A scenario may be a
 YAML path or a short name from ${SCENARIO_DIR}, with or without .yaml.
+The default mode is ablation (normal, steered, and no-velocity).
 
 Example:
-  $(basename "$0") --mode ablation scenario1_5 scenario2_5 scenario3_5
+  $(basename "$0") scenario1_5 scenario2_5 scenario3_5
 EOF
 }
 
 while (( $# > 0 )); do
   case "$1" in
-    --mode|--inference-method)
+    --mode)
+      if (( $# < 2 )); then
+        echo "$1 requires a value." >&2
+        usage >&2
+        exit 2
+      fi
+      MODE="$2"
+      shift 2
+      ;;
+    --mode=*)
+      MODE="${1#*=}"
+      shift
+      ;;
+    --inference-method)
       if (( $# < 2 )); then
         echo "$1 requires a value." >&2
         usage >&2
@@ -30,7 +45,7 @@ while (( $# > 0 )); do
       FORWARD_ARGS+=("$1" "$2")
       shift 2
       ;;
-    --mode=*|--inference-method=*)
+    --inference-method=*)
       FORWARD_ARGS+=("$1")
       shift
       ;;
@@ -84,6 +99,7 @@ for requested_scenario in "${SCENARIOS[@]}"; do
   BATCH_ID="${BATCH_PREFIX}_${scenario_id}" \
     "${REPO_ROOT}/run_nova_experiments.bash" \
     --scenario "${scenario_path}" \
+    --mode "${MODE}" \
     "${FORWARD_ARGS[@]}"
 done
 

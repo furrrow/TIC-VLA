@@ -6,7 +6,7 @@ REMOTE_HOST="${REMOTE_HOST:-isaac}"
 REMOTE_REPO="${REMOTE_REPO:-/home/isaac/Projects/TIC-VLA}"
 REMOTE_DISPLAY="${REMOTE_DISPLAY:-:1}"
 SCENARIO="DynaNav/configs/icra_scenarios_v4/scenario3_5.yaml"
-MODE="both"
+MODE="ablation"
 CONTROLLER_DT="0.75"
 INFERENCE_METHOD="${INFERENCE_METHOD:-TIC-VLA}"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
@@ -239,14 +239,14 @@ echo "Local logs: ${LOG_DIR}"
 ssh -o BatchMode=yes -o ConnectTimeout=10 "${REMOTE_HOST}" \
   "cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --check --scenario ${SCENARIO}"
 
-if [[ "${MODE}" == "normal" || "${MODE}" == "both" || "${MODE}" == "ablation" ]]; then
-  run_mode normal
-fi
 if [[ "${MODE}" == "steered" || "${MODE}" == "both" || "${MODE}" == "ablation" ]]; then
   run_mode steered
 fi
 if [[ "${MODE}" == "no-velocity" || "${MODE}" == "ablation" ]]; then
   run_mode no-velocity
+fi
+if [[ "${MODE}" == "normal" || "${MODE}" == "both" || "${MODE}" == "ablation" ]]; then
+  run_mode normal
 fi
 
 echo

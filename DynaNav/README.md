@@ -51,6 +51,40 @@ The worker collects metrics and cleans up episode resources. The child writes on
 
 The child process exits after its episode, so the next episode starts with a fresh SimulationApp. There is no separate `run_benchmark()` method in the current workflow.
 
+### Multi-scenario Nova experiments
+
+From the repository root, run all three five-episode scenarios sequentially with:
+
+```bash
+./run_nova_scenarios.bash scenario1_5 scenario2_5 scenario3_5
+```
+
+The default mode is `ablation`, so every scenario runs `normal`, `steered`, and
+`no-velocity`. Pass `--mode` to select a different mode. The wrapper uses one
+timestamp as its batch prefix and adds the scenario name. For example, a prefix
+of `20261018_193500` creates these local orchestration directories:
+
+```text
+logs/orchestration/20261018_193500_scenario1_5/
+logs/orchestration/20261018_193500_scenario2_5/
+logs/orchestration/20261018_193500_scenario3_5/
+```
+
+Remote benchmark results add the mode to that name, for example:
+
+```text
+DynaNav/benchmark_results/20261018_193500_scenario1_5_normal/
+DynaNav/benchmark_results/20261018_193500_scenario1_5_steered/
+DynaNav/benchmark_results/20261018_193500_scenario1_5_no-velocity/
+```
+
+Set `BATCH_ID` to choose the shared prefix:
+
+```bash
+BATCH_ID=ticvla_eval ./run_nova_scenarios.bash \
+  scenario1_5 scenario2_5 scenario3_5
+```
+
 ### Nova Carter ROS sensor preview
 
 The `ticvla_ros` method publishes Nova Carter's forward camera as

@@ -61,6 +61,12 @@ DEFAULT_CAMERA_MATRIX = "/home/jim/Projects/steernav/steernav/cam_matrix.json"
 DEFAULT_CONFIG = Path(__file__).resolve().parent / "configs" / "robot.yaml"
 
 
+def filesystem_safe_name(value: str) -> str:
+    """Return a readable path component without allowing directory traversal."""
+    safe = "".join(character if character.isalnum() or character in "._-" else "_" for character in value)
+    return safe.strip("._") or "unnamed"
+
+
 def bag_topics(path: str) -> list[tuple[str, str]]:
     bag_path = Path(path).expanduser().resolve()
     if bag_path.is_dir():
@@ -156,6 +162,8 @@ class TICVLAROSNode(Node):
         self.args = args
         self.model = model
         self.temp_dir = Path(temp_dir)
+        self.log_root = Path(args.log_dir).expanduser()
+        self.persistent_image_dir: Path | None = None
         self.bridge = CvBridge()
         self.lock = Lock()
         self.episode_id: str | None = None
@@ -182,6 +190,10 @@ class TICVLAROSNode(Node):
         self.inference_start_time = time.perf_counter()
         self.path_frame_id = args.frame_id
         self.show_overlay = False
+
+        if not self.require_episode:
+            session_name = time.strftime("%Y%m%d_%H%M%S")
+            self._set_persistent_image_dir("ros", session_name)
 
         self.rate = float(args.rate or config.get("frame_rate", 10))
         self.lookahead_distance = float(
@@ -287,6 +299,22 @@ class TICVLAROSNode(Node):
             )
             self.get_logger().info("Model ready. Waiting for image observations and odometry...")
 
+    def _set_persistent_image_dir(self, run_id: str, episode_name: str) -> None:
+        image_dir = (
+            self.log_root
+            / filesystem_safe_name(run_id)
+            / "ros_ticvla_images"
+            / filesystem_safe_name(episode_name)
+        )
+        try:
+            image_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            self.persistent_image_dir = None
+            self.get_logger().error(f"Cannot create persistent image directory {image_dir}: {exc}")
+            return
+        self.persistent_image_dir = image_dir
+        self.get_logger().info(f"Saving ROS inference images to {image_dir}")
+
     def episode_callback(self, msg: String) -> None:
         """Replace the sim_nova instruction and reset state for a new episode."""
         try:
@@ -308,6 +336,10 @@ class TICVLAROSNode(Node):
                 return
             self.episode_id = episode_id
             self.instruction = instruction
+            self._set_persistent_image_dir(
+                str(episode.get("run_id") or "unknown_run"),
+                str(episode.get("episode_name") or episode_id),
+            )
             self.episode_generation += 1
             self.pending_episode_reset = True
             self.obs_img_bgr = None
@@ -451,6 +483,7 @@ class TICVLAROSNode(Node):
             robot_angular_velocity_base = self.robot_angular_velocity_base.copy()
             instruction = self.instruction
             generation = self.episode_generation
+            persistent_dir = self.persistent_image_dir
 
         if header is None:
             return
@@ -463,6 +496,15 @@ class TICVLAROSNode(Node):
 
         frame_path = self.temp_dir / f"frame_{sequence:012d}.jpg"
         save_frame(frame_bgr, frame_path)
+        if persistent_dir is not None:
+            persistent_path = persistent_dir / f"frame_{sequence:012d}.jpg"
+            try:
+                save_frame(frame_bgr, persistent_path)
+            except (OSError, RuntimeError) as exc:
+                self.get_logger().error(
+                    f"Failed to save persistent image {persistent_path}: {exc}",
+                    throttle_duration_sec=5.0,
+                )
         self.image_history.append((stamp_ns, str(frame_path)))
         while self.image_history and stamp_ns - self.image_history[0][0] > self.history_window_ns:
             self.image_history.popleft()
@@ -633,6 +675,11 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
     )
     parser.add_argument("--frame-id", default="base_link", help="Frame for predicted relative policy path")
     parser.add_argument("--camera-matrix", default=None, help="Calibration JSON for projected overlay")
+    parser.add_argument(
+        "--log-dir",
+        default=os.environ.get("TICVLA_LOG_DIR", "./logs"),
+        help="Persistent image root. Defaults to TICVLA_LOG_DIR or ./logs.",
+    )
     parser.add_argument("--show", action="store_true")
     parser.add_argument("--print-response", action="store_true", default=True, help="Print VLM model text outputs")
     parser.add_argument("--quiet-response", action="store_false", dest="print_response", help="Suppress VLM outputs")
