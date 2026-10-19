@@ -8,14 +8,16 @@ REMOTE_DISPLAY="${REMOTE_DISPLAY:-:1}"
 SCENARIO="DynaNav/configs/icra_scenarios_v3/scenario3_5.yaml"
 MODE="ablation"
 CONTROLLER_DT="0.75"
+TIME_LOOK_AHEAD="1.0"
 INFERENCE_METHOD="${INFERENCE_METHOD:-TIC-VLA}"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
 BATCH_ID="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
 LOG_DIR="${REPO_ROOT}/logs/orchestration/${BATCH_ID}"
+RUN_ATTEMPT_ID="${RUN_ATTEMPT_ID:-$(date +%Y%m%d_%H%M%S)_$$}"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--mode normal|steered|no-velocity|both|ablation] [--scenario FILE] [--inference-method NAME]
+Usage: $(basename "$0") [--mode normal|steered|no-velocity|both|ablation] [--scenario FILE] [--inference-method NAME] [--time-look-ahead SECONDS]
 
 Run one experiment mode, both existing modes, or an ablation of normal,
 steered, and steered without velocity compensation.
@@ -63,6 +65,19 @@ while (( $# > 0 )); do
       INFERENCE_METHOD="${1#*=}"
       shift
       ;;
+    --time-look-ahead)
+      if (( $# < 2 )); then
+        echo "--time-look-ahead requires a value." >&2
+        usage >&2
+        exit 2
+      fi
+      TIME_LOOK_AHEAD="$2"
+      shift 2
+      ;;
+    --time-look-ahead=*)
+      TIME_LOOK_AHEAD="${1#*=}"
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -101,12 +116,20 @@ if [[ ! "${BATCH_ID}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
   echo "BATCH_ID may contain only letters, numbers, dots, underscores, and hyphens." >&2
   exit 2
 fi
+if [[ ! "${RUN_ATTEMPT_ID}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+  echo "RUN_ATTEMPT_ID may contain only letters, numbers, dots, underscores, and hyphens." >&2
+  exit 2
+fi
 if [[ ! "${INFERENCE_METHOD}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
   echo "Inference method may contain only letters, numbers, dots, underscores, and hyphens." >&2
   exit 2
 fi
 if [[ ! "${READY_TIMEOUT_SECONDS}" =~ ^[0-9]+$ || "${READY_TIMEOUT_SECONDS}" -eq 0 ]]; then
   echo "READY_TIMEOUT_SECONDS must be a positive integer." >&2
+  exit 2
+fi
+if [[ ! "${TIME_LOOK_AHEAD}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "SteerNav time look-ahead must be a non-negative number of seconds." >&2
   exit 2
 fi
 mkdir -p "${LOG_DIR}"
@@ -172,8 +195,11 @@ wait_until_ready() {
 run_mode() {
   local mode="$1"
   local run_id="${BATCH_ID}_${mode}"
-  local session="nova_${run_id}"
-  local status_file="${LOG_DIR}/.${mode}.$$.status"
+  # tmux uses dots when parsing session:window.pane targets, so keep them out of
+  # the internal session name. Preserve the original run ID in result/log paths.
+  local session="nova_${run_id//./_}_${RUN_ATTEMPT_ID//./_}"
+  local run_log_dir="${LOG_DIR}/${run_id}/${RUN_ATTEMPT_ID}"
+  local status_file="${run_log_dir}/.remote.status"
   local remote_command=""
   local remote_pane=""
   local watcher_pid=""
@@ -181,14 +207,17 @@ run_mode() {
 
   echo
   echo "=== ${mode}: run_id=${run_id} ==="
-  active_session="${session}"
+  mkdir -p "${run_log_dir}"
   # runs nova_ros.bash
-  "${REPO_ROOT}/nova_ros.bash" "${mode}" --detach --session-name "${session}" --dt "${CONTROLLER_DT}"
+  NOVA_ROS_LOG_ROOT="${run_log_dir}" \
+    "${REPO_ROOT}/nova_ros.bash" "${mode}" --detach --session-name "${session}" --dt "${CONTROLLER_DT}" --time-look-ahead "${TIME_LOOK_AHEAD}"
+  # Only clean up sessions successfully created by this invocation.
+  active_session="${session}"
   wait_until_ready "${mode}" "${session}"
 
   echo "Starting simulator benchmark on ${REMOTE_HOST} in a visible tmux pane..."
   active_remote_job="${run_id}"
-  remote_command="set -o pipefail; ssh -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} --inference-method ${INFERENCE_METHOD} -- --run_id ${run_id} --experiment_mode ${mode}' 2>&1 | tee ${LOG_DIR}/${mode}.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
+  remote_command="set -o pipefail; ssh -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} --inference-method ${INFERENCE_METHOD} -- --run_id ${run_id} --experiment_mode ${mode}' 2>&1 | tee ${run_log_dir}/remote.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
   remote_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${session}:0" -c "${REPO_ROOT}" /bin/bash -lc "${remote_command}")"
   tmux select-pane -t "${remote_pane}" -T "Isaac ${mode} status"
   tmux select-layout -t "${session}:0" tiled
@@ -231,8 +260,10 @@ run_mode() {
 }
 
 echo "Batch ID: ${BATCH_ID}"
+echo "Run attempt: ${RUN_ATTEMPT_ID}"
 echo "Mode: ${MODE}"
 echo "Inference method: ${INFERENCE_METHOD}"
+echo "SteerNav time look-ahead: ${TIME_LOOK_AHEAD}s"
 echo "Scenario: ${SCENARIO}"
 echo "Remote: ${REMOTE_HOST}:${REMOTE_REPO} (DISPLAY=${REMOTE_DISPLAY})"
 echo "Local logs: ${LOG_DIR}"
