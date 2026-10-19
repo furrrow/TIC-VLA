@@ -36,6 +36,8 @@ class EpisodeMetrics:
     min_human_distance_m: float | None = None
     physical_collision: bool = False
     physical_collision_count: int = 0
+    termination_condition: str | None = None
+    termination_reason: str | None = None
     failure_reason: str | None = None
 
 
@@ -71,6 +73,8 @@ def build_episode_result(
         "path_length": metrics.path_length,
         "physical_collision_detected": metrics.physical_collision,
         "physical_collision_count": metrics.physical_collision_count,
+        "termination_condition": metrics.termination_condition,
+        "termination_reason": metrics.termination_reason,
         "failure_reason": metrics.failure_reason,
     }
     if error is not None:
@@ -181,6 +185,14 @@ def _episode_lines(result: dict) -> list[str]:
         f"  Robot: {result.get('robot_type', 'N/A')}",
         f"  Instruction: {result.get('instruction', '')}",
     ]
+    termination_condition = result.get("termination_condition") or "unknown"
+    termination_reason = result.get("termination_reason")
+    if termination_reason is None and not result.get("success"):
+        termination_reason = result.get("failure_reason") or result.get("error") or "Goal not reached"
+    lines.append(f"  Termination Condition: {termination_condition}")
+    lines.append(f"  Termination Reason: {termination_reason or 'Not recorded'}")
+    if result.get("child_log"):
+        lines.append(f"  Isaac Sim Log: {result['child_log']}")
     if not result.get("success"):
         failure_reason = result.get("failure_reason") or result.get("error") or "Goal not reached"
         lines.append(f"  Failure Reason: {failure_reason}")

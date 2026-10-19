@@ -1,5 +1,7 @@
 import sys
 import unittest
+from contextlib import redirect_stderr
+from io import StringIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -56,6 +58,20 @@ class MovingAwayTrackingTests(unittest.TestCase):
 
 
 class MovingAwayConfigAndReportingTests(unittest.TestCase):
+    def test_termination_banner_is_prominent_and_uses_stderr(self):
+        output = StringIO()
+        with redirect_stderr(output):
+            benchmark._print_termination_banner(
+                "episode_1", True, "timeout", "Success criterion was met", source="Parent"
+            )
+
+        banner = output.getvalue()
+        self.assertIn("EPISODE TERMINATED [Parent]", banner)
+        self.assertIn(">>> Episode: episode_1", banner)
+        self.assertIn(">>> Status: SUCCESS", banner)
+        self.assertIn(">>> Condition: timeout", banner)
+        self.assertIn(">>> Reason: Success criterion was met", banner)
+
     def test_config_defaults_and_reporting(self):
         config_text = """
 seed: 1
@@ -116,6 +132,34 @@ episode_1:
         human_index = next(i for i, line in enumerate(aggregate_lines) if line.startswith("Human Collision Rate"))
         self.assertTrue(aggregate_lines[human_index + 1].startswith("Physical Collision Rate"))
         self.assertTrue(aggregate_lines[human_index + 2].startswith("Median Closest Goal Distance"))
+
+    def test_successful_termination_is_printed_and_serialized(self):
+        result = benchmark_reporting.build_episode_result(
+            "episode_1", {},
+            benchmark_reporting.EpisodeMetrics(
+                success=True,
+                termination_condition="moving_away",
+                termination_reason="Terminated after moving away from the goal",
+            ),
+        )
+
+        self.assertEqual(result["termination_condition"], "moving_away")
+        self.assertEqual(
+            result["termination_reason"],
+            "Terminated after moving away from the goal",
+        )
+        lines = benchmark_reporting._episode_lines(result)
+        self.assertIn("  Termination Condition: moving_away", lines)
+        self.assertIn(
+            "  Termination Reason: Terminated after moving away from the goal",
+            lines,
+        )
+
+        result["child_log"] = "/tmp/episode_1_isaac.log"
+        self.assertIn(
+            "  Isaac Sim Log: /tmp/episode_1_isaac.log",
+            benchmark_reporting._episode_lines(result),
+        )
 
 
 if __name__ == "__main__":

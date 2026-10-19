@@ -23,7 +23,9 @@ import numpy as np
 import time
 import tempfile
 import subprocess
+from collections import deque
 from dataclasses import dataclass, field
+from pathlib import Path
 from generate_commands import generate_character_commands, generate_robot_commands
 import benchmark_reporting as report_utils
 import benchmark_config as config_utils
@@ -51,6 +53,30 @@ def _print_collision_warning(collision_type, episode_name, details):
         flush=True,
     )
 
+
+def _print_termination_banner(episode_name, success, condition, reason, source="Child"):
+    """Print a prominent termination summary that stands out from simulator logs."""
+    status = "SUCCESS" if success else "FAILED"
+    condition = condition or "unknown"
+    reason = reason or "No termination reason was recorded"
+    border = "=" * 96
+    use_color = hasattr(sys.stderr, "isatty") and sys.stderr.isatty()
+    color = "\033[1;32m" if success else "\033[1;31m"
+    emphasis = color if use_color else ""
+    reset = "\033[0m" if use_color else ""
+    print(
+        f"\n{emphasis}{border}\n"
+        f">>> EPISODE TERMINATED [{source}] <<<\n"
+        f">>> Episode: {episode_name or 'UNKNOWN'}\n"
+        f">>> Status: {status}\n"
+        f">>> Condition: {condition}\n"
+        f">>> Reason: {reason}\n"
+        f"{border}{reset}\n",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
 @dataclass
 class EpisodeState:
     """Tracking data that starts fresh for each episode."""
@@ -62,6 +88,8 @@ class EpisodeState:
     robot_type: str | None = None
     robot_position: np.ndarray | None = None
     goal_position: np.ndarray | None = None
+    termination_condition: str | None = None
+    termination_reason: str | None = None
     failure_reason: str | None = None
     robot_path: list[np.ndarray] = field(default_factory=list)
     human_collision_detected: bool = False
@@ -250,6 +278,8 @@ class BenchmarkRunner:
             min_human_distance_m=self.state.min_human_distance_m,
             physical_collision=self.state.physical_collision_detected,
             physical_collision_count=self.state.max_contact_consecutive_frames,
+            termination_condition=self.state.termination_condition,
+            termination_reason=self.state.termination_reason,
             failure_reason=self.state.failure_reason,
         )
         return report_utils.build_episode_result(
@@ -464,16 +494,26 @@ class BenchmarkRunner:
                 self.behavior_context.frame_count = self.state.simulation_frame_count
 
                 if self.terminate_on_human_collision and self.state.human_collision_detected:
-                    self.state.failure_reason = (
+                    self.state.termination_condition = "human_collision"
+                    self.state.termination_reason = (
                         "Terminated after detecting a collision with a pedestrian"
                     )
-                    print(f"Episode failed early: {self.state.failure_reason}")
+                    self.state.failure_reason = self.state.termination_reason
+                    _print_termination_banner(
+                        self.state.name, False, self.state.termination_condition,
+                        self.state.termination_reason,
+                    )
                     return False
 
                 failure_reason = self.behavior_context.failure_reason
                 if failure_reason:
+                    self.state.termination_condition = "behavior_failure"
+                    self.state.termination_reason = failure_reason
                     self.state.failure_reason = failure_reason
-                    print(f"Episode failed early: {failure_reason}")
+                    _print_termination_banner(
+                        self.state.name, False, self.state.termination_condition,
+                        self.state.termination_reason,
+                    )
                     return False
 
                 if self._update_success_criteria(distance):
@@ -490,24 +530,43 @@ class BenchmarkRunner:
                         f"closest distance {self.state.closest_goal_distance_m:.2f}m, "
                         f"buffer {self.state.moving_away_distance_buffer_m:.2f}m"
                     )
-                    if self.state.success_criteria_met:
-                        print(f"Episode completed: {termination_reason}")
-                    else:
+                    self.state.termination_condition = "moving_away"
+                    self.state.termination_reason = termination_reason
+                    if not self.state.success_criteria_met:
                         self.state.failure_reason = termination_reason
-                        print(f"Episode failed early: {termination_reason}")
+                    _print_termination_banner(
+                        self.state.name, self.state.success_criteria_met,
+                        self.state.termination_condition, self.state.termination_reason,
+                    )
                     return self.state.success_criteria_met
 
                 # advance one frame
                 await app.next_update_async()
 
-            if not self.state.success_criteria_met:
-                self.state.failure_reason = (
+            self.state.termination_condition = "timeout"
+            if self.state.success_criteria_met:
+                self.state.termination_reason = (
+                    f"Navigation time limit reached after {timeout_frames / SIMULATION_FPS:.1f}s "
+                    f"({timeout_frames} frames); success criterion was met"
+                )
+            else:
+                self.state.termination_reason = (
                     f"Timed out after {timeout_frames / SIMULATION_FPS:.1f}s "
                     f"({timeout_frames} frames) without reaching the goal"
                 )
+                self.state.failure_reason = self.state.termination_reason
+            _print_termination_banner(
+                self.state.name, self.state.success_criteria_met,
+                self.state.termination_condition, self.state.termination_reason,
+            )
         except Exception as e:
-            self.state.failure_reason = f"Navigation error: {e}"
-            print(f"Warning: Error during navigation: {e}")
+            self.state.termination_condition = "navigation_error"
+            self.state.termination_reason = f"Navigation error: {e}"
+            self.state.failure_reason = self.state.termination_reason
+            _print_termination_banner(
+                self.state.name, False, self.state.termination_condition,
+                self.state.termination_reason,
+            )
             return False
         finally:
             # Restore capture and timeline state after success, failure, or setup error.
@@ -1315,10 +1374,18 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
 
 # ---------- Parent process orchestration ----------
 
-def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, inference_method: str = "TIC-VLA", experiment_mode: str = "normal", terminate_on_human_collision: bool = False, terminate_when_moving_away: bool = False) -> dict:
+def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, inference_method: str = "TIC-VLA", experiment_mode: str = "normal", terminate_on_human_collision: bool = False, terminate_when_moving_away: bool = False, show_child_output: bool = False) -> dict:
     """Start benchmark.py --child; its main() dispatches to run_child_episode()."""
     with tempfile.TemporaryDirectory() as td:
         out_json = os.path.join(td, f"{episode_name}_result.json")
+        safe_episode_name = "".join(
+            character if character.isalnum() or character in "-_" else "_"
+            for character in episode_name
+        )
+        child_log_path = (
+            Path("./benchmark_results") / str(run_id) / "logs"
+            / f"{safe_episode_name}_isaac.log"
+        ).resolve()
 
         cmd = [
             sys.executable,
@@ -1342,9 +1409,29 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
         if terminate_when_moving_away:
             cmd += ["--terminate-when-moving-away"]
 
-        proc = subprocess.run(cmd)  # inherit stdio by default
+        if show_child_output:
+            proc = subprocess.run(cmd)
+        else:
+            child_log_path.parent.mkdir(parents=True, exist_ok=True)
+            print(f"Isaac Sim output redirected to: {child_log_path}", flush=True)
+            with child_log_path.open("w", encoding="utf-8", errors="replace") as child_log:
+                proc = subprocess.run(cmd, stdout=child_log, stderr=subprocess.STDOUT)
         if proc.returncode != 0:
-            print(f"[Parent] Child for episode '{episode_name}' exited with code {proc.returncode}")
+            print(
+                f"[Parent] Child for episode '{episode_name}' exited with code {proc.returncode}",
+                file=sys.stderr,
+            )
+            if not show_child_output:
+                try:
+                    with child_log_path.open(encoding="utf-8", errors="replace") as child_log:
+                        tail = "".join(deque(child_log, maxlen=20))
+                    print(
+                        f"Last 20 lines from {child_log_path}:\n{tail}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                except OSError as error:
+                    print(f"Unable to read child log: {error}", file=sys.stderr)
 
         # Small delay to allow GPU memory cleanup and resource release
         import time
@@ -1354,12 +1441,21 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
         if os.path.isfile(out_json):
             with open(out_json, "r") as f:
                 try:
-                    return json.load(f)
+                    result = json.load(f)
+                    if not show_child_output:
+                        result["child_log"] = str(child_log_path)
+                    return result
                 except Exception as e:
                     print(f"[Parent] Failed to parse child JSON for '{episode_name}': {e}")
-                    return {"episode": episode_name, "success": False, "error": "json_parse_error"}
+                    result = {"episode": episode_name, "success": False, "error": "json_parse_error"}
+                    if not show_child_output:
+                        result["child_log"] = str(child_log_path)
+                    return result
         else:
-            return {"episode": episode_name, "success": False, "error": "no_result_file"}
+            result = {"episode": episode_name, "success": False, "error": "no_result_file"}
+            if not show_child_output:
+                result["child_log"] = str(child_log_path)
+            return result
 
 
 def _normalize_result(
@@ -1460,6 +1556,11 @@ def parse_args():
     parser.add_argument("--start_from", default=None, help="Episode name to start from (inclusive) in parent mode")
     parser.add_argument("--reverse_episodes", action="store_true", help="Run episodes in reverse order")
     parser.add_argument(
+        "--show-child-output",
+        action="store_true",
+        help="Stream verbose Isaac Sim child output instead of redirecting it to per-episode log files.",
+    )
+    parser.add_argument(
         "--terminate-on-human-collision",
         action="store_true",
         help="End an episode immediately and mark it failed when a pedestrian collision is detected.",
@@ -1526,6 +1627,7 @@ def main():
     print("Benchmark Config:", config_file_path)
     print("Crash Report Path:", crash_report_path)
     print("Debug Print:", debug_print)
+    print("Isaac Sim Child Output:", "live" if args.show_child_output else "redirected to logs")
     print("Run ID:", run_id)
     print(f"Navigation Method: {navigation_method} (resolved from command-line or config)")
     print(f"Inference Method: {inference_method}")
@@ -1555,11 +1657,21 @@ def main():
             experiment_mode=experiment_mode,
             terminate_on_human_collision=args.terminate_on_human_collision,
             terminate_when_moving_away=args.terminate_when_moving_away,
+            show_child_output=args.show_child_output,
         )
         normalized = _normalize_result(
             raw, episode_name, episode_config, experiment_mode, inference_method
         )
         all_results.append(normalized)
+        _print_termination_banner(
+            episode_name,
+            normalized.get("success", False),
+            normalized.get("termination_condition"),
+            normalized.get("termination_reason")
+            or normalized.get("failure_reason")
+            or normalized.get("error"),
+            source="Parent",
+        )
         
         # Save results incrementally after each episode
         saved_file = report_utils.save_results_to_file(
