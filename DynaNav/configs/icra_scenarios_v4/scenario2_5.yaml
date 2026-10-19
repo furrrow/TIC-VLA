@@ -226,10 +226,7 @@ episode_v4_s2_06:
   - 25.0
   - 0.01
   start_yaw: -85.0
-  goal: &id001
-  - 19.95
-  - 18.44101607487867
-  - 0.01
+  goal: *id001
   instruction: go to person described by the person wearing a long white coat and
     light trousers standing farther away
   timeout: 40
@@ -445,10 +442,7 @@ episode_v4_s2_11:
   - 25.0
   - 0.01
   start_yaw: -90.0
-  goal: &id001
-  - 19.95
-  - 18.44101607487867
-  - 0.01
+  goal: *id001
   instruction: go to person described by the person wearing a long white coat and
     light trousers standing farther away
   timeout: 40
