@@ -1377,8 +1377,9 @@ def _normalize_result(
     normalized.pop('collision_rate', None)
     normalized.pop('human_collision_rate', None)
     normalized.pop('physical_collision_rate', None)
+    normalized.pop('success_rate', None)
     # Coerce numeric types for safety
-    for k in ['duration', 'navigation_error', 'success_rate', 'collision', 'human_collision', 'physical_collision', 'spl', 'path_length']:
+    for k in ['duration', 'navigation_error', 'collision', 'human_collision', 'physical_collision', 'spl', 'path_length']:
         try:
             normalized[k] = float(normalized.get(k, defaults[k]))
         except Exception:

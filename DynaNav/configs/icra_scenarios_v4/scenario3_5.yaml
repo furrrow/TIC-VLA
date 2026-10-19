@@ -1,13 +1,13 @@
 seed: 36
 navigation_method: ticvla_ros
-success_threshold: 1.5
+success_threshold: 0.5
 episode_v4_s3_01:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -7.0
   goal: &id001
   - -19.44101607487867
   - 9.85
@@ -66,7 +66,7 @@ episode_v4_s3_02:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -6.0
   goal: *id001
   instruction: go to person described by the person wearing a long white coat and
     light trousers standing farther away
@@ -122,7 +122,7 @@ episode_v4_s3_03:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -5.0
   goal: *id001
   instruction: go to person described by the person wearing a long white coat and
     light trousers standing farther away
@@ -178,7 +178,7 @@ episode_v4_s3_04:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -4.0
   goal: *id001
   instruction: go to person described by the person wearing a long white coat and
     light trousers standing farther away
@@ -234,7 +234,573 @@ episode_v4_s3_05:
   - -26.0
   - 11.0
   - 0.01
+  start_yaw: -3.0
+  goal: *id001
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 0.481
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 3.627
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 4.269
+  physical_human_metrics: true
+episode_v4_s3_06:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: -2.0
+  goal: &id001
+  - -19.44101607487867
+  - 9.85
+  - 0.01
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 1.212
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 4.302
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 5.349
+  physical_human_metrics: true
+episode_v4_s3_07:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: -1.0
+  goal: *id001
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 0.404
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 3.75
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 4.276
+  physical_human_metrics: true
+episode_v4_s3_08:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
   start_yaw: 0.0
+  goal: *id001
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 0.856
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 3.691
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 5.089
+  physical_human_metrics: true
+episode_v4_s3_09:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: 1.0
+  goal: *id001
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 1.323
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 3.489
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 4.344
+  physical_human_metrics: true
+episode_v4_s3_10:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: 2.0
+  goal: *id001
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 0.481
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 3.627
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 4.269
+  physical_human_metrics: true
+episode_v4_s3_11:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: 3.0
+  goal: &id001
+  - -19.44101607487867
+  - 9.85
+  - 0.01
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 1.212
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 4.302
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 5.349
+  physical_human_metrics: true
+episode_v4_s3_12:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: 4.0
+  goal: *id001
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 0.404
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 3.75
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 4.276
+  physical_human_metrics: true
+episode_v4_s3_13:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: 5.0
+  goal: *id001
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 0.856
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 3.691
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 5.089
+  physical_human_metrics: true
+episode_v4_s3_14:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: 6.0
+  goal: *id001
+  instruction: go to person described by the person wearing a long white coat and
+    light trousers standing farther away
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -21.8
+    - 11.0
+    - 0.01
+    walk_route:
+    - - -26.8
+      - 11.0
+      - 0.01
+    - - -21.8
+      - 11.0
+      - 0.01
+    yaw_degrees: 180.0
+    initial_idle: 1.323
+  - position: *id001
+    yaw_degrees: 180.0
+  - position:
+    - -23.4
+    - 9.55
+    - 0.01
+    walk_route:
+    - - -23.4
+      - 11.85
+      - 0.01
+    - - -23.4
+      - 9.55
+      - 0.01
+    yaw_degrees: 90.0
+    initial_idle: 3.489
+  - position:
+    - -22.3
+    - 11.85
+    - 0.01
+    walk_route:
+    - - -22.3
+      - 9.55
+      - 0.01
+    - - -22.3
+      - 11.85
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 4.344
+  physical_human_metrics: true
+episode_v4_s3_15:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - -26.0
+  - 11.0
+  - 0.01
+  start_yaw: 7.0
   goal: *id001
   instruction: go to person described by the person wearing a long white coat and
     light trousers standing farther away
