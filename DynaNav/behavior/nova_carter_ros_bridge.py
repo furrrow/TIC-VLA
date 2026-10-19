@@ -82,6 +82,8 @@ class NovaCarterROSBridge(BehaviorScript):
         self._owns_rclpy = False
         self._render_product = None
         self._annotator = None
+        self._image_dir = None
+        self._image_index = 0
         self._closed = False
         self._max_linear_speed, self._max_angular_speed = load_command_limits()
 
@@ -112,6 +114,10 @@ class NovaCarterROSBridge(BehaviorScript):
             self._annotator.attach([self._render_product])
         self._closed = False
         episode = self._benchmark_context
+        self._image_dir = Path(episode.log_dir) / episode.run_id / episode.episode_name / "front_camera"
+        self._image_dir.mkdir(parents=True, exist_ok=True)
+        self._image_index = 0
+        carb.log_info(f"Saving ROS bridge camera frames to {self._image_dir}")
         message = String()
         message.data = json.dumps({
             "episode_id": f"{episode.run_id}:{episode.episode_name}:{os.getpid()}",
@@ -219,6 +225,12 @@ class NovaCarterROSBridge(BehaviorScript):
         if not encoded:
             carb.log_warn("Failed to JPEG-encode front camera frame")
             return
+        image_path = self._image_dir / f"frame_{self._image_index:06d}.jpg"
+        try:
+            image_path.write_bytes(jpeg.tobytes())
+            self._image_index += 1
+        except OSError as exc:
+            carb.log_warn(f"Failed to save front camera frame to {image_path}: {exc}")
         image = CompressedImage()
         image.header.stamp = stamp
         image.header.frame_id = "front_camera"
