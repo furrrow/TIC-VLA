@@ -1,0 +1,29 @@
+isaacsim.replicator.agent:
+  character:
+    command_file: /fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/vega-dynanav/icra_scenarios_v3/tmp/vega76000_icra_v3_s1_person_goal/benchmark_character_commands.txt
+    num: 2
+  global:
+    seed: 36
+    simulation_length: 1200
+  replicator:
+    parameters:
+      agent_info_skeleton_data: false
+      camera_params: true
+      image_output_format: jpg
+      object_info_bounding_box_2d_loose: false
+      object_info_bounding_box_2d_tight: false
+      object_info_bounding_box_3d: false
+      output_dir: /fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/vega-dynanav/icra_scenarios_v3/tmp/vega76000_icra_v3_s1_person_goal/benchmark_output/episode_v3_s1_02
+      rgb: true
+      semantic_filter_predicate: class:character|robot;id:*
+    writer: IRABasicWriter
+  robot:
+    command_file: /fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/vega-dynanav/icra_scenarios_v3/tmp/vega76000_icra_v3_s1_person_goal/benchmark_robot_commands.txt
+    iw_hub_num: 0
+    nova_carter_num: 0
+    write_data: false
+  scene:
+    asset_path: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  sensor:
+    camera_num: 0
+  version: 0.7.19

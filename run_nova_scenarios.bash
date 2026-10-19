@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCENARIO_DIR="DynaNav/configs/icra_scenarios_v4"
+SCENARIO_DIR="DynaNav/configs/icra_scenarios_v3"
 BATCH_PREFIX="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
 MODE="ablation"
 FORWARD_ARGS=()

@@ -1,0 +1,26 @@
+[
+  {
+    "source": "/fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/vega-dynanav/icra_dispatch.py",
+    "sha256": "ada7818b0ead1d4877f2bc3b5aefbcf49a20b1c3525eabdf32a6515f1c8eb64e"
+  },
+  {
+    "source": "/fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/vega-dynanav/persistent_suite.py",
+    "sha256": "87e6d5cc17e15533779c96851a6b5ebabb858ea02710dcffdae61630023eb10d"
+  },
+  {
+    "source": "/fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/vega-dynanav/summarize_icra.py",
+    "sha256": "c76c4fca5e280b3edefbb918c00f03915e1d0da7a78717059b93030789b360d7"
+  },
+  {
+    "source": "/fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/TIC-VLA/DynaNav/benchmark.py",
+    "sha256": "ed986e17bc10a77809db0150852f210bba9cb7844384f72b54e175cafd6955ce"
+  },
+  {
+    "source": "/fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/TIC-VLA/DynaNav/contact_fov_metrics.py",
+    "sha256": "7780f81eb0577d362de505250e95121d69286bf12c9692df22a47a98d0b25b30"
+  },
+  {
+    "source": "/fs/nexus-projects/REAL2SIM3/project-VEGA/external-benchmarks/TIC-VLA/DynaNav/vega_client.py",
+    "sha256": "5e6cc9d3cdc0bdf769e2509a7aaf531e3f97f2e388e2b4dc98815600c909da67"
+  }
+]
