@@ -440,7 +440,11 @@ class BenchmarkRunner:
                 self.state.simulation_frame_count += 1
                 # Avoid printing every frame (can flood logs and slow down Isaac Sim).
                 if self.debug_print and (self.state.simulation_frame_count % SIMULATION_FPS == 0):
-                    print(f"Simulation frame count: {self.state.simulation_frame_count}")
+                    distance = self._get_distance_to_goal()
+                    print(
+                        f"Simulation frame count: {self.state.simulation_frame_count} "
+                        f"distance: {distance:.3f}"
+                    )
                 self.behavior_context.frame_count = self.state.simulation_frame_count
 
                 if self.terminate_on_human_collision and self.state.human_collision_detected:
