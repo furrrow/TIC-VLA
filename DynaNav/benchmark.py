@@ -74,7 +74,7 @@ class EpisodeState:
     physical_collision_detected: bool = False
     contact_consecutive_frames: int = 0
     max_contact_consecutive_frames: int = 0
-    goal_threshold: float = 1.5
+    goal_threshold: float = 0.5
     closest_goal_distance_m: float | None = None
     initial_goal_distance_m: float | None = None
     moving_away_consecutive_frames: int = 0
