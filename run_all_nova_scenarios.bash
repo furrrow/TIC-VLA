@@ -2,22 +2,29 @@
 set -euo pipefail
 
 PROJECTS_ROOT="${PROJECTS_ROOT:-/home/jim/Projects}"
-BATCH_PREFIX="${BATCH_PREFIX:-scn3}"
+BATCH_PREFIX="${BATCH_PREFIX:-steernav}"
+DEFAULT_SCENARIO_DIR="DynaNav/configs/steernav_scenarios"
+DEFAULT_SCENARIOS=(
+  "${DEFAULT_SCENARIO_DIR}/scenario1_easy_hospital_20trials.yaml"
+  "${DEFAULT_SCENARIO_DIR}/scenario2_challenging_hospital_20trials.yaml"
+  "${DEFAULT_SCENARIO_DIR}/scenario3_transfer_warehouse_20trials.yaml"
+)
 
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [run_nova_scenarios arguments]
 
 Run the same Nova scenarios sequentially in OmniVLA, TIC-VLA, and NaVILA.
-With no arguments, runs: --mode ablation scenario4_5
+With no arguments, runs the first three SteerNav scenarios in ablation mode.
 
 Environment:
-  BATCH_PREFIX   Batch prefix used before each project suffix (default: scn3)
+  BATCH_PREFIX   Batch prefix used before each project suffix (default: steernav)
   PROJECTS_ROOT  Directory containing the three repositories
 
 Examples:
   $(basename "$0")
-  BATCH_PREFIX=sn4 $(basename "$0") --mode ablation scenario4_5
+  BATCH_PREFIX=pilot $(basename "$0") --mode steered \
+    ${DEFAULT_SCENARIO_DIR}/scenario3_transfer_warehouse_20trials.yaml
 EOF
 }
 
@@ -27,7 +34,7 @@ if (( $# == 1 )) && [[ "$1" == "-h" || "$1" == "--help" ]]; then
 fi
 
 if (( $# == 0 )); then
-  ARGS=(--mode ablation scenario4_5)
+  ARGS=(--mode ablation "${DEFAULT_SCENARIOS[@]}")
 else
   ARGS=("$@")
 fi

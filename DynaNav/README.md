@@ -93,14 +93,19 @@ repository root:
 ./run_all_nova_scenarios.bash
 ```
 
-With no arguments, it runs `--mode ablation scenario4_5` with batch IDs
-`sn3_omnivla`, `sn3_ticvla`, and `sn3_navila`. Pass arguments through to each
-repository's `run_nova_scenarios.bash` and set `BATCH_PREFIX` to change the
-shared batch prefix:
+With no arguments, it runs the first three configs in
+`DynaNav/configs/steernav_scenarios` in ablation mode, with batch IDs
+`steernav_omnivla`, `steernav_ticvla`, and `steernav_navila`. This is 540 total
+episodes: three scenarios, 20 trials, three modes, and three models. Scenario 4
+remains available as an explicit Warehouse stress run. Pass arguments through
+to each repository's `run_nova_scenarios.bash` and set `BATCH_PREFIX` to change
+the shared batch prefix:
 
 ```bash
-BATCH_PREFIX=sn4 ./run_all_nova_scenarios.bash \
-  --mode ablation scenario4_6
+BATCH_PREFIX=warehouse_pilot ./run_all_nova_scenarios.bash \
+  --mode steered \
+  DynaNav/configs/steernav_scenarios/scenario3_transfer_warehouse_20trials.yaml \
+  DynaNav/configs/steernav_scenarios/scenario4_stress_warehouse_20trials.yaml
 ```
 
 ### Nova Carter ROS sensor preview
@@ -232,7 +237,7 @@ Generated files use names such as
 `DynaNav/run_benchmark.sh`.
 
 The parallel `configs/generate_warehouse_scenarios.py` generator uses the
-Warehouse Scenario 4 geometry. The three-condition SteerNav suite and its exact
+Warehouse Scenario 4 geometry. The four-condition SteerNav suite and its exact
 regeneration commands are documented in
 `configs/steernav_scenarios/README.md`.
 
