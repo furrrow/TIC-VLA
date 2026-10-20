@@ -1,0 +1,2503 @@
+seed: 36
+navigation_method: ticvla_ros
+success_threshold: 1.5
+episode_warehouse50_s3_01:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id001
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.815789
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id001
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_02:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id002
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.294737
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id002
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_03:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id003
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.157895
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id003
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_04:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id004
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.268421
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id004
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_05:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id005
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.542105
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id005
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_06:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id006
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.021053
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id006
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_07:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id007
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.089474
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id007
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_08:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id008
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.226316
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id008
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_09:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id009
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.678947
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id009
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_10:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id010
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.747368
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id010
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_11:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id011
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.336842
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id011
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_12:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id012
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.473684
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id012
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_13:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id013
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.363158
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id013
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_14:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id014
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.2
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id014
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_15:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id015
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.952632
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id015
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_16:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id016
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.884211
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id016
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_17:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id017
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.5
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id017
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_18:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id018
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.610526
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id018
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_19:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id019
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.405263
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id019
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_20:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id020
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.431579
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id020
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_21:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id021
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.611667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id021
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_22:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id022
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.045
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id022
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_23:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id023
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.221667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id023
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_24:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id024
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.305
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id024
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_25:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id025
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.435
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id025
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_26:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id026
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.218333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id026
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_27:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id027
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.348333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id027
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_28:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id028
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.175
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id028
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_29:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id029
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.785
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id029
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_30:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id030
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.871667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id030
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_31:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id031
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.655
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id031
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_32:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id032
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.568333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id032
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_33:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id033
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.395
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id033
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_34:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id034
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.481667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id034
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_35:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id035
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.308333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id035
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_36:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id036
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.958333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id036
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_37:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id037
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.261667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id037
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_38:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id038
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.391667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id038
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_39:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id039
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.828333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id039
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_40:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id040
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.001667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id040
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_41:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id041
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.525
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id041
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_42:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id042
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.915
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id042
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_43:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id043
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.698333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id043
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_44:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id044
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.351667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id044
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_45:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id045
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.088333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id045
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_46:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id046
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.438333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id046
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_47:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id047
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.741667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id047
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_48:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id048
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.478333
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id048
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_49:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id049
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 0.265
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id049
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true
+episode_warehouse50_s3_50:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal: &id050
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to person described by the person wearing a blue shirt and dark
+    trousers
+  timeout: 40
+  num_people: 4
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90
+    initial_idle: 1.131667
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  - position: *id050
+    yaw_degrees: 270.0
+  - position:
+    - -7.5
+    - 6.2
+    - 0.01
+    walk_route:
+    - - -12.5
+      - 6.2
+      - 0.01
+    yaw_degrees: 180
+    initial_idle: 2.0
+  physical_human_metrics: true

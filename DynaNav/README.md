@@ -157,6 +157,45 @@ episode reset behavior, coordinate convention, and model-specific checks.
 
 ## Data Collection
 
+### Generate controlled Scenario 3 configs
+
+`generate_scenario3_configs.py` creates one benchmark YAML per requested crowd
+size. The stationary target is always present. Additional people are added in
+this order: head-on pedestrian, first lateral crosser, second lateral crosser.
+
+Generate 50 paired head-on timing trials for two-, three-, and four-person
+conditions while holding the lateral-crossing delays fixed:
+
+```bash
+python DynaNav/generate_scenario3_configs.py \
+  --people 2,3,4 \
+  --head-on-delays 0.2:1.5:50 \
+  --crosser-a-delays 4.302 \
+  --crosser-b-delays 5.349
+```
+
+Delay schedules accept either comma-separated values or an inclusive
+`start:stop:count` range. The default `product` mode generates every combination
+of delays belonging to pedestrians present in that crowd condition:
+
+```bash
+python DynaNav/generate_scenario3_configs.py \
+  --people 4 \
+  --head-on-delays 0.2,0.8,1.4 \
+  --crosser-a-delays 2.0,3.0 \
+  --crosser-b-delays 4.0,5.0 \
+  --output-dir DynaNav/configs/generated_scenario3
+```
+
+That example produces 12 episodes. Use `--combination-mode paired` to combine
+delay lists by index instead. In paired mode each list must contain one value,
+which is broadcast, or the same number of values as the other varying lists.
+Pass `--force` to replace an existing generated file.
+
+Generated files use names such as
+`scenario3_people4_50trials.yaml` and can be passed directly to
+`DynaNav/run_benchmark.sh`.
+
 Data collection uses Isaac Sim Python and the configs in `configs/data_collection/`:
 
 ```bash

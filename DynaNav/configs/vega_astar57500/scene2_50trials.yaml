@@ -1,0 +1,2153 @@
+seed: 36
+navigation_method: ticvla_ros
+success_threshold: 1.5
+episode_far20_s2_01:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.815789
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_02:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.294737
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_03:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.157895
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_04:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.268421
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_05:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.542105
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_06:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.021053
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_07:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.089474
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_08:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.226316
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_09:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.678947
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_10:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.747368
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_11:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.336842
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_12:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.473684
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_13:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.363158
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_14:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.2
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_15:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.952632
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_16:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.884211
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_17:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.5
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_18:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.610526
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_19:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.405263
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_20:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.431579
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_21:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.611667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_22:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.045
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_23:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.221667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_24:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.305
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_25:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.435
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_26:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.218333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_27:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.348333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_28:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.175
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_29:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.785
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_30:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.871667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_31:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.655
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_32:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.568333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_33:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.395
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_34:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.481667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_35:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.308333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_36:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.958333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_37:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.261667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_38:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.391667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_39:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.828333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_40:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.001667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_41:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.525
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_42:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.915
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_43:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.698333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_44:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.351667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_45:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.088333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_46:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.438333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_47:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.741667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_48:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.478333
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_49:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 0.265
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
+episode_far20_s2_50:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.0/Isaac/Environments/Hospital/hospital.usd
+  start:
+  - 19.1
+  - 23.0
+  - 0.01
+  start_yaw: -91.25656493133351
+  goal:
+  - 18.934211688126425
+  - 15.441737511953777
+  - 0.01
+  instruction: go to person described by the bald man wearing a long white coat and
+    gray trousers
+  timeout: 40
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - 20.4
+    - 20.5
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 24.0
+      - 0.01
+    yaw_degrees: 90
+    initial_idle: 1.131667
+  - position:
+    - 18.934211688126425
+    - 15.441737511953777
+    - 0.01
+    yaw_degrees: 88.74343506866649
+  - position:
+    - 18.5
+    - 20.8
+    - 0.01
+    walk_route:
+    - - 20.4
+      - 20.8
+      - 0.01
+    yaw_degrees: 0
+    initial_idle: 0.2
+  physical_human_metrics: true
