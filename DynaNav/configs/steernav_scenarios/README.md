@@ -50,7 +50,7 @@ The Warehouse generator uses `icra_scenarios_v4/scenario4_1.yaml`:
 - Robot start: `(-10.0, 1.0)`, yaw `90 degrees`
 - Target: `(-8.2, 8.2)`
 - Target description: blue shirt and dark trousers
-- Head-on route: `(-11.2, 4.9)` toward `(-11.2, 0.1)`
+- Head-on route: `(-10.7, 4.9)` diagonally toward `(-9.8, 0.1)`
 - First crossing route: `(-12.5, 5.2)` toward `(-6.0, 5.2)`
 - Second crossing route: `(-7.5, 6.2)` toward `(-12.5, 6.2)`
 

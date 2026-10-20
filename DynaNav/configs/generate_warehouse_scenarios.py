@@ -33,9 +33,9 @@ MOVERS = (
     (
         "head_on",
         {
-            "position": [-11.2, 4.9, 0.01],
-            "walk_route": [[-11.2, 0.1, 0.01]],
-            "yaw_degrees": -90.0,
+            "position": [-10.7, 4.9, 0.01],
+            "walk_route": [[-9.8, 0.1, 0.01]],
+            "yaw_degrees": -79.38,
         },
     ),
     (

@@ -18,14 +18,14 @@ episode_s3_warehouse_p3_01:
   robot_type: nova_carter
   scripted_humans:
   - position:
-    - -11.2
+    - -10.7
     - 4.9
     - 0.01
     walk_route:
-    - - -11.2
+    - - -9.8
       - 0.1
       - 0.01
-    yaw_degrees: -90.0
+    yaw_degrees: -79.38
     initial_idle: 0.2
   - position:
     - -8.2
@@ -60,14 +60,14 @@ episode_s3_warehouse_p3_02:
   robot_type: nova_carter
   scripted_humans:
   - position:
-    - -11.2
+    - -10.7
     - 4.9
     - 0.01
     walk_route:
-    - - -11.2
+    - - -9.8
       - 0.1
       - 0.01
-    yaw_degrees: -90.0
+    yaw_degrees: -79.38
     initial_idle: 0.268421
   - position:
     - -8.2
@@ -102,14 +102,14 @@ episode_s3_warehouse_p3_03:
   robot_type: nova_carter
   scripted_humans:
   - position:
-    - -11.2
+    - -10.7
     - 4.9
     - 0.01
     walk_route:
-    - - -11.2
+    - - -9.8
       - 0.1
       - 0.01
-    yaw_degrees: -90.0
+    yaw_degrees: -79.38
     initial_idle: 0.336842
   - position:
     - -8.2
@@ -144,14 +144,14 @@ episode_s3_warehouse_p3_04:
   robot_type: nova_carter
   scripted_humans:
   - position:
-    - -11.2
+    - -10.7
     - 4.9
     - 0.01
     walk_route:
-    - - -11.2
+    - - -9.8
       - 0.1
       - 0.01
-    yaw_degrees: -90.0
+    yaw_degrees: -79.38
     initial_idle: 0.405263
   - position:
     - -8.2
@@ -186,14 +186,14 @@ episode_s3_warehouse_p3_05:
   robot_type: nova_carter
   scripted_humans:
   - position:
-    - -11.2
+    - -10.7
     - 4.9
     - 0.01
     walk_route:
-    - - -11.2
+    - - -9.8
       - 0.1
       - 0.01
-    yaw_degrees: -90.0
+    yaw_degrees: -79.38
     initial_idle: 0.473684
   - position:
     - -8.2
