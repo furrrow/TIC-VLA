@@ -124,7 +124,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--crosser-b-delays",
         type=parse_float_schedule,
-        default=parse_float_schedule("0.2:1.5:20"),
+        default=parse_float_schedule("2.0:4.0:20"),
     )
     parser.add_argument(
         "--combination-mode",
