@@ -85,6 +85,24 @@ BATCH_ID=ticvla_eval ./run_nova_scenarios.bash \
   scenario1_5 scenario2_5 scenario3_5
 ```
 
+To run the same scenario batch sequentially across the sibling `OmniVLA`,
+`TIC-VLA`, and `NaVILA` repositories, run the meta launcher from the `TIC-VLA`
+repository root:
+
+```bash
+./run_all_nova_scenarios.bash
+```
+
+With no arguments, it runs `--mode ablation scenario4_5` with batch IDs
+`sn3_omnivla`, `sn3_ticvla`, and `sn3_navila`. Pass arguments through to each
+repository's `run_nova_scenarios.bash` and set `BATCH_PREFIX` to change the
+shared batch prefix:
+
+```bash
+BATCH_PREFIX=sn4 ./run_all_nova_scenarios.bash \
+  --mode ablation scenario4_6
+```
+
 ### Nova Carter ROS sensor preview
 
 The `ticvla_ros` method publishes Nova Carter's forward camera as
@@ -157,9 +175,9 @@ episode reset behavior, coordinate convention, and model-specific checks.
 
 ## Data Collection
 
-### Generate controlled Scenario 3 configs
+### Generate controlled navigation scenarios
 
-`generate_scenario3_configs.py` creates one benchmark YAML per requested crowd
+`configs/generate_hospital_scenarios.py` creates one benchmark YAML per requested crowd
 size. The stationary target is always present. Additional people are added in
 this order: head-on pedestrian, first lateral crosser, second lateral crosser.
 
@@ -167,7 +185,7 @@ Generate 50 paired head-on timing trials for two-, three-, and four-person
 conditions while holding the lateral-crossing delays fixed:
 
 ```bash
-python DynaNav/generate_scenario3_configs.py \
+python DynaNav/configs/generate_hospital_scenarios.py \
   --people 2,3,4 \
   --head-on-delays 0.2:1.5:50 \
   --crosser-a-delays 4.302 \
@@ -179,7 +197,7 @@ Delay schedules accept either comma-separated values or an inclusive
 of delays belonging to pedestrians present in that crowd condition:
 
 ```bash
-python DynaNav/generate_scenario3_configs.py \
+python DynaNav/configs/generate_hospital_scenarios.py \
   --people 4 \
   --head-on-delays 0.2,0.8,1.4 \
   --crosser-a-delays 2.0,3.0 \
@@ -190,11 +208,33 @@ python DynaNav/generate_scenario3_configs.py \
 That example produces 12 episodes. Use `--combination-mode paired` to combine
 delay lists by index instead. In paired mode each list must contain one value,
 which is broadcast, or the same number of values as the other varying lists.
+
+For an easy/medium/hard suite with independently varied timing strata, use:
+
+```bash
+python DynaNav/configs/generate_hospital_scenarios.py \
+  --people 2,3,4 \
+  --head-on-delays 0.2:1.5:20 \
+  --crosser-a-delays 2.0:4.0:20 \
+  --crosser-b-delays 3.0:5.0:20 \
+  --combination-mode stratified \
+  --difficulty-names \
+  --output-dir DynaNav/configs/scenario3_difficulty
+```
+
+Stratified mode keeps the head-on schedule matched across difficulty levels and
+independently shuffles each crosser schedule using `--seed`. Every delay stratum
+appears exactly once without making all pedestrians early or late together.
 Pass `--force` to replace an existing generated file.
 
 Generated files use names such as
 `scenario3_people4_50trials.yaml` and can be passed directly to
 `DynaNav/run_benchmark.sh`.
+
+The parallel `configs/generate_warehouse_scenarios.py` generator uses the
+Warehouse Scenario 4 geometry. The three-condition SteerNav suite and its exact
+regeneration commands are documented in
+`configs/steernav_scenarios/README.md`.
 
 Data collection uses Isaac Sim Python and the configs in `configs/data_collection/`:
 

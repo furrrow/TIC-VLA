@@ -3,8 +3,8 @@
 
 The stationary target is always present. Increasing ``num_people`` adds the
 head-on pedestrian, the first lateral crosser, and then the second lateral
-crosser. Delay schedules may be combined as a Cartesian grid or paired by
-index.
+crosser. Delay schedules may be combined as a Cartesian grid, paired by index,
+or independently shuffled as reproducible timing strata.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import argparse
 import copy
 import itertools
 import math
+import random
 from pathlib import Path
 from typing import Iterable
 
@@ -130,11 +131,38 @@ def paired_delays(schedules: list[list[float]]) -> Iterable[tuple[float, ...]]:
     return zip(*(schedule * length if len(schedule) == 1 else schedule for schedule in schedules))
 
 
-def delay_combinations(schedules: list[list[float]], mode: str) -> Iterable[tuple[float, ...]]:
+def stratified_delays(
+    schedules: list[list[float]], *, seed: int
+) -> Iterable[tuple[float, ...]]:
+    """Pair delay strata while independently shuffling later movers."""
+    if not schedules:
+        return [()]
+    length = max(map(len, schedules))
+    invalid = [len(schedule) for schedule in schedules if len(schedule) not in (1, length)]
+    if invalid:
+        raise ValueError(
+            "stratified schedules must have one value or share the same length; "
+            f"received lengths {[len(schedule) for schedule in schedules]}"
+        )
+
+    columns = []
+    for index, schedule in enumerate(schedules):
+        values = schedule * length if len(schedule) == 1 else list(schedule)
+        if index > 0 and len(schedule) > 1:
+            random.Random(seed + index * 1_000_003).shuffle(values)
+        columns.append(values)
+    return zip(*columns)
+
+
+def delay_combinations(
+    schedules: list[list[float]], mode: str, *, seed: int
+) -> Iterable[tuple[float, ...]]:
     if not schedules:
         return [()]
     if mode == "product":
         return itertools.product(*schedules)
+    if mode == "stratified":
+        return stratified_delays(schedules, seed=seed)
     return paired_delays(schedules)
 
 
@@ -234,14 +262,28 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--combination-mode",
-        choices=("product", "paired"),
+        choices=("product", "paired", "stratified"),
         default="product",
-        help="use every active-delay combination or pair values by index",
+        help="use every combination, pair by index, or shuffle paired delay strata",
+    )
+    parser.add_argument(
+        "--difficulty-names",
+        action="store_true",
+        help="name 2/3/4-person files easy/medium/hard",
     )
     parser.add_argument("--seed", type=int, default=36)
     parser.add_argument("--success-threshold", type=float, default=1.5)
     parser.add_argument("--timeout", type=float, default=40.0)
     parser.add_argument("--episode-prefix", default="episode_s3")
+    parser.add_argument(
+        "--filename-prefix",
+        default="scenario3",
+        help="prefix used for generated YAML filenames",
+    )
+    parser.add_argument(
+        "--output-name",
+        help="exact filename for a single --people value",
+    )
     parser.add_argument("--force", action="store_true", help="replace existing output files")
     return parser
 
@@ -256,10 +298,14 @@ def main() -> int:
         raise SystemExit("--timeout must be positive and finite")
 
     all_schedules = [args.head_on_delays, args.crosser_a_delays, args.crosser_b_delays]
+    if args.output_name and len(args.people) != 1:
+        raise SystemExit("--output-name requires exactly one --people value")
     for num_people in args.people:
         active_schedules = all_schedules[: num_people - 1]
         try:
-            delays = list(delay_combinations(active_schedules, args.combination_mode))
+            delays = list(
+                delay_combinations(active_schedules, args.combination_mode, seed=args.seed)
+            )
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
         config = make_config(
@@ -270,7 +316,10 @@ def main() -> int:
             timeout=args.timeout,
             episode_prefix=args.episode_prefix,
         )
-        output = args.output_dir / f"scenario3_people{num_people}_{len(delays)}trials.yaml"
+        difficulty = {1: "target_only", 2: "easy", 3: "medium", 4: "hard"}[num_people]
+        label = difficulty if args.difficulty_names else f"people{num_people}"
+        filename = args.output_name or f"{args.filename_prefix}_{label}_{len(delays)}trials.yaml"
+        output = args.output_dir / filename
         try:
             write_config(output, config, force=args.force)
         except FileExistsError as exc:
