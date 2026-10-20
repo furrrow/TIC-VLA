@@ -1,0 +1,213 @@
+seed: 36
+navigation_method: ticvla_ros
+success_threshold: 1.5
+episode_s3_warehouse_p3_01:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal:
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to the person wearing a blue shirt and dark trousers.
+  timeout: 40.0
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 0.2
+  - position:
+    - -8.2
+    - 8.2
+    - 0.01
+    yaw_degrees: 270.0
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0.0
+    initial_idle: 0.610526
+  physical_human_metrics: true
+episode_s3_warehouse_p3_02:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal:
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to the person wearing a blue shirt and dark trousers.
+  timeout: 40.0
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 0.268421
+  - position:
+    - -8.2
+    - 8.2
+    - 0.01
+    yaw_degrees: 270.0
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0.0
+    initial_idle: 0.678947
+  physical_human_metrics: true
+episode_s3_warehouse_p3_03:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal:
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to the person wearing a blue shirt and dark trousers.
+  timeout: 40.0
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 0.336842
+  - position:
+    - -8.2
+    - 8.2
+    - 0.01
+    yaw_degrees: 270.0
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0.0
+    initial_idle: 1.226316
+  physical_human_metrics: true
+episode_s3_warehouse_p3_04:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal:
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to the person wearing a blue shirt and dark trousers.
+  timeout: 40.0
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 0.405263
+  - position:
+    - -8.2
+    - 8.2
+    - 0.01
+    yaw_degrees: 270.0
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0.0
+    initial_idle: 0.747368
+  physical_human_metrics: true
+episode_s3_warehouse_p3_05:
+  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
+  start:
+  - -10.0
+  - 1.0
+  - 0.01
+  start_yaw: 90.0
+  goal:
+  - -8.2
+  - 8.2
+  - 0.01
+  instruction: go to the person wearing a blue shirt and dark trousers.
+  timeout: 40.0
+  num_people: 3
+  robot_type: nova_carter
+  scripted_humans:
+  - position:
+    - -11.2
+    - 4.9
+    - 0.01
+    walk_route:
+    - - -11.2
+      - 0.1
+      - 0.01
+    yaw_degrees: -90.0
+    initial_idle: 0.473684
+  - position:
+    - -8.2
+    - 8.2
+    - 0.01
+    yaw_degrees: 270.0
+  - position:
+    - -12.5
+    - 5.2
+    - 0.01
+    walk_route:
+    - - -6.0
+      - 5.2
+      - 0.01
+    yaw_degrees: 0.0
+    initial_idle: 0.952632
+  physical_human_metrics: true

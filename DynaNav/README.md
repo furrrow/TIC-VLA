@@ -108,6 +108,15 @@ BATCH_PREFIX=warehouse_pilot ./run_all_nova_scenarios.bash \
   DynaNav/configs/steernav_scenarios/scenario4_stress_warehouse_20trials.yaml
 ```
 
+Pass `--fix-end` to keep SteerNav's final path waypoint fixed during trajectory
+optimization. The option is disabled by default; `--no-fix-end` explicitly
+disables it:
+
+```bash
+./run_all_nova_scenarios.bash --fix-end --mode ablation scenario4_5
+./run_all_nova_scenarios.bash --no-fix-end --mode ablation scenario4_5
+```
+
 ### Nova Carter ROS sensor preview
 
 The `ticvla_ros` method publishes Nova Carter's forward camera as

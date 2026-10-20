@@ -23,6 +23,8 @@ Environment:
 
 Examples:
   $(basename "$0")
+  $(basename "$0") --fix-end --mode ablation \
+    ${DEFAULT_SCENARIO_DIR}/scenario3_transfer_warehouse_20trials.yaml
   BATCH_PREFIX=pilot $(basename "$0") --mode steered \
     ${DEFAULT_SCENARIO_DIR}/scenario3_transfer_warehouse_20trials.yaml
 EOF
