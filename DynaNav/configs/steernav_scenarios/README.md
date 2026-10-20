@@ -2,7 +2,7 @@
 
 This directory contains four generated navigation conditions designed to
 separate increasing interaction complexity, transfer to a new visual
-environment, and the effect of a second opposing crosser. Every condition has
+environment, and the effect of an additional opposing crosser. Every condition has
 20 deterministic, paired timing trials.
 
 ## Suite design
@@ -11,8 +11,8 @@ environment, and the effect of a second opposing crosser. Every condition has
 | --- | --- | ---: | --- | --- |
 | `scenario1_easy_hospital_20trials.yaml` | Hospital | 2 | One head-on pedestrian | Basic navigation and avoidance |
 | `scenario2_challenging_hospital_20trials.yaml` | Hospital | 3 | Head-on pedestrian plus one lateral crosser | Added interaction complexity in the same geometry |
-| `scenario3_transfer_warehouse_20trials.yaml` | Warehouse | 3 | Head-on pedestrian plus one lateral crosser | Transfer of a similar interaction class to a new environment |
-| `scenario4_stress_warehouse_20trials.yaml` | Warehouse | 4 | Head-on pedestrian plus two opposing lateral crossers | Isolate the effect of the second crosser |
+| `scenario3_transfer_warehouse_20trials.yaml` | Warehouse | 3 | Head-on pedestrian plus crosser B | Transfer of a similar interaction class to a new environment |
+| `scenario4_stress_warehouse_20trials.yaml` | Warehouse | 4 | Head-on pedestrian plus crossers B and A | Isolate the effect of adding crosser A |
 
 The people count includes the stationary target. Scenario 1 therefore has one
 moving person; Scenarios 2 and 3 each have two moving people; Scenario 4 has
@@ -24,16 +24,16 @@ The intended comparisons are:
    conflict while retaining the Hospital template.
 2. Scenario 2 versus Scenario 3 measures transfer from Hospital to Warehouse
    with the same number and types of moving interactions.
-3. Scenario 3 versus Scenario 4 measures the incremental effect of adding a
-   second opposing crosser in the Warehouse.
+3. Scenario 3 versus Scenario 4 measures the incremental effect of adding
+   crosser A in the Warehouse.
 
 Scenario 3 is called `transfer`, rather than `hard`, because a performance
 change can come from appearance, geometry, target grounding, or timing—not only
 from greater crowd difficulty.
 
 Scenario 4 is a paired stress ablation. For every trial index, its robot,
-target, head-on delay, and first-crosser delay match Scenario 3 exactly. The
-second crosser is the only added actor.
+target, head-on delay, and crosser-B delay match Scenario 3 exactly. Crosser A
+is the only added actor.
 
 ## Templates
 
@@ -51,8 +51,8 @@ The Warehouse generator uses `icra_scenarios_v4/scenario4_1.yaml`:
 - Target: `(-8.2, 8.2)`
 - Target description: blue shirt and dark trousers
 - Head-on route: `(-10.7, 4.9)` diagonally toward `(-9.8, 0.1)`
-- First crossing route: `(-12.5, 5.2)` toward `(-6.0, 5.2)`
-- Second crossing route: `(-7.5, 6.2)` toward `(-12.5, 6.2)`
+- Crosser B route, used in Scenarios 3 and 4: `(-7.5, 6.2)` toward `(-12.5, 6.2)`
+- Crosser A route, added in Scenario 4: `(-12.5, 5.2)` toward `(-6.0, 5.2)`
 
 Both use Nova Carter, a 40-second timeout, a 1.5-meter success threshold,
 physical-human metrics, and the `ticvla_ros` navigation method.
@@ -64,16 +64,16 @@ pedestrian uses every value in its delay range exactly once. Crosser delays are
 independently shuffled, preventing all pedestrians from always starting early
 or late together.
 
-| Scenario | Head-on delay | First-crosser delay | Second-crosser delay |
+| Scenario | Head-on delay | Crosser-B delay | Crosser-A delay |
 | --- | --- | --- | --- |
 | Scenario 1 | 20 values from 0.2–1.5 s | Not present | Not present |
-| Scenario 2 | 20 values from 0.2–1.5 s | 20 shuffled values from 2.0–4.0 s | Not present |
+| Scenario 2 | 20 values from 0.2–1.5 s | Not applicable | Not applicable |
 | Scenario 3 | 20 values from 0.2–1.5 s | 20 shuffled values from 0.2–1.5 s | Not present |
 | Scenario 4 | Same as Scenario 3 | Same as Scenario 3 | 20 shuffled values from 0.5–2.5 s |
 
 The head-on schedule is identical at each trial index across all four files.
-Scenario 3 and Scenario 4 also have identical first-crosser schedules at each
-index. This makes their difference a direct paired test of the second crosser.
+Scenario 3 and Scenario 4 also have identical crosser-B schedules at each
+index. This makes their difference a direct paired test of adding crosser A.
 Scenario 2's crosser schedule was selected for the Hospital crossing geometry.
 Scenario 3's initial range follows the 0.2–1.5-second timing envelope used by
 the source Warehouse evaluation.
@@ -115,7 +115,7 @@ python DynaNav/configs/generate_hospital_scenarios.py \
 python DynaNav/configs/generate_warehouse_scenarios.py \
   --people 3 \
   --head-on-delays 0.2:1.5:20 \
-  --crosser-a-delays 0.2:1.5:20 \
+  --crosser-b-delays 0.2:1.5:20 \
   --combination-mode stratified \
   --output-dir DynaNav/configs/steernav_scenarios \
   --output-name scenario3_transfer_warehouse_20trials.yaml \
@@ -127,8 +127,8 @@ python DynaNav/configs/generate_warehouse_scenarios.py \
 python DynaNav/configs/generate_warehouse_scenarios.py \
   --people 4 \
   --head-on-delays 0.2:1.5:20 \
-  --crosser-a-delays 0.2:1.5:20 \
-  --crosser-b-delays 0.5:2.5:20 \
+  --crosser-b-delays 0.2:1.5:20 \
+  --crosser-a-delays 0.5:2.5:20 \
   --combination-mode stratified \
   --output-dir DynaNav/configs/steernav_scenarios \
   --output-name scenario4_stress_warehouse_20trials.yaml \

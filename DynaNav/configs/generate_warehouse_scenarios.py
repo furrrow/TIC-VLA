@@ -39,19 +39,19 @@ MOVERS = (
         },
     ),
     (
-        "crosser_a",
-        {
-            "position": [-12.5, 5.2, 0.01],
-            "walk_route": [[-6.0, 5.2, 0.01]],
-            "yaw_degrees": 0.0,
-        },
-    ),
-    (
         "crosser_b",
         {
             "position": [-7.5, 6.2, 0.01],
             "walk_route": [[-12.5, 6.2, 0.01]],
             "yaw_degrees": 180.0,
+        },
+    ),
+    (
+        "crosser_a",
+        {
+            "position": [-12.5, 5.2, 0.01],
+            "walk_route": [[-6.0, 5.2, 0.01]],
+            "yaw_degrees": 0.0,
         },
     ),
 )
@@ -119,12 +119,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--crosser-a-delays",
         type=parse_float_schedule,
-        default=parse_float_schedule("0.2:1.5:20"),
+        default=parse_float_schedule("0.5:2.5:20"),
     )
     parser.add_argument(
         "--crosser-b-delays",
         type=parse_float_schedule,
-        default=parse_float_schedule("0.5:2.5:20"),
+        default=parse_float_schedule("0.2:1.5:20"),
     )
     parser.add_argument(
         "--combination-mode",
@@ -151,7 +151,7 @@ def main() -> int:
     if not math.isfinite(args.timeout) or args.timeout <= 0:
         raise SystemExit("--timeout must be positive and finite")
 
-    schedules = [args.head_on_delays, args.crosser_a_delays, args.crosser_b_delays]
+    schedules = [args.head_on_delays, args.crosser_b_delays, args.crosser_a_delays]
     if args.output_name and len(args.people) != 1:
         raise SystemExit("--output-name requires exactly one --people value")
     for num_people in args.people:

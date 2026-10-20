@@ -33,14 +33,14 @@ episode_s3_warehouse_p3_01:
     - 0.01
     yaw_degrees: 270.0
   - position:
-    - -12.5
-    - 5.2
+    - -7.5
+    - 6.2
     - 0.01
     walk_route:
-    - - -6.0
-      - 5.2
+    - - -12.5
+      - 6.2
       - 0.01
-    yaw_degrees: 0.0
+    yaw_degrees: 180.0
     initial_idle: 0.610526
   physical_human_metrics: true
 episode_s3_warehouse_p3_02:
@@ -75,14 +75,14 @@ episode_s3_warehouse_p3_02:
     - 0.01
     yaw_degrees: 270.0
   - position:
-    - -12.5
-    - 5.2
+    - -7.5
+    - 6.2
     - 0.01
     walk_route:
-    - - -6.0
-      - 5.2
+    - - -12.5
+      - 6.2
       - 0.01
-    yaw_degrees: 0.0
+    yaw_degrees: 180.0
     initial_idle: 0.678947
   physical_human_metrics: true
 episode_s3_warehouse_p3_03:
@@ -117,14 +117,14 @@ episode_s3_warehouse_p3_03:
     - 0.01
     yaw_degrees: 270.0
   - position:
-    - -12.5
-    - 5.2
+    - -7.5
+    - 6.2
     - 0.01
     walk_route:
-    - - -6.0
-      - 5.2
+    - - -12.5
+      - 6.2
       - 0.01
-    yaw_degrees: 0.0
+    yaw_degrees: 180.0
     initial_idle: 1.226316
   physical_human_metrics: true
 episode_s3_warehouse_p3_04:
@@ -159,14 +159,14 @@ episode_s3_warehouse_p3_04:
     - 0.01
     yaw_degrees: 270.0
   - position:
-    - -12.5
-    - 5.2
+    - -7.5
+    - 6.2
     - 0.01
     walk_route:
-    - - -6.0
-      - 5.2
+    - - -12.5
+      - 6.2
       - 0.01
-    yaw_degrees: 0.0
+    yaw_degrees: 180.0
     initial_idle: 0.747368
   physical_human_metrics: true
 episode_s3_warehouse_p3_05:
@@ -201,13 +201,13 @@ episode_s3_warehouse_p3_05:
     - 0.01
     yaw_degrees: 270.0
   - position:
-    - -12.5
-    - 5.2
+    - -7.5
+    - 6.2
     - 0.01
     walk_route:
-    - - -6.0
-      - 5.2
+    - - -12.5
+      - 6.2
       - 0.01
-    yaw_degrees: 0.0
+    yaw_degrees: 180.0
     initial_idle: 0.952632
   physical_human_metrics: true
