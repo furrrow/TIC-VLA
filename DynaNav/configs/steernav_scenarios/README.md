@@ -51,7 +51,7 @@ The Warehouse generator uses `icra_scenarios_v4/scenario4_1.yaml`:
 - Target: `(-8.2, 8.2)`
 - Target description: blue shirt and dark trousers
 - Head-on route: `(-10.7, 4.9)` diagonally toward `(-9.8, 0.1)`
-- Crosser B route, used in Scenarios 3 and 4: `(-7.5, 6.2)` toward `(-12.5, 6.2)`
+- Crosser B route, used in Scenarios 3 and 4: `(-7.5, 6.2)` diagonally toward `(-12.5, 5.6)`
 - Crosser A route, added in Scenario 4: `(-12.5, 5.2)` toward `(-6.0, 5.2)`
 
 Both use Nova Carter, a 40-second timeout, a 1.5-meter success threshold,
@@ -68,15 +68,15 @@ or late together.
 | --- | --- | --- | --- |
 | Scenario 1 | 20 values from 0.2–1.5 s | Not present | Not present |
 | Scenario 2 | 20 values from 0.2–1.5 s | Not applicable | Not applicable |
-| Scenario 3 | 20 values from 0.2–1.5 s | 20 shuffled values from 2.0–4.0 s | Not present |
+| Scenario 3 | 20 values from 0.2–1.5 s | 20 shuffled values from 0.7–1.2 s | Not present |
 | Scenario 4 | Same as Scenario 3 | Same as Scenario 3 | 20 shuffled values from 0.5–2.5 s |
 
 The head-on schedule is identical at each trial index across all four files.
 Scenario 3 and Scenario 4 also have identical crosser-B schedules at each
 index. This makes their difference a direct paired test of adding crosser A.
 Scenario 2's crosser schedule was selected for the Hospital crossing geometry.
-Scenario 3 delays crosser B by 2.0–4.0 seconds so it reaches the robot's route
-after the earlier head-on interaction instead of clearing the route first.
+Scenario 3 delays crosser B by 0.7–1.2 seconds. This removes the earliest starts
+while keeping its crossing close to the preceding head-on interaction.
 
 The raw Hospital and Warehouse delays do not guarantee identical time to
 conflict because their routes differ. Before a final reported evaluation, run a
@@ -115,7 +115,7 @@ python DynaNav/configs/generate_hospital_scenarios.py \
 python DynaNav/configs/generate_warehouse_scenarios.py \
   --people 3 \
   --head-on-delays 0.2:1.5:20 \
-  --crosser-b-delays 2.0:4.0:20 \
+  --crosser-b-delays 0.7:1.2:20 \
   --combination-mode stratified \
   --output-dir DynaNav/configs/steernav_scenarios \
   --output-name scenario3_transfer_warehouse_20trials.yaml \
@@ -127,7 +127,7 @@ python DynaNav/configs/generate_warehouse_scenarios.py \
 python DynaNav/configs/generate_warehouse_scenarios.py \
   --people 4 \
   --head-on-delays 0.2:1.5:20 \
-  --crosser-b-delays 2.0:4.0:20 \
+  --crosser-b-delays 0.7:1.2:20 \
   --crosser-a-delays 0.5:2.5:20 \
   --combination-mode stratified \
   --output-dir DynaNav/configs/steernav_scenarios \

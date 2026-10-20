@@ -38,10 +38,10 @@ episode_s3_warehouse_p3_01:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.631579
+    yaw_degrees: -173.16
+    initial_idle: 0.857895
   physical_human_metrics: true
 episode_s3_warehouse_p3_02:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -80,10 +80,10 @@ episode_s3_warehouse_p3_02:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.736842
+    yaw_degrees: -173.16
+    initial_idle: 0.884211
   physical_human_metrics: true
 episode_s3_warehouse_p3_03:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -122,10 +122,10 @@ episode_s3_warehouse_p3_03:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.578947
+    yaw_degrees: -173.16
+    initial_idle: 1.094737
   physical_human_metrics: true
 episode_s3_warehouse_p3_04:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -164,10 +164,10 @@ episode_s3_warehouse_p3_04:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.842105
+    yaw_degrees: -173.16
+    initial_idle: 0.910526
   physical_human_metrics: true
 episode_s3_warehouse_p3_05:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -206,10 +206,10 @@ episode_s3_warehouse_p3_05:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.157895
+    yaw_degrees: -173.16
+    initial_idle: 0.989474
   physical_human_metrics: true
 episode_s3_warehouse_p3_06:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -248,10 +248,10 @@ episode_s3_warehouse_p3_06:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.105263
+    yaw_degrees: -173.16
+    initial_idle: 0.726316
   physical_human_metrics: true
 episode_s3_warehouse_p3_07:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -290,10 +290,10 @@ episode_s3_warehouse_p3_07:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.894737
+    yaw_degrees: -173.16
+    initial_idle: 1.173684
   physical_human_metrics: true
 episode_s3_warehouse_p3_08:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -332,10 +332,10 @@ episode_s3_warehouse_p3_08:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 4.0
+    yaw_degrees: -173.16
+    initial_idle: 1.2
   physical_human_metrics: true
 episode_s3_warehouse_p3_09:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -374,10 +374,10 @@ episode_s3_warehouse_p3_09:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.789474
+    yaw_degrees: -173.16
+    initial_idle: 1.147368
   physical_human_metrics: true
 episode_s3_warehouse_p3_10:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -416,10 +416,10 @@ episode_s3_warehouse_p3_10:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.473684
+    yaw_degrees: -173.16
+    initial_idle: 1.068421
   physical_human_metrics: true
 episode_s3_warehouse_p3_11:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -458,10 +458,10 @@ episode_s3_warehouse_p3_11:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.052632
+    yaw_degrees: -173.16
+    initial_idle: 0.963158
   physical_human_metrics: true
 episode_s3_warehouse_p3_12:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -500,10 +500,10 @@ episode_s3_warehouse_p3_12:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.526316
+    yaw_degrees: -173.16
+    initial_idle: 0.831579
   physical_human_metrics: true
 episode_s3_warehouse_p3_13:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -542,10 +542,10 @@ episode_s3_warehouse_p3_13:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.315789
+    yaw_degrees: -173.16
+    initial_idle: 0.778947
   physical_human_metrics: true
 episode_s3_warehouse_p3_14:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -584,10 +584,10 @@ episode_s3_warehouse_p3_14:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.210526
+    yaw_degrees: -173.16
+    initial_idle: 0.752632
   physical_human_metrics: true
 episode_s3_warehouse_p3_15:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -626,10 +626,10 @@ episode_s3_warehouse_p3_15:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.0
+    yaw_degrees: -173.16
+    initial_idle: 0.7
   physical_human_metrics: true
 episode_s3_warehouse_p3_16:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -668,10 +668,10 @@ episode_s3_warehouse_p3_16:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.263158
+    yaw_degrees: -173.16
+    initial_idle: 1.015789
   physical_human_metrics: true
 episode_s3_warehouse_p3_17:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -710,10 +710,10 @@ episode_s3_warehouse_p3_17:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.947368
+    yaw_degrees: -173.16
+    initial_idle: 0.936842
   physical_human_metrics: true
 episode_s3_warehouse_p3_18:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -752,10 +752,10 @@ episode_s3_warehouse_p3_18:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.421053
+    yaw_degrees: -173.16
+    initial_idle: 0.805263
   physical_human_metrics: true
 episode_s3_warehouse_p3_19:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -794,10 +794,10 @@ episode_s3_warehouse_p3_19:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.368421
+    yaw_degrees: -173.16
+    initial_idle: 1.042105
   physical_human_metrics: true
 episode_s3_warehouse_p3_20:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -836,8 +836,8 @@ episode_s3_warehouse_p3_20:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.684211
+    yaw_degrees: -173.16
+    initial_idle: 1.121053
   physical_human_metrics: true

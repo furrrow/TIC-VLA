@@ -42,8 +42,8 @@ MOVERS = (
         "crosser_b",
         {
             "position": [-7.5, 6.2, 0.01],
-            "walk_route": [[-12.5, 6.2, 0.01]],
-            "yaw_degrees": 180.0,
+            "walk_route": [[-12.5, 5.6, 0.01]],
+            "yaw_degrees": -173.16,
         },
     ),
     (
@@ -124,7 +124,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--crosser-b-delays",
         type=parse_float_schedule,
-        default=parse_float_schedule("2.0:4.0:20"),
+        default=parse_float_schedule("0.7:1.2:20"),
     )
     parser.add_argument(
         "--combination-mode",

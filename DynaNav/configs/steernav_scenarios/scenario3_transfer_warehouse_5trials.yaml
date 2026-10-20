@@ -38,10 +38,10 @@ episode_s3_warehouse_p3_01:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.631579
+    yaw_degrees: -173.16
+    initial_idle: 0.857895
   physical_human_metrics: true
 episode_s3_warehouse_p3_02:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -80,10 +80,10 @@ episode_s3_warehouse_p3_02:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.736842
+    yaw_degrees: -173.16
+    initial_idle: 0.884211
   physical_human_metrics: true
 episode_s3_warehouse_p3_03:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -122,10 +122,10 @@ episode_s3_warehouse_p3_03:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.578947
+    yaw_degrees: -173.16
+    initial_idle: 1.094737
   physical_human_metrics: true
 episode_s3_warehouse_p3_04:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -164,10 +164,10 @@ episode_s3_warehouse_p3_04:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 2.842105
+    yaw_degrees: -173.16
+    initial_idle: 0.910526
   physical_human_metrics: true
 episode_s3_warehouse_p3_05:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd
@@ -206,8 +206,8 @@ episode_s3_warehouse_p3_05:
     - 0.01
     walk_route:
     - - -12.5
-      - 6.2
+      - 5.6
       - 0.01
-    yaw_degrees: 180.0
-    initial_idle: 3.157895
+    yaw_degrees: -173.16
+    initial_idle: 0.989474
   physical_human_metrics: true
