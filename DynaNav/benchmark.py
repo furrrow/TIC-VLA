@@ -14,6 +14,7 @@ You can also run a single episode directly (child mode):
 """
 
 import os
+import signal
 import sys
 import json
 import yaml
@@ -33,6 +34,8 @@ import benchmark_runtime as runtime
 from scripted_humans import generate_scripted_commands
 
 SIMULATION_FPS = runtime.SIMULATION_FPS
+DEFAULT_EPISODE_WALL_TIMEOUT_SECONDS = 600.0
+CHILD_TERMINATION_GRACE_SECONDS = 10.0
 
 
 def _print_collision_warning(collision_type, episode_name, details):
@@ -1374,7 +1377,28 @@ def run_child_episode(config_file_path: str, episode_name: str, crash_report_pat
 
 # ---------- Parent process orchestration ----------
 
-def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, inference_method: str = "TIC-VLA", experiment_mode: str = "normal", terminate_on_human_collision: bool = False, terminate_when_moving_away: bool = False, show_child_output: bool = False) -> dict:
+def _run_child_process(cmd: list[str], stdout, stderr, wall_timeout_seconds: float):
+    """Run a child in its own process group and enforce a wall-clock timeout."""
+    proc = subprocess.Popen(
+        cmd,
+        stdout=stdout,
+        stderr=stderr,
+        start_new_session=True,
+    )
+    try:
+        proc.wait(timeout=wall_timeout_seconds)
+        return proc, False
+    except subprocess.TimeoutExpired:
+        os.killpg(proc.pid, signal.SIGTERM)
+        try:
+            proc.wait(timeout=CHILD_TERMINATION_GRACE_SECONDS)
+        except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.wait()
+        return proc, True
+
+
+def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: str, crash_report_path: str, debug_print: bool, run_id: str, navigation_method: str = None, inference_method: str = "TIC-VLA", experiment_mode: str = "normal", terminate_on_human_collision: bool = False, terminate_when_moving_away: bool = False, show_child_output: bool = False, wall_timeout_seconds: float = DEFAULT_EPISODE_WALL_TIMEOUT_SECONDS) -> dict:
     """Start benchmark.py --child; its main() dispatches to run_child_episode()."""
     with tempfile.TemporaryDirectory() as td:
         out_json = os.path.join(td, f"{episode_name}_result.json")
@@ -1410,12 +1434,38 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
             cmd += ["--terminate-when-moving-away"]
 
         if show_child_output:
-            proc = subprocess.run(cmd)
+            proc, timed_out = _run_child_process(
+                cmd, None, None, wall_timeout_seconds
+            )
         else:
             child_log_path.parent.mkdir(parents=True, exist_ok=True)
             print(f"Isaac Sim output redirected to: {child_log_path}", flush=True)
             with child_log_path.open("w", encoding="utf-8", errors="replace") as child_log:
-                proc = subprocess.run(cmd, stdout=child_log, stderr=subprocess.STDOUT)
+                proc, timed_out = _run_child_process(
+                    cmd, child_log, subprocess.STDOUT, wall_timeout_seconds
+                )
+
+        if timed_out:
+            reason = (
+                f"Episode exceeded the {wall_timeout_seconds:g}s wall-clock timeout"
+            )
+            print(
+                f"[Parent] {reason}: '{episode_name}'",
+                file=sys.stderr,
+                flush=True,
+            )
+            result = {
+                "episode": episode_name,
+                "success": False,
+                "error": "wall_clock_timeout",
+                "termination_condition": "wall_clock_timeout",
+                "termination_reason": reason,
+                "failure_reason": reason,
+            }
+            if not show_child_output:
+                result["child_log"] = str(child_log_path)
+            return result
+
         if proc.returncode != 0:
             print(
                 f"[Parent] Child for episode '{episode_name}' exited with code {proc.returncode}",
@@ -1561,6 +1611,16 @@ def parse_args():
         help="Stream verbose Isaac Sim child output instead of redirecting it to per-episode log files.",
     )
     parser.add_argument(
+        "--episode-wall-timeout",
+        type=float,
+        default=DEFAULT_EPISODE_WALL_TIMEOUT_SECONDS,
+        metavar="SECONDS",
+        help=(
+            "Maximum wall-clock runtime for each episode child process "
+            f"(default: {DEFAULT_EPISODE_WALL_TIMEOUT_SECONDS:g}s)."
+        ),
+    )
+    parser.add_argument(
         "--terminate-on-human-collision",
         action="store_true",
         help="End an episode immediately and mark it failed when a pedestrian collision is detected.",
@@ -1603,6 +1663,8 @@ def main():
                 raise ValueError("Child mode requires --episode_name and --result_json")
             config_utils.get_episode(benchmark_config, args.episode_name)
         else:
+            if args.episode_wall_timeout <= 0:
+                raise ValueError("episode wall timeout must be greater than zero")
             episodes = config_utils.select_episodes(
                 benchmark_config, start_from=args.start_from, reverse=args.reverse_episodes
             )
@@ -1628,6 +1690,7 @@ def main():
     print("Crash Report Path:", crash_report_path)
     print("Debug Print:", debug_print)
     print("Isaac Sim Child Output:", "live" if args.show_child_output else "redirected to logs")
+    print(f"Episode Wall Timeout: {args.episode_wall_timeout:g}s")
     print("Run ID:", run_id)
     print(f"Navigation Method: {navigation_method} (resolved from command-line or config)")
     print(f"Inference Method: {inference_method}")
@@ -1658,6 +1721,7 @@ def main():
             terminate_on_human_collision=args.terminate_on_human_collision,
             terminate_when_moving_away=args.terminate_when_moving_away,
             show_child_output=args.show_child_output,
+            wall_timeout_seconds=args.episode_wall_timeout,
         )
         normalized = _normalize_result(
             raw, episode_name, episode_config, experiment_mode, inference_method
