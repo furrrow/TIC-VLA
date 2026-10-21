@@ -5,9 +5,9 @@ PROJECTS_ROOT="${PROJECTS_ROOT:-/home/jim/Projects}"
 BATCH_PREFIX="${BATCH_PREFIX:-steernav}"
 DEFAULT_SCENARIO_DIR="DynaNav/configs/steernav_scenarios"
 DEFAULT_SCENARIOS=(
-  "${DEFAULT_SCENARIO_DIR}/scenario1_easy_hospital_20trials.yaml"
-  "${DEFAULT_SCENARIO_DIR}/scenario2_challenging_hospital_20trials.yaml"
-  "${DEFAULT_SCENARIO_DIR}/scenario3_transfer_warehouse_20trials.yaml"
+  "${DEFAULT_SCENARIO_DIR}/scenario3_easy_20trials.yaml"
+  "${DEFAULT_SCENARIO_DIR}/scenario3_medium_20trials.yaml"
+  "${DEFAULT_SCENARIO_DIR}/scenario3_hard_20trials.yaml"
 )
 
 usage() {
@@ -15,7 +15,9 @@ usage() {
 Usage: $(basename "$0") [run_nova_scenarios arguments]
 
 Run the same Nova scenarios sequentially in OmniVLA, TIC-VLA, and NaVILA.
-With no arguments, runs the first three SteerNav scenarios in ablation mode.
+With no arguments, runs the easy, medium, and hard Hospital scenarios in
+ablation mode. SteerNav's final waypoint is free by default; pass --fix-end to
+hold it fixed during trajectory optimization.
 
 Environment:
   BATCH_PREFIX   Batch prefix used before each project suffix (default: steernav)
@@ -23,10 +25,9 @@ Environment:
 
 Examples:
   $(basename "$0")
-  $(basename "$0") --fix-end --mode ablation \
-    ${DEFAULT_SCENARIO_DIR}/scenario3_transfer_warehouse_20trials.yaml
-  BATCH_PREFIX=pilot $(basename "$0") --mode steered \
-    ${DEFAULT_SCENARIO_DIR}/scenario3_transfer_warehouse_20trials.yaml
+  $(basename "$0") --mode ablation ${DEFAULT_SCENARIO_DIR}/scenario3_hard_20trials.yaml
+  $(basename "$0") --fix-end --mode ablation ${DEFAULT_SCENARIO_DIR}/scenario3_hard_20trials.yaml
+  BATCH_PREFIX=pilot $(basename "$0") --mode steered ${DEFAULT_SCENARIO_DIR}/scenario3_medium_20trials.yaml
 EOF
 }
 

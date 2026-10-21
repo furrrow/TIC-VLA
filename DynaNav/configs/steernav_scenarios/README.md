@@ -1,39 +1,23 @@
 # SteerNav scenario suite
 
-This directory contains four generated navigation conditions designed to
-separate increasing interaction complexity, transfer to a new visual
-environment, and the effect of an additional opposing crosser. Every condition has
-20 deterministic, paired timing trials.
+This directory contains three Hospital navigation conditions with increasing
+interaction complexity. Every condition has 20 deterministic, stratified
+timing trials.
 
 ## Suite design
 
 | Config | Environment | People | Moving interaction | Experimental role |
 | --- | --- | ---: | --- | --- |
-| `scenario1_easy_hospital_20trials.yaml` | Hospital | 2 | One head-on pedestrian | Basic navigation and avoidance |
-| `scenario2_challenging_hospital_20trials.yaml` | Hospital | 3 | Head-on pedestrian plus one lateral crosser | Added interaction complexity in the same geometry |
-| `scenario3_transfer_warehouse_20trials.yaml` | Warehouse | 3 | Head-on pedestrian plus crosser B | Transfer of a similar interaction class to a new environment |
-| `scenario4_stress_warehouse_20trials.yaml` | Warehouse | 4 | Head-on pedestrian plus crossers B and A | Isolate the effect of adding crosser A |
+| `scenario3_easy_20trials.yaml` | Hospital | 2 | One head-on pedestrian | Basic navigation and avoidance |
+| `scenario3_medium_20trials.yaml` | Hospital | 3 | Head-on pedestrian plus one lateral crosser | Added crossing conflict |
+| `scenario3_hard_20trials.yaml` | Hospital | 4 | Head-on pedestrian plus two opposing lateral crossers | Highest crowd interaction complexity |
 
-The people count includes the stationary target. Scenario 1 therefore has one
-moving person; Scenarios 2 and 3 each have two moving people; Scenario 4 has
-three moving people.
+The people count includes the stationary target. Easy therefore has one moving
+person, medium has two, and hard has three.
 
-The intended comparisons are:
-
-1. Scenario 1 versus Scenario 2 measures the effect of adding a crossing
-   conflict while retaining the Hospital template.
-2. Scenario 2 versus Scenario 3 measures transfer from Hospital to Warehouse
-   with the same number and types of moving interactions.
-3. Scenario 3 versus Scenario 4 measures the incremental effect of adding
-   crosser A in the Warehouse.
-
-Scenario 3 is called `transfer`, rather than `hard`, because a performance
-change can come from appearance, geometry, target grounding, or timing—not only
-from greater crowd difficulty.
-
-Scenario 4 is a paired stress ablation. For every trial index, its robot,
-target, head-on delay, and crosser-B delay match Scenario 3 exactly. Crosser A
-is the only added actor.
+The files share the same robot start, target, head-on timing schedule, and
+Hospital geometry. Medium adds the first lateral crosser to easy; hard adds a
+second, opposing lateral crosser to medium.
 
 ## Templates
 
@@ -44,17 +28,9 @@ The Hospital generator uses the geometry from ICRA v4 Scenario 3:
 - Target description: long white coat and light trousers
 - Head-on route: `(-21.8, 11.0)` toward `(-26.8, 11.0)`
 - First crossing route: `(-23.4, 9.55)` toward `(-23.4, 11.85)`
+- Second crossing route: `(-22.3, 11.85)` toward `(-22.3, 9.55)`
 
-The Warehouse generator uses `icra_scenarios_v4/scenario4_1.yaml`:
-
-- Robot start: `(-10.0, 1.0)`, yaw `90 degrees`
-- Target: `(-8.2, 8.2)`
-- Target description: blue shirt and dark trousers
-- Head-on route: `(-10.7, 4.9)` diagonally toward `(-9.8, 0.1)`
-- Crosser B route, used in Scenarios 3 and 4: `(-7.5, 6.2)` diagonally toward `(-12.5, 5.6)`
-- Crosser A route, added in Scenario 4: `(-12.5, 5.2)` toward `(-6.0, 5.2)`
-
-Both use Nova Carter, a 40-second timeout, a 1.5-meter success threshold,
+All three use Nova Carter, a 40-second timeout, a 1.5-meter success threshold,
 physical-human metrics, and the `ticvla_ros` navigation method.
 
 ## Timing design
@@ -64,75 +40,30 @@ pedestrian uses every value in its delay range exactly once. Crosser delays are
 independently shuffled, preventing all pedestrians from always starting early
 or late together.
 
-| Scenario | Head-on delay | Crosser-B delay | Crosser-A delay |
+| Difficulty | Head-on delay | First crosser delay | Second crosser delay |
 | --- | --- | --- | --- |
-| Scenario 1 | 20 values from 0.2–1.5 s | Not present | Not present |
-| Scenario 2 | 20 values from 0.2–1.5 s | Not applicable | Not applicable |
-| Scenario 3 | 20 values from 0.2–1.5 s | 20 shuffled values from 0.7–1.2 s | Not present |
-| Scenario 4 | Same as Scenario 3 | Same as Scenario 3 | 20 shuffled values from 0.5–2.5 s |
+| Easy | 20 values from 0.2–1.5 s | Not present | Not present |
+| Medium | Same as easy | 20 shuffled values from 2.0–4.0 s | Not present |
+| Hard | Same as easy | 20 shuffled values from 2.0–4.0 s | 20 shuffled values from 3.0–5.0 s |
 
-The head-on schedule is identical at each trial index across all four files.
-Scenario 3 and Scenario 4 also have identical crosser-B schedules at each
-index. This makes their difference a direct paired test of adding crosser A.
-Scenario 2's crosser schedule was selected for the Hospital crossing geometry.
-Scenario 3 delays crosser B by 0.7–1.2 seconds. This removes the earliest starts
-while keeping its crossing close to the preceding head-on interaction.
-
-The raw Hospital and Warehouse delays do not guarantee identical time to
-conflict because their routes differ. Before a final reported evaluation, run a
-pilot and inspect robot and pedestrian arrival times at the crossing point. If
-Warehouse outcomes cluster near 0% or 100% collision, adjust its crosser delay
-range and regenerate the complete suite before collecting final results.
+The head-on schedule is identical at each trial index across all three files.
+The crosser schedules are independently shuffled with seed 36, so each delay
+stratum appears once without forcing all pedestrians to start early or late
+together.
 
 ## Recreate the suite
 
 Run these commands from the repository root.
 
 ```bash
-python DynaNav/configs/generate_hospital_scenarios.py \
-  --people 2 \
-  --head-on-delays 0.2:1.5:20 \
-  --combination-mode stratified \
-  --output-dir DynaNav/configs/steernav_scenarios \
-  --output-name scenario1_easy_hospital_20trials.yaml \
-  --episode-prefix episode_s1_hospital \
-  --force
-```
-
-```bash
-python DynaNav/configs/generate_hospital_scenarios.py \
-  --people 3 \
+python3 DynaNav/configs/generate_hospital_scenarios.py \
+  --people 2,3,4 \
   --head-on-delays 0.2:1.5:20 \
   --crosser-a-delays 2.0:4.0:20 \
+  --crosser-b-delays 3.0:5.0:20 \
   --combination-mode stratified \
+  --difficulty-names \
   --output-dir DynaNav/configs/steernav_scenarios \
-  --output-name scenario2_challenging_hospital_20trials.yaml \
-  --episode-prefix episode_s2_hospital \
-  --force
-```
-
-```bash
-python DynaNav/configs/generate_warehouse_scenarios.py \
-  --people 3 \
-  --head-on-delays 0.2:1.5:20 \
-  --crosser-b-delays 0.7:1.2:20 \
-  --combination-mode stratified \
-  --output-dir DynaNav/configs/steernav_scenarios \
-  --output-name scenario3_transfer_warehouse_20trials.yaml \
-  --episode-prefix episode_s3_warehouse \
-  --force
-```
-
-```bash
-python DynaNav/configs/generate_warehouse_scenarios.py \
-  --people 4 \
-  --head-on-delays 0.2:1.5:20 \
-  --crosser-b-delays 0.7:1.2:20 \
-  --crosser-a-delays 0.5:2.5:20 \
-  --combination-mode stratified \
-  --output-dir DynaNav/configs/steernav_scenarios \
-  --output-name scenario4_stress_warehouse_20trials.yaml \
-  --episode-prefix episode_s4_warehouse \
   --force
 ```
 
@@ -140,14 +71,22 @@ The generators refuse to replace files unless `--force` is supplied.
 
 ## Run the suite
 
-Each file can be passed directly to the benchmark launcher:
+Run all three difficulty levels sequentially across OmniVLA, TIC-VLA, and
+NaVILA from the repository root:
 
 ```bash
-DynaNav/run_benchmark.sh \
-  DynaNav/configs/steernav_scenarios/scenario1_easy_hospital_20trials.yaml \
-  --run_id steernav_s1_easy_hospital
+./run_all_nova_scenarios.bash
 ```
 
-Use distinct run IDs for Scenarios 2–4 and preserve the trial index in all
-result analysis so paired comparisons remain possible. In particular, compare
-Scenario 3 and Scenario 4 episode by episode before aggregating their metrics.
+This defaults to ablation mode and leaves SteerNav's final waypoint free. You
+do not need a flag to disable `fix-end`. To run only the hard condition with
+the same default:
+
+```bash
+./run_all_nova_scenarios.bash --mode ablation \
+  DynaNav/configs/steernav_scenarios/scenario3_hard_20trials.yaml
+```
+
+Pass `--fix-end` only when you intentionally want to hold the final waypoint
+fixed during trajectory optimization. The compatibility flag `--no-fix-end`
+is accepted but is redundant because that is already the default.

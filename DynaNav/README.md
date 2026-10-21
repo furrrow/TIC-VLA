@@ -93,28 +93,27 @@ repository root:
 ./run_all_nova_scenarios.bash
 ```
 
-With no arguments, it runs the first three configs in
+With no arguments, it runs the easy, medium, and hard Hospital configs in
 `DynaNav/configs/steernav_scenarios` in ablation mode, with batch IDs
 `steernav_omnivla`, `steernav_ticvla`, and `steernav_navila`. This is 540 total
-episodes: three scenarios, 20 trials, three modes, and three models. Scenario 4
-remains available as an explicit Warehouse stress run. Pass arguments through
-to each repository's `run_nova_scenarios.bash` and set `BATCH_PREFIX` to change
-the shared batch prefix:
+episodes: three scenarios, 20 trials, three modes, and three models. Pass
+arguments through to each repository's `run_nova_scenarios.bash` and set
+`BATCH_PREFIX` to change the shared batch prefix:
 
 ```bash
 BATCH_PREFIX=warehouse_pilot ./run_all_nova_scenarios.bash \
   --mode steered \
-  DynaNav/configs/steernav_scenarios/scenario3_transfer_warehouse_20trials.yaml \
-  DynaNav/configs/steernav_scenarios/scenario4_stress_warehouse_20trials.yaml
+  DynaNav/configs/steernav_scenarios/scenario3_hard_20trials.yaml
 ```
 
-Pass `--fix-end` to keep SteerNav's final path waypoint fixed during trajectory
-optimization. The option is disabled by default; `--no-fix-end` explicitly
-disables it:
+SteerNav's final path waypoint is free by default, so omit both endpoint flags
+for the standard run. Pass `--fix-end` only to keep it fixed during trajectory
+optimization. `--no-fix-end` is retained as an explicit compatibility option:
 
 ```bash
-./run_all_nova_scenarios.bash --fix-end --mode ablation scenario4_5
-./run_all_nova_scenarios.bash --no-fix-end --mode ablation scenario4_5
+./run_all_nova_scenarios.bash
+./run_all_nova_scenarios.bash --fix-end --mode ablation \
+  DynaNav/configs/steernav_scenarios/scenario3_hard_20trials.yaml
 ```
 
 ### Nova Carter ROS sensor preview
@@ -246,8 +245,8 @@ Generated files use names such as
 `DynaNav/run_benchmark.sh`.
 
 The parallel `configs/generate_warehouse_scenarios.py` generator uses the
-Warehouse Scenario 4 geometry. The four-condition SteerNav suite and its exact
-regeneration commands are documented in
+Warehouse Scenario 4 geometry. The three-level Hospital SteerNav suite and its
+exact regeneration and launch commands are documented in
 `configs/steernav_scenarios/README.md`.
 
 Data collection uses Isaac Sim Python and the configs in `configs/data_collection/`:
