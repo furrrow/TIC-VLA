@@ -25,11 +25,12 @@ SCENE = (
     "Isaac/5.1/Isaac/Environments/Hospital/hospital.usd"
 )
 START = [-26.0, 11.0, 0.01]
-GOAL = [-19.44101607487867, 9.85, 0.01]
-INSTRUCTION = "go to the person wearing a long white coat and light trousers."
+GOAL = [-19.44101607487867, 11.0, 0.01]
+TARGET_POSITION = [-18.8, 11.0, 0.01]
+INSTRUCTION = "go to the security guard at the end of the hallway."
 
 TARGET = {
-    "position": GOAL,
+    "position": TARGET_POSITION,
     "yaw_degrees": 180.0,
 }
 

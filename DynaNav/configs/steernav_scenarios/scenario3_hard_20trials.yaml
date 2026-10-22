@@ -10,9 +10,9 @@ episode_s3_p4_01:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -31,8 +31,8 @@ episode_s3_p4_01:
     yaw_degrees: 180.0
     initial_idle: 0.2
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -71,9 +71,9 @@ episode_s3_p4_02:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -92,8 +92,8 @@ episode_s3_p4_02:
     yaw_degrees: 180.0
     initial_idle: 0.268421
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -132,9 +132,9 @@ episode_s3_p4_03:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -153,8 +153,8 @@ episode_s3_p4_03:
     yaw_degrees: 180.0
     initial_idle: 0.336842
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -193,9 +193,9 @@ episode_s3_p4_04:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -214,8 +214,8 @@ episode_s3_p4_04:
     yaw_degrees: 180.0
     initial_idle: 0.405263
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -254,9 +254,9 @@ episode_s3_p4_05:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -275,8 +275,8 @@ episode_s3_p4_05:
     yaw_degrees: 180.0
     initial_idle: 0.473684
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -315,9 +315,9 @@ episode_s3_p4_06:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -336,8 +336,8 @@ episode_s3_p4_06:
     yaw_degrees: 180.0
     initial_idle: 0.542105
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -376,9 +376,9 @@ episode_s3_p4_07:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -397,8 +397,8 @@ episode_s3_p4_07:
     yaw_degrees: 180.0
     initial_idle: 0.610526
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -437,9 +437,9 @@ episode_s3_p4_08:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -458,8 +458,8 @@ episode_s3_p4_08:
     yaw_degrees: 180.0
     initial_idle: 0.678947
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -498,9 +498,9 @@ episode_s3_p4_09:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -519,8 +519,8 @@ episode_s3_p4_09:
     yaw_degrees: 180.0
     initial_idle: 0.747368
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -559,9 +559,9 @@ episode_s3_p4_10:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -580,8 +580,8 @@ episode_s3_p4_10:
     yaw_degrees: 180.0
     initial_idle: 0.815789
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -620,9 +620,9 @@ episode_s3_p4_11:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -641,8 +641,8 @@ episode_s3_p4_11:
     yaw_degrees: 180.0
     initial_idle: 0.884211
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -681,9 +681,9 @@ episode_s3_p4_12:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -702,8 +702,8 @@ episode_s3_p4_12:
     yaw_degrees: 180.0
     initial_idle: 0.952632
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -742,9 +742,9 @@ episode_s3_p4_13:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -763,8 +763,8 @@ episode_s3_p4_13:
     yaw_degrees: 180.0
     initial_idle: 1.021053
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -803,9 +803,9 @@ episode_s3_p4_14:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -824,8 +824,8 @@ episode_s3_p4_14:
     yaw_degrees: 180.0
     initial_idle: 1.089474
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -864,9 +864,9 @@ episode_s3_p4_15:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -885,8 +885,8 @@ episode_s3_p4_15:
     yaw_degrees: 180.0
     initial_idle: 1.157895
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -925,9 +925,9 @@ episode_s3_p4_16:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -946,8 +946,8 @@ episode_s3_p4_16:
     yaw_degrees: 180.0
     initial_idle: 1.226316
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -986,9 +986,9 @@ episode_s3_p4_17:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -1007,8 +1007,8 @@ episode_s3_p4_17:
     yaw_degrees: 180.0
     initial_idle: 1.294737
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -1047,9 +1047,9 @@ episode_s3_p4_18:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -1068,8 +1068,8 @@ episode_s3_p4_18:
     yaw_degrees: 180.0
     initial_idle: 1.363158
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -1108,9 +1108,9 @@ episode_s3_p4_19:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -1129,8 +1129,8 @@ episode_s3_p4_19:
     yaw_degrees: 180.0
     initial_idle: 1.431579
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -1169,9 +1169,9 @@ episode_s3_p4_20:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
-  instruction: go to the person wearing a long white coat and light trousers.
+  instruction: go to the security guard at the end of the hallway.
   timeout: 40.0
   num_people: 4
   robot_type: nova_carter
@@ -1190,8 +1190,8 @@ episode_s3_p4_20:
     yaw_degrees: 180.0
     initial_idle: 1.5
   - position:
-    - -19.44101607487867
-    - 9.85
+    - -18.8
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:

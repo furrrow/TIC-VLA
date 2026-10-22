@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEFAULT_SCENARIO="DynaNav/configs/icra_scenarios_v4/scenario3_5.yaml"
+DEFAULT_SCENARIO="DynaNav/configs/steernav_scenarios/scenario3_easy_20trials.yaml"
 SCENARIO="${DEFAULT_SCENARIO}"
 CHECK_ONLY=false
 JOB_ID=""

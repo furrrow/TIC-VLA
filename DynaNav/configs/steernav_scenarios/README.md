@@ -24,8 +24,9 @@ second, opposing lateral crosser to medium.
 The Hospital generator uses the geometry from ICRA v4 Scenario 3:
 
 - Robot start: `(-26.0, 11.0)`, yaw `0 degrees`
-- Target: `(-19.441016, 9.85)`
-- Target description: long white coat and light trousers
+- Goal: `(-19.441016, 11.0)` on the hallway centerline
+- Stationary target: `(-18.8, 11.0)`, facing the robot
+- Target description: security guard wearing a purple shirt and dark trousers
 - Head-on route: `(-21.8, 11.0)` toward `(-26.8, 11.0)`
 - First crossing route: `(-23.4, 9.55)` toward `(-23.4, 11.85)`
 - Second crossing route: `(-22.3, 11.85)` toward `(-22.3, 9.55)`
