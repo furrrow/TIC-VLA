@@ -34,6 +34,13 @@ TARGET = {
     "yaw_degrees": 180.0,
 }
 
+WHITE_COAT_GOAL = [-19.44101607487867, 9.85, 0.01]
+WHITE_COAT_INSTRUCTION = "go to the person wearing a long white coat and light trousers."
+WHITE_COAT_TARGET = {
+    "position": WHITE_COAT_GOAL,
+    "yaw_degrees": 180.0,
+}
+
 MOVERS = (
     (
         "head_on",
@@ -65,6 +72,26 @@ MOVERS = (
                 [-22.3, 9.55, 0.01],
                 [-22.3, 11.85, 0.01],
             ],
+            "yaw_degrees": -90.0,
+        },
+    ),
+)
+
+SOUTHBOUND_MOVERS = (
+    MOVERS[0],
+    (
+        "southbound_a",
+        {
+            "position": [-23.4, 11.85, 0.01],
+            "walk_route": [[-23.4, 9.55, 0.01]],
+            "yaw_degrees": -90.0,
+        },
+    ),
+    (
+        "southbound_b",
+        {
+            "position": [-22.3, 11.85, 0.01],
+            "walk_route": [[-22.3, 9.55, 0.01]],
             "yaw_degrees": -90.0,
         },
     ),
@@ -167,8 +194,13 @@ def delay_combinations(
     return paired_delays(schedules)
 
 
-def make_humans(num_people: int, delays: tuple[float, ...]) -> list[dict]:
-    active_movers = MOVERS[: num_people - 1]
+def make_humans(
+    num_people: int,
+    delays: tuple[float, ...],
+    movers: tuple[tuple[str, dict], ...] = MOVERS,
+    target: dict = TARGET,
+) -> list[dict]:
+    active_movers = movers[: num_people - 1]
     movers = []
     for (_, template), delay in zip(active_movers, delays, strict=True):
         mover = copy.deepcopy(template)
@@ -176,8 +208,8 @@ def make_humans(num_people: int, delays: tuple[float, ...]) -> list[dict]:
         movers.append(mover)
 
     if not movers:
-        return [copy.deepcopy(TARGET)]
-    return [movers[0], copy.deepcopy(TARGET), *movers[1:]]
+        return [copy.deepcopy(target)]
+    return [movers[0], copy.deepcopy(target), *movers[1:]]
 
 
 def make_config(
@@ -188,6 +220,10 @@ def make_config(
     success_threshold: float,
     timeout: float,
     episode_prefix: str,
+    movers: tuple[tuple[str, dict], ...] = MOVERS,
+    goal: list[float] = GOAL,
+    instruction: str = INSTRUCTION,
+    target: dict = TARGET,
 ) -> dict:
     config: dict = {
         "seed": seed,
@@ -201,12 +237,12 @@ def make_config(
             "scene": SCENE,
             "start": copy.deepcopy(START),
             "start_yaw": 0.0,
-            "goal": copy.deepcopy(GOAL),
-            "instruction": INSTRUCTION,
+            "goal": copy.deepcopy(goal),
+            "instruction": instruction,
             "timeout": timeout,
             "num_people": num_people,
             "robot_type": "nova_carter",
-            "scripted_humans": make_humans(num_people, delay_values),
+            "scripted_humans": make_humans(num_people, delay_values, movers, target),
             "physical_human_metrics": True,
         }
     return config
@@ -268,6 +304,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="use every combination, pair by index, or shuffle paired delay strata",
     )
     parser.add_argument(
+        "--lateral-motion",
+        choices=("crossing", "southbound"),
+        default="crossing",
+        help=(
+            "use the original back-and-forth lateral routes or one-way "
+            "southbound walkers on separate fixed-x lanes"
+        ),
+    )
+    parser.add_argument(
+        "--target-profile",
+        choices=("security-guard", "white-coat"),
+        default="security-guard",
+        help="select the centerline security guard or offset white-coat target",
+    )
+    parser.add_argument(
         "--difficulty-names",
         action="store_true",
         help="name 2/3/4-person files easy/medium/hard",
@@ -299,6 +350,15 @@ def main() -> int:
         raise SystemExit("--timeout must be positive and finite")
 
     all_schedules = [args.head_on_delays, args.crosser_a_delays, args.crosser_b_delays]
+    movers = SOUTHBOUND_MOVERS if args.lateral_motion == "southbound" else MOVERS
+    if args.target_profile == "white-coat":
+        goal = WHITE_COAT_GOAL
+        instruction = WHITE_COAT_INSTRUCTION
+        target = WHITE_COAT_TARGET
+    else:
+        goal = GOAL
+        instruction = INSTRUCTION
+        target = TARGET
     if args.output_name and len(args.people) != 1:
         raise SystemExit("--output-name requires exactly one --people value")
     for num_people in args.people:
@@ -316,6 +376,10 @@ def main() -> int:
             success_threshold=args.success_threshold,
             timeout=args.timeout,
             episode_prefix=args.episode_prefix,
+            movers=movers,
+            goal=goal,
+            instruction=instruction,
+            target=target,
         )
         difficulty = {1: "target_only", 2: "easy", 3: "medium", 4: "hard"}[num_people]
         label = difficulty if args.difficulty_names else f"people{num_people}"

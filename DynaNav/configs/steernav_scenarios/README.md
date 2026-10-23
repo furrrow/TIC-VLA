@@ -11,6 +11,9 @@ timing trials.
 | `scenario3_easy_20trials.yaml` | Hospital | 2 | One head-on pedestrian | Basic navigation and avoidance |
 | `scenario3_medium_20trials.yaml` | Hospital | 3 | Head-on pedestrian plus one lateral crosser | Added crossing conflict |
 | `scenario3_hard_20trials.yaml` | Hospital | 4 | Head-on pedestrian plus two opposing lateral crossers | Highest crowd interaction complexity |
+| `scenario3_southbound_easy_20trials.yaml` | Hospital | 2 | One head-on pedestrian | Southbound-suite control condition |
+| `scenario3_southbound_medium_20trials.yaml` | Hospital | 3 | Head-on pedestrian plus one one-way southbound walker | Single-lane directional flow |
+| `scenario3_southbound_hard_20trials.yaml` | Hospital | 4 | Head-on pedestrian plus two one-way southbound walkers | Two-lane directional flow |
 
 The people count includes the stationary target. Easy therefore has one moving
 person, medium has two, and hard has three.
@@ -51,6 +54,31 @@ The head-on schedule is identical at each trial index across all three files.
 The crosser schedules are independently shuffled with seed 36, so each delay
 stratum appears once without forcing all pedestrians to start early or late
 together.
+
+## Southbound variants
+
+The three `scenario3_southbound_*` files retain the same security-guard target,
+robot geometry, crowd counts, and stratified timing schedules. In medium, the
+added pedestrian spawns at `(-23.4, 11.85)` and walks once to
+`(-23.4, 9.55)`. Hard adds another pedestrian that walks from
+`(-22.3, 11.85)` to `(-22.3, 9.55)`. Both face south, stay in separate fixed-x
+lanes, and remain at their destination after completing the one-way route.
+
+Regenerate these additional files from the repository root:
+
+```bash
+python3 DynaNav/configs/generate_hospital_scenarios.py \
+  --people 2,3,4 \
+  --head-on-delays 0.2:1.5:20 \
+  --crosser-a-delays 2.0:4.0:20 \
+  --crosser-b-delays 3.0:5.0:20 \
+  --combination-mode stratified \
+  --lateral-motion southbound \
+  --difficulty-names \
+  --filename-prefix scenario3_southbound \
+  --output-dir DynaNav/configs/steernav_scenarios \
+  --force
+```
 
 ## Recreate the suite
 
