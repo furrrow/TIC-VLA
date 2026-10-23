@@ -82,16 +82,16 @@ SOUTHBOUND_MOVERS = (
     (
         "southbound_a",
         {
-            "position": [-21.8, 11.85, 0.01],
-            "walk_route": [[-26.8, 11.85, 0.01]],
+            "position": [-21.8, 11.6, 0.01],
+            "walk_route": [[-26.8, 11.6, 0.01]],
             "yaw_degrees": 180.0,
         },
     ),
     (
         "southbound_b",
         {
-            "position": [-21.8, 9.55, 0.01],
-            "walk_route": [[-26.8, 9.55, 0.01]],
+            "position": [-21.8, 9.8, 0.01],
+            "walk_route": [[-26.8, 9.8, 0.01]],
             "yaw_degrees": 180.0,
         },
     ),
@@ -103,11 +103,13 @@ class _NoAliasSafeDumper(yaml.SafeDumper):
         return True
 
 
-def parse_float_schedule(value: str) -> list[float]:
+def _parse_float_schedule(
+    value: str, *, label: str, nonnegative: bool
+) -> list[float]:
     """Parse ``a,b,c`` or an inclusive ``start:stop:count`` schedule."""
     value = value.strip()
     if not value:
-        raise argparse.ArgumentTypeError("delay schedule cannot be empty")
+        raise argparse.ArgumentTypeError(f"{label} schedule cannot be empty")
 
     try:
         if ":" in value:
@@ -126,11 +128,23 @@ def parse_float_schedule(value: str) -> list[float]:
         else:
             values = [float(item) for item in value.split(",")]
     except ValueError as exc:
-        raise argparse.ArgumentTypeError(f"invalid delay schedule {value!r}: {exc}") from exc
+        raise argparse.ArgumentTypeError(
+            f"invalid {label} schedule {value!r}: {exc}"
+        ) from exc
 
-    if not all(math.isfinite(item) and item >= 0 for item in values):
-        raise argparse.ArgumentTypeError("delays must be finite and nonnegative")
+    if not all(math.isfinite(item) for item in values):
+        raise argparse.ArgumentTypeError(f"{label} values must be finite")
+    if nonnegative and any(item < 0 for item in values):
+        raise argparse.ArgumentTypeError(f"{label} values must be nonnegative")
     return [round(item, 6) for item in values]
+
+
+def parse_float_schedule(value: str) -> list[float]:
+    return _parse_float_schedule(value, label="delay", nonnegative=True)
+
+
+def parse_yaw_schedule(value: str) -> list[float]:
+    return _parse_float_schedule(value, label="yaw", nonnegative=False)
 
 
 def parse_people(value: str) -> list[int]:
@@ -224,19 +238,31 @@ def make_config(
     goal: list[float] = GOAL,
     instruction: str = INSTRUCTION,
     target: dict = TARGET,
+    start_yaws: tuple[float, ...] | list[float] = (0.0,),
 ) -> dict:
     config: dict = {
         "seed": seed,
         "navigation_method": "ticvla_ros",
         "success_threshold": success_threshold,
     }
+    if len(start_yaws) == 1:
+        episode_yaws = list(start_yaws) * len(delays)
+    elif len(start_yaws) == len(delays):
+        episode_yaws = list(start_yaws)
+    else:
+        raise ValueError(
+            "start yaw schedule must contain one value or one value per episode; "
+            f"received {len(start_yaws)} values for {len(delays)} episodes"
+        )
     width = max(2, len(str(len(delays))))
-    for index, delay_values in enumerate(delays, start=1):
+    for index, (delay_values, start_yaw) in enumerate(
+        zip(delays, episode_yaws, strict=True), start=1
+    ):
         name = f"{episode_prefix}_p{num_people}_{index:0{width}d}"
         config[name] = {
             "scene": SCENE,
             "start": copy.deepcopy(START),
-            "start_yaw": 0.0,
+            "start_yaw": start_yaw,
             "goal": copy.deepcopy(goal),
             "instruction": instruction,
             "timeout": timeout,
@@ -309,7 +335,16 @@ def build_parser() -> argparse.ArgumentParser:
         default="crossing",
         help=(
             "use the original back-and-forth lateral routes or one-way "
-            "southbound walkers on separate fixed-x lanes"
+            "southbound walkers on separate fixed-y lanes"
+        ),
+    )
+    parser.add_argument(
+        "--start-yaw-degrees",
+        type=parse_yaw_schedule,
+        default=parse_yaw_schedule("0.0"),
+        help=(
+            "one robot start yaw for every episode or an inclusive "
+            "start:stop:count schedule in degrees"
         ),
     )
     parser.add_argument(
@@ -369,6 +404,11 @@ def main() -> int:
             )
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
+        if len(args.start_yaw_degrees) not in (1, len(delays)):
+            raise SystemExit(
+                "--start-yaw-degrees must contain one value or one value per "
+                f"episode ({len(delays)} for this configuration)"
+            )
         config = make_config(
             num_people=num_people,
             delays=delays,
@@ -380,6 +420,7 @@ def main() -> int:
             goal=goal,
             instruction=instruction,
             target=target,
+            start_yaws=args.start_yaw_degrees,
         )
         difficulty = {1: "target_only", 2: "easy", 3: "medium", 4: "hard"}[num_people]
         label = difficulty if args.difficulty_names else f"people{num_people}"

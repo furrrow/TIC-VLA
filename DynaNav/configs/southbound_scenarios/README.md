@@ -9,12 +9,12 @@ directions.
 | Difficulty | People | Moving pedestrians |
 | --- | ---: | --- |
 | Easy | 2 | One head-on walker |
-| Medium | 3 | Southbound walkers at `y = 11.0` and `y = 11.85` |
-| Hard | 4 | Southbound walkers at `y = 11.0`, `y = 11.85`, and `y = 9.55` |
+| Medium | 3 | Southbound walkers at `y = 11.0` and `y = 11.60` |
+| Hard | 4 | Southbound walkers at `y = 11.0`, `y = 11.60`, and `y = 9.80` |
 
 The moving pedestrians travel from `x = -21.8` toward `x = -26.8` in separate
 fixed-y lanes. The original walker occupies the center lane at `y = 11.0`; the
-added walkers occupy `y = 11.85` and `y = 9.55`, with the latter on the robot's
+added walkers occupy `y = 11.60` and `y = 9.80`, with the latter on the robot's
 right. Each added walker travels once and remains at its destination. The
 stratified start delays control their longitudinal spacing.
 
@@ -28,6 +28,7 @@ python3 DynaNav/configs/generate_hospital_scenarios.py \
   --crosser-b-delays 3.0:5.0:20 \
   --combination-mode stratified \
   --lateral-motion southbound \
+  --start-yaw-degrees=-5:5:20 \
   --target-profile white-coat \
   --difficulty-names \
   --output-dir DynaNav/configs/southbound_scenarios \
