@@ -82,17 +82,17 @@ SOUTHBOUND_MOVERS = (
     (
         "southbound_a",
         {
-            "position": [-23.4, 11.85, 0.01],
-            "walk_route": [[-23.4, 9.55, 0.01]],
-            "yaw_degrees": -90.0,
+            "position": [-21.8, 11.85, 0.01],
+            "walk_route": [[-26.8, 11.85, 0.01]],
+            "yaw_degrees": 180.0,
         },
     ),
     (
         "southbound_b",
         {
-            "position": [-22.3, 11.85, 0.01],
-            "walk_route": [[-22.3, 9.55, 0.01]],
-            "yaw_degrees": -90.0,
+            "position": [-21.8, 9.55, 0.01],
+            "walk_route": [[-26.8, 9.55, 0.01]],
+            "yaw_degrees": 180.0,
         },
     ),
 )

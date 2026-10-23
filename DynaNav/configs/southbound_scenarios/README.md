@@ -9,14 +9,14 @@ directions.
 | Difficulty | People | Moving pedestrians |
 | --- | ---: | --- |
 | Easy | 2 | One head-on walker |
-| Medium | 3 | Head-on walker plus southbound walker at `x = -23.4` |
-| Hard | 4 | Head-on walker plus southbound walkers at `x = -23.4` and `x = -22.3` |
+| Medium | 3 | Southbound walkers at `y = 11.0` and `y = 11.85` |
+| Hard | 4 | Southbound walkers at `y = 11.0`, `y = 11.85`, and `y = 9.55` |
 
-Each southbound pedestrian spawns at `y = 11.85`, walks once to `y = 9.55`,
-and remains at that destination. Their routes are fixed and do not track or aim
-at the robot. They still pass through the robot corridor geometrically, so the
-stratified start delays control whether they arrive near the robot's trajectory
-at the same time.
+The moving pedestrians travel from `x = -21.8` toward `x = -26.8` in separate
+fixed-y lanes. The original walker occupies the center lane at `y = 11.0`; the
+added walkers occupy `y = 11.85` and `y = 9.55`, with the latter on the robot's
+right. Each added walker travels once and remains at its destination. The
+stratified start delays control their longitudinal spacing.
 
 Regenerate the suite from the repository root:
 

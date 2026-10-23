@@ -12,8 +12,8 @@ timing trials.
 | `scenario3_medium_20trials.yaml` | Hospital | 3 | Head-on pedestrian plus one lateral crosser | Added crossing conflict |
 | `scenario3_hard_20trials.yaml` | Hospital | 4 | Head-on pedestrian plus two opposing lateral crossers | Highest crowd interaction complexity |
 | `scenario3_southbound_easy_20trials.yaml` | Hospital | 2 | One head-on pedestrian | Southbound-suite control condition |
-| `scenario3_southbound_medium_20trials.yaml` | Hospital | 3 | Head-on pedestrian plus one one-way southbound walker | Single-lane directional flow |
-| `scenario3_southbound_hard_20trials.yaml` | Hospital | 4 | Head-on pedestrian plus two one-way southbound walkers | Two-lane directional flow |
+| `scenario3_southbound_medium_20trials.yaml` | Hospital | 3 | Two southbound walkers in adjacent lanes | Two-lane directional flow |
+| `scenario3_southbound_hard_20trials.yaml` | Hospital | 4 | Three southbound walkers in separate lanes | Three-lane directional flow |
 
 The people count includes the stationary target. Easy therefore has one moving
 person, medium has two, and hard has three.
@@ -58,11 +58,12 @@ together.
 ## Southbound variants
 
 The three `scenario3_southbound_*` files retain the same security-guard target,
-robot geometry, crowd counts, and stratified timing schedules. In medium, the
-added pedestrian spawns at `(-23.4, 11.85)` and walks once to
-`(-23.4, 9.55)`. Hard adds another pedestrian that walks from
-`(-22.3, 11.85)` to `(-22.3, 9.55)`. Both face south, stay in separate fixed-x
-lanes, and remain at their destination after completing the one-way route.
+robot geometry, crowd counts, and stratified timing schedules. The original
+walker travels from `x = -21.8` to `x = -26.8` in the center lane at `y = 11.0`.
+Medium adds a walker following the same direction in the `y = 11.85` lane.
+Hard adds a third walker in the `y = 9.55` lane, to the robot's right. The
+added walkers remain at their destinations after completing their one-way
+routes.
 
 Regenerate these additional files from the repository root:
 
