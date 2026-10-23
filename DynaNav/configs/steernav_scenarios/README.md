@@ -60,10 +60,13 @@ together.
 The three `scenario3_southbound_*` files retain the same security-guard target,
 robot geometry, crowd counts, and stratified timing schedules. The original
 walker travels from `x = -21.8` to `x = -26.8` in the center lane at `y = 11.0`.
-Medium adds a walker following the same direction in the `y = 11.85` lane.
-Hard adds a third walker in the `y = 9.55` lane, to the robot's right. The
+Medium adds a walker following the same direction in the `y = 11.60` lane.
+Hard adds a third walker in the `y = 9.80` lane, to the robot's right. The
 added walkers remain at their destinations after completing their one-way
 routes.
+
+Both added walkers use independently shuffled start delays from `2.0` to
+`4.0` seconds.
 
 The robot's initial yaw cycles through `-30`, `-15`, `0`, `15`, and `30`
 degrees four times across the 20 trials. Trial indices use the same yaw in
@@ -76,7 +79,7 @@ python3 DynaNav/configs/generate_hospital_scenarios.py \
   --people 2,3,4 \
   --head-on-delays 0.2:1.5:20 \
   --crosser-a-delays 2.0:4.0:20 \
-  --crosser-b-delays 3.0:5.0:20 \
+  --crosser-b-delays 2.0:4.0:20 \
   --combination-mode stratified \
   --lateral-motion southbound \
   --start-yaw-degrees=-30,-15,0,15,30 \
