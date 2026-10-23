@@ -82,16 +82,16 @@ SOUTHBOUND_MOVERS = (
     (
         "southbound_a",
         {
-            "position": [-21.8, 11.6, 0.01],
-            "walk_route": [[-26.8, 11.6, 0.01]],
+            "position": [-21.8, 11.85, 0.01],
+            "walk_route": [[-26.8, 11.85, 0.01]],
             "yaw_degrees": 180.0,
         },
     ),
     (
         "southbound_b",
         {
-            "position": [-21.8, 9.8, 0.01],
-            "walk_route": [[-26.8, 9.8, 0.01]],
+            "position": [-21.8, 9.55, 0.01],
+            "walk_route": [[-26.8, 9.55, 0.01]],
             "yaw_degrees": 180.0,
         },
     ),
@@ -245,13 +245,11 @@ def make_config(
         "navigation_method": "ticvla_ros",
         "success_threshold": success_threshold,
     }
-    if len(start_yaws) == 1:
-        episode_yaws = list(start_yaws) * len(delays)
-    elif len(start_yaws) == len(delays):
-        episode_yaws = list(start_yaws)
+    if len(delays) % len(start_yaws) == 0:
+        episode_yaws = list(start_yaws) * (len(delays) // len(start_yaws))
     else:
         raise ValueError(
-            "start yaw schedule must contain one value or one value per episode; "
+            "start yaw schedule length must divide the episode count; "
             f"received {len(start_yaws)} values for {len(delays)} episodes"
         )
     width = max(2, len(str(len(delays))))
@@ -343,8 +341,8 @@ def build_parser() -> argparse.ArgumentParser:
         type=parse_yaw_schedule,
         default=parse_yaw_schedule("0.0"),
         help=(
-            "one robot start yaw for every episode or an inclusive "
-            "start:stop:count schedule in degrees"
+            "robot start yaw values in degrees; shorter schedules repeat when "
+            "their length divides the episode count"
         ),
     )
     parser.add_argument(
@@ -404,10 +402,10 @@ def main() -> int:
             )
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
-        if len(args.start_yaw_degrees) not in (1, len(delays)):
+        if len(delays) % len(args.start_yaw_degrees) != 0:
             raise SystemExit(
-                "--start-yaw-degrees must contain one value or one value per "
-                f"episode ({len(delays)} for this configuration)"
+                "--start-yaw-degrees schedule length must divide the episode "
+                f"count ({len(delays)} for this configuration)"
             )
         config = make_config(
             num_people=num_people,
