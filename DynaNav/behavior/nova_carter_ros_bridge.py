@@ -17,7 +17,7 @@ from isaacsim.core.utils.rotations import quat_to_rot_matrix
 
 import rclpy
 from builtin_interfaces.msg import Time
-from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
 import benchmark_runtime as runtime
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
@@ -30,12 +30,15 @@ IMAGE_TOPIC = "/isaacsim/camera/front/image_raw/compressed"
 ODOM_TOPIC = "/isaacsim/odom"
 CMD_VEL_TOPIC = os.environ.get("TICVLA_CMD_VEL_TOPIC", "/isaacsim/cmd_vel")
 EPISODE_TOPIC = "/isaacsim/episode"
+PEDESTRIAN_TOPIC = "/isaacsim/pedestrians"
 COMMAND_TIMEOUT_S = 0.5
 ZERO_COMMAND_TIMEOUT_S = float(os.environ.get("TICVLA_ZERO_COMMAND_TIMEOUT_S", "5.0"))
 ZERO_COMMAND_EPSILON = float(os.environ.get("TICVLA_ZERO_COMMAND_EPSILON", "0.001"))
 ZERO_COMMAND_TIMEOUT_FRAMES = max(1, round(ZERO_COMMAND_TIMEOUT_S * runtime.SIMULATION_FPS))
 CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/front_hawk/left/camera_left"
 BASE_LINK_PATH = "/World/Robots/Nova_Carter/chassis_link"
+CHARACTER_ROOT_PATH = "/World/Characters"
+EXCLUDED_CHARACTER_PATHS = {"/World/Characters/Biped_Setup/biped_demo_meters"}
 DEFAULT_ROBOT_CONFIG = Path(__file__).resolve().parents[2] / "configs" / "robot.yaml"
 
 
@@ -85,6 +88,8 @@ class NovaCarterROSBridge(BehaviorScript):
         self._image_dir = None
         self._image_index = 0
         self._closed = False
+        self._episode_id = None
+        self._pedestrian_history = {}
         self._max_linear_speed, self._max_angular_speed = load_command_limits()
 
     def on_play(self):
@@ -106,6 +111,14 @@ class NovaCarterROSBridge(BehaviorScript):
             episode_qos.reliability = ReliabilityPolicy.RELIABLE
             episode_qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
             self._episode_pub = self._node.create_publisher(String, EPISODE_TOPIC, episode_qos)
+            pedestrian_qos = QoSProfile(
+                reliability=ReliabilityPolicy.BEST_EFFORT,
+                history=HistoryPolicy.KEEP_LAST,
+                depth=1,
+            )
+            self._pedestrian_pub = self._node.create_publisher(
+                String, PEDESTRIAN_TOPIC, pedestrian_qos
+            )
         if not getattr(self._robot, "_initialized", False):
             self._robot.initialize()
         if self._annotator is None:
@@ -117,10 +130,12 @@ class NovaCarterROSBridge(BehaviorScript):
         self._image_dir = Path(episode.log_dir) / episode.run_id / episode.episode_name / "front_camera"
         self._image_dir.mkdir(parents=True, exist_ok=True)
         self._image_index = 0
+        self._pedestrian_history.clear()
         carb.log_info(f"Saving ROS bridge camera frames to {self._image_dir}")
+        self._episode_id = f"{episode.run_id}:{episode.episode_name}:{os.getpid()}"
         message = String()
         message.data = json.dumps({
-            "episode_id": f"{episode.run_id}:{episode.episode_name}:{os.getpid()}",
+            "episode_id": self._episode_id,
             "run_id": episode.run_id,
             "episode_name": episode.episode_name,
             "instruction": episode.instruction,
@@ -128,6 +143,71 @@ class NovaCarterROSBridge(BehaviorScript):
             "state": "started",
         })
         self._episode_pub.publish(message)
+
+    @staticmethod
+    def _find_character_skelroot(character_prim):
+        from pxr import Usd
+
+        for prim in Usd.PrimRange(character_prim):
+            if prim.GetTypeName() == "SkelRoot":
+                return prim
+        return character_prim
+
+    def _publish_pedestrians(self, stage, current_time, stamp):
+        root = stage.GetPrimAtPath(CHARACTER_ROOT_PATH)
+        pedestrians = []
+        active_paths = set()
+        if root and root.IsValid():
+            for character_prim in root.GetChildren():
+                path = character_prim.GetPath().pathString
+                if (
+                    not character_prim.IsValid()
+                    or not character_prim.IsActive()
+                    or path in EXCLUDED_CHARACTER_PATHS
+                ):
+                    continue
+                skelroot = self._find_character_skelroot(character_prim)
+                pedestrian_id = skelroot.GetPath().pathString
+                if pedestrian_id in EXCLUDED_CHARACTER_PATHS:
+                    continue
+                transform = omni.usd.get_world_transform_matrix(skelroot)
+                translation = transform.ExtractTranslation()
+                position = np.array(
+                    [translation[0], translation[1], translation[2]],
+                    dtype=np.float64,
+                )
+                if not np.isfinite(position).all():
+                    continue
+                active_paths.add(pedestrian_id)
+                velocity = np.zeros(3, dtype=np.float64)
+                previous = self._pedestrian_history.get(pedestrian_id)
+                if previous is not None:
+                    previous_time, previous_position = previous
+                    dt = float(current_time) - previous_time
+                    if 1e-6 < dt <= 0.5:
+                        candidate = (position - previous_position) / dt
+                        if np.isfinite(candidate).all() and np.linalg.norm(candidate) <= 5.0:
+                            velocity = candidate
+                if np.linalg.norm(velocity) < 0.01:
+                    velocity.fill(0.0)
+                self._pedestrian_history[pedestrian_id] = (
+                    float(current_time), position.copy()
+                )
+                pedestrians.append({
+                    "id": pedestrian_id,
+                    "position": position.tolist(),
+                    "velocity": velocity.tolist(),
+                })
+        for stale_path in set(self._pedestrian_history) - active_paths:
+            del self._pedestrian_history[stale_path]
+        message = String()
+        message.data = json.dumps({
+            "episode_id": self._episode_id,
+            "stamp": {"sec": stamp.sec, "nanosec": stamp.nanosec},
+            "frame_id": "odom",
+            "pedestrians": pedestrians,
+        })
+        self._pedestrian_pub.publish(message)
 
     def _on_command(self, msg: Twist):
         self._command = (
@@ -179,6 +259,7 @@ class NovaCarterROSBridge(BehaviorScript):
         if not base_prim or not base_prim.IsValid():
             return
         transform = omni.usd.get_world_transform_matrix(base_prim)
+        self._publish_pedestrians(stage, current_time, stamp)
         position = transform.ExtractTranslation()
         action = self._controller.forward(command=np.asarray(command, dtype=np.float32))
         self._robot.apply_wheel_actions(action)

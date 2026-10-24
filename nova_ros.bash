@@ -5,7 +5,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROBOT_CONFIG="${REPO_ROOT}/configs/robot.yaml"
 ROS_SETUP="/opt/ros/humble/setup.bash"
 STEERNAV_ROOT="${STEERNAV_ROOT:-/home/jim/Projects/steernav}"
-MODE="normal"
+MODE="ablation"
 DETACH=false
 SESSION_NAME=""
 CONTROLLER_DT="0.75"
@@ -146,6 +146,9 @@ if [[ "${MODE}" != "normal" ]]; then
   controller_flags="--steer ${controller_flags}"
 #  steernav_flags="--debug-motion"
   steernav_flags="--time-look-ahead ${TIME_LOOK_AHEAD}"
+  if [[ "${MODE}" != "no-velocity" ]]; then
+    steernav_flags="${steernav_flags} --object-velocity-source sim-ground-truth"
+  fi
   if [[ "${FIX_END}" == true ]]; then
     steernav_flags="${steernav_flags} --fix-end"
   fi
