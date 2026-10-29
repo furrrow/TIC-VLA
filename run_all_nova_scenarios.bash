@@ -14,7 +14,7 @@ usage() {
   cat <<EOF
 Usage: $(basename "$0") [run_nova_scenarios arguments]
 
-Run the same Nova scenarios sequentially in OmniVLA, TIC-VLA, and NaVILA.
+Run the same Nova scenarios sequentially in NaVILA, TIC-VLA, and OmniVLA.
 With no arguments, runs the hard, medium, and easy Hospital scenarios in
 ablation mode. SteerNav's final waypoint is free by default; pass --fix-end to
 hold it fixed during trajectory optimization.
@@ -43,9 +43,9 @@ else
 fi
 
 PROJECTS=(
-  "OmniVLA:omnivla"
-  "TIC-VLA:ticvla"
   "NaVILA:navila"
+  "TIC-VLA:ticvla"
+  "OmniVLA:omnivla"
 )
 
 for project_spec in "${PROJECTS[@]}"; do

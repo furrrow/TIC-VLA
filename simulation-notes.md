@@ -35,8 +35,163 @@ The controller uses `--simulation-episode-control` in both modes. It publishes z
 
 ## Manual operation
 
-Use two terminals for a manual run. In the first terminal on this computer, start
-the desired local pipeline:
+### Four-panel steered run
+
+Use four terminals or tmux panes when you want to run every component manually.
+Panels 2–4 run on the local inference computer; panel 1 runs Isaac remotely.
+Start panels 2, 3, and 4 first, wait until all three nodes are ready, and only
+then start panel 1. Run exactly one VLA inference command and use the controller
+from that same VLA repository.
+
+All three local panels use the same ROS environment:
+
+```bash
+source /opt/ros/humble/setup.bash
+export ROS_DOMAIN_ID=42
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export PYTHONUNBUFFERED=1
+```
+
+#### Panel 1 — remote Isaac Sim
+
+Do not source `/opt/ros/humble/setup.bash` on the Isaac machine; `run_sim.bash`
+loads Isaac Sim's bundled ROS environment from `.env.testing`.
+
+```bash
+ssh -t isaac
+cd /home/isaac/Projects/TIC-VLA
+
+findmnt /media/isaac/HardDisk
+DISPLAY=:1 ./run_sim.bash \
+  --scenario DynaNav/configs/steernav_scenarios/scenario3_southbound_hard_20trials.yaml \
+  --inference-method TIC-VLA \
+  -- \
+  --run_id manual_ticvla_steered \
+  --experiment_mode steered \
+  --show-child-output
+```
+
+Change `--inference-method` and the run ID to `OmniVLA` or `NaVILA` when using
+one of those models. `--show-child-output` is optional; without it, Isaac output
+goes to the per-episode log and the parent still surfaces detected Python/native
+crashes in the terminal.
+
+#### Panel 2 — one VLA inference node
+
+TIC-VLA:
+
+```bash
+cd /home/jim/Projects/TIC-VLA
+source /opt/ros/humble/setup.bash
+export ROS_DOMAIN_ID=42
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export PYTHONUNBUFFERED=1
+
+uv run infer_ros.py \
+  --robot sim_nova \
+  --config /home/jim/Projects/TIC-VLA/configs/robot.yaml \
+  --ros-args -p use_sim_time:=true
+```
+
+OmniVLA:
+
+```bash
+cd /home/jim/Projects/OmniVLA
+source /opt/ros/humble/setup.bash
+export ROS_DOMAIN_ID=42
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export PYTHONUNBUFFERED=1
+
+uv run python inference/omnivla_ros.py \
+  --robot sim_nova \
+  --config /home/jim/Projects/OmniVLA/config/robot.yaml \
+  --ros-args -p use_sim_time:=true
+```
+
+NaVILA:
+
+```bash
+cd /home/jim/Projects/NaVILA
+source /opt/ros/humble/setup.bash
+export ROS_DOMAIN_ID=42
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export PYTHONUNBUFFERED=1
+
+uv run python ros_inference.py \
+  --robot sim_nova \
+  --config /home/jim/Projects/NaVILA/config/robot.yaml \
+  --ros-args -p use_sim_time:=true
+```
+
+Wait for the selected inference node to report that its model is ready. It will
+then wait for `/isaacsim/episode`, camera observations, and odometry.
+
+#### Panel 3 — episode-aware waypoint controller
+
+Run this from the same repository selected in panel 2. Set `MODEL_ROOT` to one
+of `/home/jim/Projects/TIC-VLA`, `/home/jim/Projects/OmniVLA`, or
+`/home/jim/Projects/NaVILA`. TIC-VLA uses `configs/robot.yaml`; OmniVLA and
+NaVILA use `config/robot.yaml`.
+
+```bash
+MODEL_ROOT=/home/jim/Projects/TIC-VLA
+ROBOT_CONFIG="${MODEL_ROOT}/configs/robot.yaml"
+
+cd "${MODEL_ROOT}"
+source /opt/ros/humble/setup.bash
+export ROS_DOMAIN_ID=42
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export PYTHONUNBUFFERED=1
+
+uv run python custom_utils/custom_utils/kinematic_controller_naive.py \
+  --robot sim_nova \
+  --config "${ROBOT_CONFIG}" \
+  --dt 0.75 \
+  --steer \
+  --simulation-episode-control \
+  --ros-args -p use_sim_time:=true
+```
+
+For OmniVLA or NaVILA, change the first two assignments, for example:
+
+```bash
+MODEL_ROOT=/home/jim/Projects/OmniVLA
+ROBOT_CONFIG="${MODEL_ROOT}/config/robot.yaml"
+```
+
+`--steer` is required for the four-panel pipeline. It makes the controller use
+`/sim_nova/steered_waypoint`; without it, the controller bypasses SteerNav and
+uses the VLA's baseline `/sim_nova/waypoint`.
+
+#### Panel 4 — SteerNav
+
+```bash
+cd /home/jim/Projects/steernav
+source /opt/ros/humble/setup.bash
+export ROS_DOMAIN_ID=42
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export PYTHONUNBUFFERED=1
+
+uv run steernav/ros_inference.py \
+  --robot sim_nova \
+  --time-look-ahead 1.0 \
+  --object-velocity-source sim-ground-truth \
+  --ros-args -p use_sim_time:=true
+```
+
+Add `--fix-end` to keep the final VLA waypoint fixed during trajectory
+optimization. Add `--no-velocity` instead of
+`--object-velocity-source sim-ground-truth` for the no-velocity ablation.
+
+Once panels 2–4 are ready, start panel 1. Do not run multiple VLA inference
+nodes or controllers simultaneously because they share node names and ROS
+topics.
+
+### Bundled tmux alternative
+
+For a simpler two-terminal manual run, let `nova_ros.bash` create the local
+inference, controller, and optional SteerNav panes. In the first terminal on
+this computer, start the desired local pipeline:
 
 ```bash
 cd /home/jim/Projects/TIC-VLA

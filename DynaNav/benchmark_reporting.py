@@ -193,6 +193,9 @@ def _episode_lines(result: dict) -> list[str]:
     lines.append(f"  Termination Reason: {termination_reason or 'Not recorded'}")
     if result.get("child_log"):
         lines.append(f"  Isaac Sim Log: {result['child_log']}")
+    if result.get("isaac_sim_errors"):
+        lines.append("  Isaac Sim Errors:")
+        lines.extend(f"    - {error}" for error in result["isaac_sim_errors"])
     if not result.get("success"):
         failure_reason = result.get("failure_reason") or result.get("error") or "Goal not reached"
         lines.append(f"  Failure Reason: {failure_reason}")

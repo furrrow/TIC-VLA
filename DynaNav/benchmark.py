@@ -14,6 +14,7 @@ You can also run a single episode directly (child mode):
 """
 
 import os
+import re
 import signal
 import sys
 import json
@@ -36,6 +37,64 @@ from scripted_humans import generate_scripted_commands
 SIMULATION_FPS = runtime.SIMULATION_FPS
 DEFAULT_EPISODE_WALL_TIMEOUT_SECONDS = 600.0
 CHILD_TERMINATION_GRACE_SECONDS = 10.0
+MAX_REPORTED_ISAAC_ERRORS = 8
+
+
+_PYTHON_EXCEPTION_RE = re.compile(
+    r"(?:^|\]\s|:\s)([A-Za-z_][\w.]*(?:Error|Exception)):\s*(.+?)\s*$"
+)
+_ISAAC_CRASH_MARKERS = (
+    "fatal python error",
+    "segmentation fault",
+    "core dumped",
+    "received signal 11",
+    "received signal 6",
+    "crash reporter",
+)
+
+
+def _scan_isaac_log_for_errors(log_path: Path) -> list[str]:
+    """Return concise Python exception and native-crash summaries from an Isaac log."""
+    try:
+        lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return []
+
+    errors = []
+    seen = set()
+    for line in lines:
+        match = _PYTHON_EXCEPTION_RE.search(line)
+        summary = None
+        if match:
+            summary = f"{match.group(1)}: {match.group(2)}"
+        else:
+            lowered = line.lower()
+            if any(marker in lowered for marker in _ISAAC_CRASH_MARKERS):
+                summary = line.strip()
+        if summary and summary not in seen:
+            seen.add(summary)
+            errors.append(summary)
+            if len(errors) >= MAX_REPORTED_ISAAC_ERRORS:
+                break
+    return errors
+
+
+def _print_isaac_error_banner(episode_name: str, errors: list[str], log_path: Path):
+    """Surface errors captured in a redirected Isaac child log to the parent terminal."""
+    if not errors:
+        return
+    border = "!" * 96
+    details = "\n".join(f"!!! {error}" for error in errors)
+    print(
+        f"\n{border}\n"
+        f">>> ISAAC SIM ERROR DETECTED [Parent] <<<\n"
+        f">>> Episode: {episode_name}\n"
+        f">>> Log: {log_path}\n"
+        f"{details}\n"
+        f"{border}\n",
+        file=sys.stderr,
+        flush=True,
+    )
 
 
 def _print_collision_warning(collision_type, episode_name, details):
@@ -1445,6 +1504,11 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
                     cmd, child_log, subprocess.STDOUT, wall_timeout_seconds
                 )
 
+        isaac_sim_errors = []
+        if not show_child_output:
+            isaac_sim_errors = _scan_isaac_log_for_errors(child_log_path)
+            _print_isaac_error_banner(episode_name, isaac_sim_errors, child_log_path)
+
         if timed_out:
             reason = (
                 f"Episode exceeded the {wall_timeout_seconds:g}s wall-clock timeout"
@@ -1464,6 +1528,8 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
             }
             if not show_child_output:
                 result["child_log"] = str(child_log_path)
+            if isaac_sim_errors:
+                result["isaac_sim_errors"] = isaac_sim_errors
             return result
 
         if proc.returncode != 0:
@@ -1494,17 +1560,23 @@ def run_episode_in_subprocess(script_path: str, config_file: str, episode_name: 
                     result = json.load(f)
                     if not show_child_output:
                         result["child_log"] = str(child_log_path)
+                    if isaac_sim_errors:
+                        result["isaac_sim_errors"] = isaac_sim_errors
                     return result
                 except Exception as e:
                     print(f"[Parent] Failed to parse child JSON for '{episode_name}': {e}")
                     result = {"episode": episode_name, "success": False, "error": "json_parse_error"}
                     if not show_child_output:
                         result["child_log"] = str(child_log_path)
+                    if isaac_sim_errors:
+                        result["isaac_sim_errors"] = isaac_sim_errors
                     return result
         else:
             result = {"episode": episode_name, "success": False, "error": "no_result_file"}
             if not show_child_output:
                 result["child_log"] = str(child_log_path)
+            if isaac_sim_errors:
+                result["isaac_sim_errors"] = isaac_sim_errors
             return result
 
 

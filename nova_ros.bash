@@ -5,6 +5,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROBOT_CONFIG="${REPO_ROOT}/configs/robot.yaml"
 ROS_SETUP="/opt/ros/humble/setup.bash"
 STEERNAV_ROOT="${STEERNAV_ROOT:-/home/jim/Projects/steernav}"
+OBJECT_VELOCITY_SOURCE="${OBJECT_VELOCITY_SOURCE:-sim-ground-truth}"
 MODE="ablation"
 DETACH=false
 SESSION_NAME=""
@@ -142,12 +143,16 @@ run_in_pane "${inference_pane}" "${inference_log}" \
 # Run the steering node in both steered modes. The no-velocity variant disables
 # object detection and velocity compensation inside SteerNav.
 controller_flags="--simulation-episode-control"
+if [[ "${OBJECT_VELOCITY_SOURCE}" != "estimated" && "${OBJECT_VELOCITY_SOURCE}" != "sim-ground-truth" ]]; then
+  echo "Invalid OBJECT_VELOCITY_SOURCE '${OBJECT_VELOCITY_SOURCE}'; expected estimated or sim-ground-truth." >&2
+  exit 2
+fi
 if [[ "${MODE}" != "normal" ]]; then
   controller_flags="--steer ${controller_flags}"
 #  steernav_flags="--debug-motion"
   steernav_flags="--time-look-ahead ${TIME_LOOK_AHEAD}"
   if [[ "${MODE}" != "no-velocity" ]]; then
-    steernav_flags="${steernav_flags} --object-velocity-source sim-ground-truth"
+    steernav_flags="${steernav_flags} --object-velocity-source ${OBJECT_VELOCITY_SOURCE}"
   fi
   if [[ "${FIX_END}" == true ]]; then
     steernav_flags="${steernav_flags} --fix-end"
