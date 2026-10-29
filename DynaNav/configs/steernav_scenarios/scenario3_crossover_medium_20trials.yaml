@@ -1,20 +1,20 @@
 seed: 36
 navigation_method: ticvla_ros
 success_threshold: 1.5
-episode_s3_p4_01:
+episode_s3_p3_01:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -31,38 +31,22 @@ episode_s3_p4_01:
     yaw_degrees: 180.0
     initial_idle: 0.2
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.631579
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.789474
   physical_human_metrics: true
-episode_s3_p4_02:
+episode_s3_p3_02:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -71,11 +55,11 @@ episode_s3_p4_02:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -92,51 +76,35 @@ episode_s3_p4_02:
     yaw_degrees: 180.0
     initial_idle: 0.268421
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.736842
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.947368
   physical_human_metrics: true
-episode_s3_p4_03:
+episode_s3_p3_03:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -153,51 +121,35 @@ episode_s3_p4_03:
     yaw_degrees: 180.0
     initial_idle: 0.336842
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.578947
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.157895
   physical_human_metrics: true
-episode_s3_p4_04:
+episode_s3_p3_04:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -214,38 +166,22 @@ episode_s3_p4_04:
     yaw_degrees: 180.0
     initial_idle: 0.405263
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.842105
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.631579
   physical_human_metrics: true
-episode_s3_p4_05:
+episode_s3_p3_05:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -254,11 +190,11 @@ episode_s3_p4_05:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -275,51 +211,35 @@ episode_s3_p4_05:
     yaw_degrees: 180.0
     initial_idle: 0.473684
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.157895
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.105263
   physical_human_metrics: true
-episode_s3_p4_06:
+episode_s3_p3_06:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -336,51 +256,35 @@ episode_s3_p4_06:
     yaw_degrees: 180.0
     initial_idle: 0.542105
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.105263
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.526316
   physical_human_metrics: true
-episode_s3_p4_07:
+episode_s3_p3_07:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -397,38 +301,22 @@ episode_s3_p4_07:
     yaw_degrees: 180.0
     initial_idle: 0.610526
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.894737
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.210526
   physical_human_metrics: true
-episode_s3_p4_08:
+episode_s3_p3_08:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -437,11 +325,11 @@ episode_s3_p4_08:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -458,51 +346,35 @@ episode_s3_p4_08:
     yaw_degrees: 180.0
     initial_idle: 0.678947
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 4.0
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.368421
   physical_human_metrics: true
-episode_s3_p4_09:
+episode_s3_p3_09:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -519,51 +391,35 @@ episode_s3_p4_09:
     yaw_degrees: 180.0
     initial_idle: 0.747368
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.789474
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.578947
   physical_human_metrics: true
-episode_s3_p4_10:
+episode_s3_p3_10:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -580,38 +436,22 @@ episode_s3_p4_10:
     yaw_degrees: 180.0
     initial_idle: 0.815789
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.473684
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.0
   physical_human_metrics: true
-episode_s3_p4_11:
+episode_s3_p3_11:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -620,11 +460,11 @@ episode_s3_p4_11:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -641,51 +481,35 @@ episode_s3_p4_11:
     yaw_degrees: 180.0
     initial_idle: 0.884211
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.052632
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 5.0
   physical_human_metrics: true
-episode_s3_p4_12:
+episode_s3_p3_12:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -702,51 +526,35 @@ episode_s3_p4_12:
     yaw_degrees: 180.0
     initial_idle: 0.952632
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.526316
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.842105
   physical_human_metrics: true
-episode_s3_p4_13:
+episode_s3_p3_13:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -763,38 +571,22 @@ episode_s3_p4_13:
     yaw_degrees: 180.0
     initial_idle: 1.021053
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.315789
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.684211
   physical_human_metrics: true
-episode_s3_p4_14:
+episode_s3_p3_14:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -803,11 +595,11 @@ episode_s3_p4_14:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -824,51 +616,35 @@ episode_s3_p4_14:
     yaw_degrees: 180.0
     initial_idle: 1.089474
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.210526
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.473684
   physical_human_metrics: true
-episode_s3_p4_15:
+episode_s3_p3_15:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -885,51 +661,35 @@ episode_s3_p4_15:
     yaw_degrees: 180.0
     initial_idle: 1.157895
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.0
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.263158
   physical_human_metrics: true
-episode_s3_p4_16:
+episode_s3_p3_16:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -946,38 +706,22 @@ episode_s3_p4_16:
     yaw_degrees: 180.0
     initial_idle: 1.226316
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.263158
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.736842
   physical_human_metrics: true
-episode_s3_p4_17:
+episode_s3_p3_17:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -986,11 +730,11 @@ episode_s3_p4_17:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -1007,51 +751,35 @@ episode_s3_p4_17:
     yaw_degrees: 180.0
     initial_idle: 1.294737
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.947368
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.894737
   physical_human_metrics: true
-episode_s3_p4_18:
+episode_s3_p3_18:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -1068,51 +796,35 @@ episode_s3_p4_18:
     yaw_degrees: 180.0
     initial_idle: 1.363158
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 2.421053
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.421053
   physical_human_metrics: true
-episode_s3_p4_19:
+episode_s3_p3_19:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
   - 0.01
-  start_yaw: 0.0
+  start_yaw: -15.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -1129,38 +841,22 @@ episode_s3_p4_19:
     yaw_degrees: 180.0
     initial_idle: 1.431579
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.368421
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 3.315789
   physical_human_metrics: true
-episode_s3_p4_20:
+episode_s3_p3_20:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -1169,11 +865,11 @@ episode_s3_p4_20:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 11.0
+  - 9.85
   - 0.01
-  instruction: go to the security guard at the end of the hallway.
+  instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
-  num_people: 4
+  num_people: 3
   robot_type: nova_carter
   scripted_humans:
   - position:
@@ -1190,34 +886,18 @@ episode_s3_p4_20:
     yaw_degrees: 180.0
     initial_idle: 1.5
   - position:
-    - -18.8
-    - 11.0
+    - -19.44101607487867
+    - 9.85
     - 0.01
     yaw_degrees: 180.0
   - position:
-    - -23.4
-    - 9.55
+    - -21.8
+    - 9.8
     - 0.01
     walk_route:
-    - - -23.4
-      - 11.85
+    - - -26.8
+      - 11.6
       - 0.01
-    - - -23.4
-      - 9.55
-      - 0.01
-    yaw_degrees: 90.0
+    yaw_degrees: 160.201124
     initial_idle: 3.684211
-  - position:
-    - -22.3
-    - 11.85
-    - 0.01
-    walk_route:
-    - - -22.3
-      - 9.55
-      - 0.01
-    - - -22.3
-      - 11.85
-      - 0.01
-    yaw_degrees: -90.0
-    initial_idle: 4.052632
   physical_human_metrics: true

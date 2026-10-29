@@ -2,9 +2,9 @@
 """Generate controlled Scenario 3 benchmark YAML files.
 
 The stationary target is always present. Increasing ``num_people`` adds the
-head-on pedestrian, the first lateral crosser, and then the second lateral
-crosser. Delay schedules may be combined as a Cartesian grid, paired by index,
-or independently shuffled as reproducible timing strata.
+head-on pedestrian, the first crossover pedestrian, and then the second
+crossover pedestrian. Delay schedules may be combined as a Cartesian grid,
+paired by index, or independently shuffled as reproducible timing strata.
 """
 
 from __future__ import annotations
@@ -77,22 +77,24 @@ MOVERS = (
     ),
 )
 
-SOUTHBOUND_MOVERS = (
+CROSSOVER_MOVERS = (
     MOVERS[0],
     (
-        "southbound_a",
+        "crossover_a",
         {
-            "position": [-21.8, 11.6, 0.01],
+            # Starts to the robot's right, crosses left, and continues south.
+            "position": [-21.8, 9.8, 0.01],
             "walk_route": [[-26.8, 11.6, 0.01]],
-            "yaw_degrees": 180.0,
+            "yaw_degrees": 160.201124,
         },
     ),
     (
-        "southbound_b",
+        "crossover_b",
         {
-            "position": [-21.8, 9.8, 0.01],
+            # Starts to the robot's left, crosses right, and continues south.
+            "position": [-21.8, 11.6, 0.01],
             "walk_route": [[-26.8, 9.8, 0.01]],
-            "yaw_degrees": 180.0,
+            "yaw_degrees": -160.201124,
         },
     ),
 )
@@ -245,13 +247,7 @@ def make_config(
         "navigation_method": "ticvla_ros",
         "success_threshold": success_threshold,
     }
-    if len(delays) % len(start_yaws) == 0:
-        episode_yaws = list(start_yaws) * (len(delays) // len(start_yaws))
-    else:
-        raise ValueError(
-            "start yaw schedule length must divide the episode count; "
-            f"received {len(start_yaws)} values for {len(delays)} episodes"
-        )
+    episode_yaws = list(itertools.islice(itertools.cycle(start_yaws), len(delays)))
     width = max(2, len(str(len(delays))))
     for index, (delay_values, start_yaw) in enumerate(
         zip(delays, episode_yaws, strict=True), start=1
@@ -329,11 +325,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--lateral-motion",
-        choices=("crossing", "southbound"),
+        choices=("crossing", "crossover", "southbound"),
         default="crossing",
         help=(
-            "use the original back-and-forth lateral routes or one-way "
-            "southbound walkers on separate fixed-y lanes"
+            "use the original back-and-forth lateral routes or diagonal "
+            "crossover routes that also head south; 'southbound' is retained "
+            "as an alias for 'crossover'"
         ),
     )
     parser.add_argument(
@@ -383,7 +380,11 @@ def main() -> int:
         raise SystemExit("--timeout must be positive and finite")
 
     all_schedules = [args.head_on_delays, args.crosser_a_delays, args.crosser_b_delays]
-    movers = SOUTHBOUND_MOVERS if args.lateral_motion == "southbound" else MOVERS
+    movers = (
+        CROSSOVER_MOVERS
+        if args.lateral_motion in {"crossover", "southbound"}
+        else MOVERS
+    )
     if args.target_profile == "white-coat":
         goal = WHITE_COAT_GOAL
         instruction = WHITE_COAT_INSTRUCTION
@@ -402,11 +403,6 @@ def main() -> int:
             )
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
-        if len(delays) % len(args.start_yaw_degrees) != 0:
-            raise SystemExit(
-                "--start-yaw-degrees schedule length must divide the episode "
-                f"count ({len(delays)} for this configuration)"
-            )
         config = make_config(
             num_people=num_people,
             delays=delays,
