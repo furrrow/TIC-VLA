@@ -19,14 +19,14 @@ episode_s3_p3_01:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.2
@@ -64,14 +64,14 @@ episode_s3_p3_02:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.268421
@@ -109,14 +109,14 @@ episode_s3_p3_03:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.336842
@@ -154,14 +154,14 @@ episode_s3_p3_04:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.405263
@@ -199,14 +199,14 @@ episode_s3_p3_05:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.473684
@@ -244,14 +244,14 @@ episode_s3_p3_06:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.542105
@@ -289,14 +289,14 @@ episode_s3_p3_07:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.610526
@@ -334,14 +334,14 @@ episode_s3_p3_08:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.678947
@@ -379,14 +379,14 @@ episode_s3_p3_09:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.747368
@@ -424,14 +424,14 @@ episode_s3_p3_10:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.815789
@@ -469,14 +469,14 @@ episode_s3_p3_11:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.884211
@@ -514,14 +514,14 @@ episode_s3_p3_12:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.952632
@@ -559,14 +559,14 @@ episode_s3_p3_13:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.021053
@@ -604,14 +604,14 @@ episode_s3_p3_14:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.089474
@@ -649,14 +649,14 @@ episode_s3_p3_15:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.157895
@@ -694,14 +694,14 @@ episode_s3_p3_16:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.226316
@@ -739,14 +739,14 @@ episode_s3_p3_17:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.294737
@@ -784,14 +784,14 @@ episode_s3_p3_18:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.363158
@@ -829,14 +829,14 @@ episode_s3_p3_19:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.431579
@@ -874,14 +874,14 @@ episode_s3_p3_20:
   scripted_humans:
   - position:
     - -21.8
-    - 11.0
+    - 10.85
     - 0.01
     walk_route:
     - - -26.8
-      - 11.0
+      - 10.85
       - 0.01
     - - -21.8
-      - 11.0
+      - 10.85
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.5

@@ -45,10 +45,11 @@ MOVERS = (
     (
         "head_on",
         {
-            "position": [-21.8, 11.0, 0.01],
+            # Offset 0.15 m to the robot's right to favor a left avoidance turn.
+            "position": [-21.8, 10.85, 0.01],
             "walk_route": [
-                [-26.8, 11.0, 0.01],
-                [-21.8, 11.0, 0.01],
+                [-26.8, 10.85, 0.01],
+                [-21.8, 10.85, 0.01],
             ],
             "yaw_degrees": 180.0,
         },
