@@ -83,19 +83,19 @@ CROSSOVER_MOVERS = (
     (
         "crossover_a",
         {
-            # Starts to the robot's right, crosses left, and continues south.
-            "position": [-21.8, 9.8, 0.01],
-            "walk_route": [[-26.8, 11.6, 0.01]],
-            "yaw_degrees": 160.201124,
+            # Starts farther down the hall/right, then walks south-left.
+            "position": [-20.8, 9.2, 0.01],
+            "walk_route": [[-25.8, 12.8, 0.01]],
+            "yaw_degrees": 144.246113,
         },
     ),
     (
         "crossover_b",
         {
-            # Starts to the robot's left, crosses right, and continues south.
-            "position": [-21.8, 11.6, 0.01],
-            "walk_route": [[-26.8, 9.8, 0.01]],
-            "yaw_degrees": -160.201124,
+            # A staggered second south-left crossing farther down the hall/right.
+            "position": [-19.8, 8.8, 0.01],
+            "walk_route": [[-24.8, 12.4, 0.01]],
+            "yaw_degrees": 144.246113,
         },
     ),
 )

@@ -5,9 +5,9 @@ PROJECTS_ROOT="${PROJECTS_ROOT:-/home/jim/Projects}"
 BATCH_PREFIX="${BATCH_PREFIX:-steernav}"
 DEFAULT_SCENARIO_DIR="DynaNav/configs/steernav_scenarios"
 DEFAULT_SCENARIOS=(
-  "${DEFAULT_SCENARIO_DIR}/scenario3_southbound_hard_20trials.yaml"
-  "${DEFAULT_SCENARIO_DIR}/scenario3_southbound_medium_20trials.yaml"
-  "${DEFAULT_SCENARIO_DIR}/scenario3_southbound_easy_20trials.yaml"
+  "${DEFAULT_SCENARIO_DIR}/scenario3_crossover_hard_20trials.yaml"
+  "${DEFAULT_SCENARIO_DIR}/scenario3_crossover_medium_20trials.yaml"
+  "${DEFAULT_SCENARIO_DIR}/scenario3_crossover_easy_20trials.yaml"
 )
 
 usage() {
