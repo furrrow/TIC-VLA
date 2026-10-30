@@ -85,17 +85,17 @@ CROSSOVER_MOVERS = (
         {
             # Starts farther down the hall/right, then walks south-left.
             "position": [-20.8, 9.2, 0.01],
-            "walk_route": [[-25.8, 12.8, 0.01]],
-            "yaw_degrees": 144.246113,
+            "walk_route": [[-25.3, 12.8, 0.01]],
+            "yaw_degrees": 141.340192,
         },
     ),
     (
         "crossover_b",
         {
-            # A staggered second south-left crossing farther down the hall/right.
-            "position": [-19.8, 8.8, 0.01],
-            "walk_route": [[-24.8, 12.4, 0.01]],
-            "yaw_degrees": 144.246113,
+            # Starts slightly left of center and walks south with a slight left drift.
+            "position": [-19.8, 11.3, 0.01],
+            "walk_route": [[-24.8, 11.8, 0.01]],
+            "yaw_degrees": 174.289407,
         },
     ),
 )
@@ -235,6 +235,7 @@ def make_config(
     delays: list[tuple[float, ...]],
     seed: int,
     success_threshold: float,
+    human_collision_threshold: float,
     timeout: float,
     episode_prefix: str,
     movers: tuple[tuple[str, dict], ...] = MOVERS,
@@ -247,6 +248,7 @@ def make_config(
         "seed": seed,
         "navigation_method": "ticvla_ros",
         "success_threshold": success_threshold,
+        "human_collision_threshold_m": human_collision_threshold,
     }
     episode_yaws = list(itertools.islice(itertools.cycle(start_yaws), len(delays)))
     width = max(2, len(str(len(delays))))
@@ -356,6 +358,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--seed", type=int, default=36)
     parser.add_argument("--success-threshold", type=float, default=1.5)
+    parser.add_argument("--human-collision-threshold", type=float, default=0.2)
     parser.add_argument("--timeout", type=float, default=40.0)
     parser.add_argument("--episode-prefix", default="episode_s3")
     parser.add_argument(
@@ -377,6 +380,11 @@ def main() -> int:
         raise SystemExit("--seed must be nonnegative")
     if not math.isfinite(args.success_threshold) or args.success_threshold <= 0:
         raise SystemExit("--success-threshold must be positive and finite")
+    if (
+        not math.isfinite(args.human_collision_threshold)
+        or args.human_collision_threshold <= 0
+    ):
+        raise SystemExit("--human-collision-threshold must be positive and finite")
     if not math.isfinite(args.timeout) or args.timeout <= 0:
         raise SystemExit("--timeout must be positive and finite")
 
@@ -409,6 +417,7 @@ def main() -> int:
             delays=delays,
             seed=args.seed,
             success_threshold=args.success_threshold,
+            human_collision_threshold=args.human_collision_threshold,
             timeout=args.timeout,
             episode_prefix=args.episode_prefix,
             movers=movers,

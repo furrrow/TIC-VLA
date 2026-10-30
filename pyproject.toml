@@ -22,6 +22,7 @@ dependencies = [
     "opencv-python>=4.11.0.86",
     "pytorch-lightning>=2.6.6",
     "custom_utils",
+    "pytest>=9.2.0",
 ]
 
 [tool.uv.sources]

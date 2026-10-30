@@ -1,6 +1,7 @@
 seed: 36
 navigation_method: ticvla_ros
 success_threshold: 1.5
+human_collision_threshold_m: 0.3
 episode_s3_p2_01:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:

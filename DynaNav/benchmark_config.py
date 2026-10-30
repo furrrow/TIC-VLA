@@ -10,12 +10,14 @@ import yaml
 
 GLOBAL_KEYS = {
     "seed", "navigation_method", "inference_method", "success_threshold",
+    "human_collision_threshold_m",
     "moving_away_distance_buffer_m", "moving_away_grace_seconds",
     "moving_away_min_progress_m",
 }
 EPISODE_KEYS = {
     "scene", "start", "start_yaw", "goal", "instruction", "timeout",
     "num_people", "robot_type", "success_threshold",
+    "human_collision_threshold_m",
     "scripted_humans", "physical_human_metrics",
     "moving_away_distance_buffer_m", "moving_away_grace_seconds",
     "moving_away_min_progress_m",
@@ -90,6 +92,10 @@ def load_benchmark_config(path):
         "navigation_method": method.lower(),
         "inference_method": inference_method.strip(),
         "success_threshold": threshold,
+        "human_collision_threshold_m": _number(
+            config.get("human_collision_threshold_m", 0.2),
+            "human_collision_threshold_m", positive=True,
+        ),
         "moving_away_distance_buffer_m": _number(
             config.get("moving_away_distance_buffer_m", 0.5),
             "moving_away_distance_buffer_m", positive=True,
@@ -155,6 +161,14 @@ def load_benchmark_config(path):
             raise ValueError(f"episode {name!r} physical_human_metrics must be boolean")
         entry["success_threshold"] = _number(
             entry.get("success_threshold", threshold), f"episode {name!r} success_threshold", positive=True
+        )
+        entry["human_collision_threshold_m"] = _number(
+            entry.get(
+                "human_collision_threshold_m",
+                validated["human_collision_threshold_m"],
+            ),
+            f"episode {name!r} human_collision_threshold_m",
+            positive=True,
         )
         for field in (
             "moving_away_distance_buffer_m", "moving_away_grace_seconds",

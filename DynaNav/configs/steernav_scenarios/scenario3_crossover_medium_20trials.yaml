@@ -1,6 +1,7 @@
 seed: 36
 navigation_method: ticvla_ros
 success_threshold: 1.5
+human_collision_threshold_m: 0.3
 episode_s3_p3_01:
   scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
@@ -40,10 +41,10 @@ episode_s3_p3_01:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.315789
   physical_human_metrics: true
 episode_s3_p3_02:
@@ -85,10 +86,10 @@ episode_s3_p3_02:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.368421
   physical_human_metrics: true
 episode_s3_p3_03:
@@ -130,10 +131,10 @@ episode_s3_p3_03:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.789474
   physical_human_metrics: true
 episode_s3_p3_04:
@@ -175,10 +176,10 @@ episode_s3_p3_04:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.421053
   physical_human_metrics: true
 episode_s3_p3_05:
@@ -220,10 +221,10 @@ episode_s3_p3_05:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.578947
   physical_human_metrics: true
 episode_s3_p3_06:
@@ -265,10 +266,10 @@ episode_s3_p3_06:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.052632
   physical_human_metrics: true
 episode_s3_p3_07:
@@ -310,10 +311,10 @@ episode_s3_p3_07:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.947368
   physical_human_metrics: true
 episode_s3_p3_08:
@@ -355,10 +356,10 @@ episode_s3_p3_08:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 3.0
   physical_human_metrics: true
 episode_s3_p3_09:
@@ -400,10 +401,10 @@ episode_s3_p3_09:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.894737
   physical_human_metrics: true
 episode_s3_p3_10:
@@ -445,10 +446,10 @@ episode_s3_p3_10:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.736842
   physical_human_metrics: true
 episode_s3_p3_11:
@@ -490,10 +491,10 @@ episode_s3_p3_11:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.526316
   physical_human_metrics: true
 episode_s3_p3_12:
@@ -535,10 +536,10 @@ episode_s3_p3_12:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.263158
   physical_human_metrics: true
 episode_s3_p3_13:
@@ -580,10 +581,10 @@ episode_s3_p3_13:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.157895
   physical_human_metrics: true
 episode_s3_p3_14:
@@ -625,10 +626,10 @@ episode_s3_p3_14:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.105263
   physical_human_metrics: true
 episode_s3_p3_15:
@@ -670,10 +671,10 @@ episode_s3_p3_15:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.0
   physical_human_metrics: true
 episode_s3_p3_16:
@@ -715,10 +716,10 @@ episode_s3_p3_16:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.631579
   physical_human_metrics: true
 episode_s3_p3_17:
@@ -760,10 +761,10 @@ episode_s3_p3_17:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.473684
   physical_human_metrics: true
 episode_s3_p3_18:
@@ -805,10 +806,10 @@ episode_s3_p3_18:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.210526
   physical_human_metrics: true
 episode_s3_p3_19:
@@ -850,10 +851,10 @@ episode_s3_p3_19:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.684211
   physical_human_metrics: true
 episode_s3_p3_20:
@@ -895,9 +896,9 @@ episode_s3_p3_20:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.8
+    - - -25.3
       - 12.8
       - 0.01
-    yaw_degrees: 144.246113
+    yaw_degrees: 141.340192
     initial_idle: 2.842105
   physical_human_metrics: true

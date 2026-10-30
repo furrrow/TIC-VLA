@@ -212,7 +212,7 @@ class BenchmarkRunner:
         self._contact_sensor_enabled = False
         self._contact_threshold = 10.0  # Minimum contact force to register as collision (N)
         self._contact_duration_threshold_frames = 5  # Require sustained contact before counting collision
-        self.human_collision_threshold = 0.2  # meters
+        self.human_collision_threshold = 0.2  # meters; overridden per episode
         self._contact_sensor_prim_path = None  # Path to the contact sensor prim
         self._contact_sensor_prim_paths = []  # Paths to all contact sensor prims
         self._contact_sensor_interface = None  # Contact sensor interface
@@ -357,6 +357,7 @@ class BenchmarkRunner:
 
     async def run_episode(self, episode_name, episode_config):
         """Run a single benchmark episode."""
+        self.human_collision_threshold = episode_config["human_collision_threshold_m"]
         self.state = EpisodeState(
             name=episode_name,
             config=episode_config,
