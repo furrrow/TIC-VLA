@@ -16,8 +16,8 @@ near-southbound obstacle in that left-side avoidance region.
 The right-side pedestrian starts farther down the hallway and to the right at
 `[-20.8, 9.2]`, then walks south-left to `[-23.8, 12.8]`. Its steep diagonal
 brings it into the robot's intended left-avoidance region after the head-on
-encounter. The second pedestrian starts slightly left of the hallway center at
-`[-19.8, 11.3]`, then veers south-left to `[-23.3, 13.8]`. Both now use
+encounter. The second pedestrian starts farther left at `[-19.8, 11.6]`, then
+veers south-left to `[-23.3, 13.8]`. Both now use
 aggressive leftward slopes while progressing south toward decreasing `x`.
 
 The robot's initial yaw cycles through `0`, `7.5`, and `15` degrees, so it
@@ -29,9 +29,8 @@ Both crossover pedestrians use delays from `2.0` to `3.0` seconds, making them
 more likely to enter the robot's left-side avoidance path soon after the
 head-on encounter.
 
-This suite uses a `0.30 m` center-to-center pedestrian collision threshold.
-The benchmark default remains `0.20 m` for configurations that do not specify
-`human_collision_threshold_m`.
+This suite uses the generator's `0.50 m` center-to-center pedestrian collision
+threshold.
 
 The success threshold is `2.0 m`, inherited from the generator default.
 
@@ -47,7 +46,6 @@ python3 DynaNav/configs/generate_hospital_scenarios.py \
   --lateral-motion crossover \
   --start-yaw-degrees=0,7.5,15 \
   --target-profile white-coat \
-  --human-collision-threshold 0.3 \
   --difficulty-names \
   --filename-prefix scenario3_crossover \
   --output-dir DynaNav/configs/crossover_scenarios \
