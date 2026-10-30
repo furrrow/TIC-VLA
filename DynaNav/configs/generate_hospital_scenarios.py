@@ -80,10 +80,10 @@ CROSSOVER_MOVERS = (
     (
         "crossover_a",
         {
-            # Starts farther down the hall/right, then walks south-left.
+            # Starts farther down the hall/right, then walks directly south.
             "position": [-20.8, 9.2, 0.01],
-            "walk_route": [[-23.8, 12.8, 0.01]],
-            "yaw_degrees": 129.805571,
+            "walk_route": [[-23.8, 9.2, 0.01]],
+            "yaw_degrees": 180.0,
         },
     ),
     (

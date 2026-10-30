@@ -10,7 +10,6 @@ MODE="ablation"
 DETACH=false
 SESSION_NAME=""
 CONTROLLER_DT="0.75"
-TIME_LOOK_AHEAD="1.0"
 FIX_END=false
 LOG_ROOT="${NOVA_ROS_LOG_ROOT:-${REPO_ROOT}/logs/nova_ros}"
 
@@ -41,18 +40,6 @@ while [[ $# -gt 0 ]]; do
       CONTROLLER_DT="$2"
       shift 2
       ;;
-    --time-look-ahead)
-      if [[ $# -lt 2 ]]; then
-        echo "--time-look-ahead requires a value" >&2
-        exit 2
-      fi
-      TIME_LOOK_AHEAD="$2"
-      shift 2
-      ;;
-    --time-look-ahead=*)
-      TIME_LOOK_AHEAD="${1#*=}"
-      shift
-      ;;
     --fix-end)
       FIX_END=true
       shift
@@ -62,12 +49,12 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -h|--help)
-      echo "Usage: $0 [normal|steered|no-velocity] [--detach] [--session-name NAME] [--dt SECONDS] [--time-look-ahead SECONDS] [--fix-end|--no-fix-end]"
+      echo "Usage: $0 [normal|steered|no-velocity] [--detach] [--session-name NAME] [--dt SECONDS] [--fix-end|--no-fix-end]"
       exit 0
       ;;
     *)
       echo "Unknown argument: $1" >&2
-      echo "Usage: $0 [normal|steered|no-velocity] [--detach] [--session-name NAME] [--dt SECONDS] [--time-look-ahead SECONDS] [--fix-end|--no-fix-end]" >&2
+      echo "Usage: $0 [normal|steered|no-velocity] [--detach] [--session-name NAME] [--dt SECONDS] [--fix-end|--no-fix-end]" >&2
       exit 2
       ;;
   esac
@@ -81,15 +68,10 @@ if [[ ! "${CONTROLLER_DT}" =~ ^[0-9]+([.][0-9]+)?$ ]] || [[ ! "${CONTROLLER_DT}"
   echo "Controller dt must be a positive number of seconds." >&2
   exit 2
 fi
-if [[ ! "${TIME_LOOK_AHEAD}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-  echo "SteerNav time look-ahead must be a non-negative number of seconds." >&2
-  exit 2
-fi
 
 echo "Mode: ${MODE}"
 echo "Robot config: ${ROBOT_CONFIG}"
 echo "Controller dt: ${CONTROLLER_DT}s"
-echo "SteerNav time look-ahead: ${TIME_LOOK_AHEAD}s"
 echo "SteerNav fix end: ${FIX_END}"
 
 if [[ ! -f "${ROS_SETUP}" ]]; then
@@ -150,7 +132,7 @@ fi
 if [[ "${MODE}" != "normal" ]]; then
   controller_flags="--steer ${controller_flags}"
 #  steernav_flags="--debug-motion"
-  steernav_flags="--time-look-ahead ${TIME_LOOK_AHEAD}"
+  steernav_flags=""
   if [[ "${MODE}" != "no-velocity" ]]; then
     steernav_flags="${steernav_flags} --object-velocity-source ${OBJECT_VELOCITY_SOURCE}"
   fi

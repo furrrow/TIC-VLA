@@ -8,7 +8,6 @@ REMOTE_DISPLAY="${REMOTE_DISPLAY:-:1}"
 SCENARIO="DynaNav/configs/icra_scenarios_v3/scenario3_5.yaml"
 MODE="ablation"
 CONTROLLER_DT="0.75"
-TIME_LOOK_AHEAD="1.0"
 FIX_END=false
 INFERENCE_METHOD="${INFERENCE_METHOD:-TIC-VLA}"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
@@ -18,7 +17,7 @@ RUN_ATTEMPT_ID="${RUN_ATTEMPT_ID:-$(date +%Y%m%d_%H%M%S)_$$}"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--mode normal|steered|no-velocity|both|ablation] [--scenario FILE] [--inference-method NAME] [--time-look-ahead SECONDS] [--fix-end|--no-fix-end]
+Usage: $(basename "$0") [--mode normal|steered|no-velocity|both|ablation] [--scenario FILE] [--inference-method NAME] [--fix-end|--no-fix-end]
 
 Run one experiment mode, both existing modes, or an ablation of normal,
 steered, and steered without velocity compensation.
@@ -64,19 +63,6 @@ while (( $# > 0 )); do
       ;;
     --inference-method=*)
       INFERENCE_METHOD="${1#*=}"
-      shift
-      ;;
-    --time-look-ahead)
-      if (( $# < 2 )); then
-        echo "--time-look-ahead requires a value." >&2
-        usage >&2
-        exit 2
-      fi
-      TIME_LOOK_AHEAD="$2"
-      shift 2
-      ;;
-    --time-look-ahead=*)
-      TIME_LOOK_AHEAD="${1#*=}"
       shift
       ;;
     --fix-end)
@@ -135,10 +121,6 @@ if [[ ! "${INFERENCE_METHOD}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
 fi
 if [[ ! "${READY_TIMEOUT_SECONDS}" =~ ^[0-9]+$ || "${READY_TIMEOUT_SECONDS}" -eq 0 ]]; then
   echo "READY_TIMEOUT_SECONDS must be a positive integer." >&2
-  exit 2
-fi
-if [[ ! "${TIME_LOOK_AHEAD}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-  echo "SteerNav time look-ahead must be a non-negative number of seconds." >&2
   exit 2
 fi
 mkdir -p "${LOG_DIR}"
@@ -218,7 +200,7 @@ run_mode() {
   echo "=== ${mode}: run_id=${run_id} ==="
   mkdir -p "${run_log_dir}"
   # runs nova_ros.bash
-  local nova_ros_args=("${mode}" --detach --session-name "${session}" --dt "${CONTROLLER_DT}" --time-look-ahead "${TIME_LOOK_AHEAD}")
+  local nova_ros_args=("${mode}" --detach --session-name "${session}" --dt "${CONTROLLER_DT}")
   if [[ "${FIX_END}" == true ]]; then
     nova_ros_args+=(--fix-end)
   else
@@ -278,7 +260,6 @@ echo "Batch ID: ${BATCH_ID}"
 echo "Run attempt: ${RUN_ATTEMPT_ID}"
 echo "Mode: ${MODE}"
 echo "Inference method: ${INFERENCE_METHOD}"
-echo "SteerNav time look-ahead: ${TIME_LOOK_AHEAD}s"
 echo "SteerNav fix end: ${FIX_END}"
 echo "Scenario: ${SCENARIO}"
 echo "Remote: ${REMOTE_HOST}:${REMOTE_REPO} (DISPLAY=${REMOTE_DISPLAY})"
