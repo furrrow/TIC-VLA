@@ -7,6 +7,9 @@ so continuing straight still causes a collision while avoidance is biased to
 the left. The additional pedestrians create a gentle south-left obstacle on
 the right and a sharp south-left obstacle in the left-side avoidance region.
 
+The stationary white-coat target is centered in the hallway at
+`[-19.441, 11.0]`.
+
 | Difficulty | People | Moving pedestrians |
 | --- | ---: | --- |
 | Easy | 2 | One head-on walker |

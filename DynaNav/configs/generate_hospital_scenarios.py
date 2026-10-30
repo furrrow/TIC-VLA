@@ -31,7 +31,7 @@ TARGET = {
     "yaw_degrees": 180.0,
 }
 
-WHITE_COAT_GOAL = [-19.44101607487867, 9.85, 0.01]
+WHITE_COAT_GOAL = [-19.44101607487867, 11.0, 0.01]
 WHITE_COAT_INSTRUCTION = "go to the person wearing a long white coat and light trousers."
 WHITE_COAT_TARGET = {
     "position": WHITE_COAT_GOAL,

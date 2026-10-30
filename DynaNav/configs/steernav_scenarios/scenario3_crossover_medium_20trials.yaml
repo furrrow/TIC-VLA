@@ -11,7 +11,7 @@ episode_s3_p3_01:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -33,7 +33,7 @@ episode_s3_p3_01:
     initial_idle: 0.2
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -42,9 +42,9 @@ episode_s3_p3_01:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.315789
   physical_human_metrics: true
 episode_s3_p3_02:
@@ -56,7 +56,7 @@ episode_s3_p3_02:
   start_yaw: 7.5
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -78,7 +78,7 @@ episode_s3_p3_02:
     initial_idle: 0.268421
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -87,9 +87,9 @@ episode_s3_p3_02:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.368421
   physical_human_metrics: true
 episode_s3_p3_03:
@@ -101,7 +101,7 @@ episode_s3_p3_03:
   start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -123,7 +123,7 @@ episode_s3_p3_03:
     initial_idle: 0.336842
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -132,9 +132,9 @@ episode_s3_p3_03:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.789474
   physical_human_metrics: true
 episode_s3_p3_04:
@@ -146,7 +146,7 @@ episode_s3_p3_04:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -168,7 +168,7 @@ episode_s3_p3_04:
     initial_idle: 0.405263
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -177,9 +177,9 @@ episode_s3_p3_04:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.421053
   physical_human_metrics: true
 episode_s3_p3_05:
@@ -191,7 +191,7 @@ episode_s3_p3_05:
   start_yaw: 7.5
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -213,7 +213,7 @@ episode_s3_p3_05:
     initial_idle: 0.473684
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -222,9 +222,9 @@ episode_s3_p3_05:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.578947
   physical_human_metrics: true
 episode_s3_p3_06:
@@ -236,7 +236,7 @@ episode_s3_p3_06:
   start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -258,7 +258,7 @@ episode_s3_p3_06:
     initial_idle: 0.542105
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -267,9 +267,9 @@ episode_s3_p3_06:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.052632
   physical_human_metrics: true
 episode_s3_p3_07:
@@ -281,7 +281,7 @@ episode_s3_p3_07:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -303,7 +303,7 @@ episode_s3_p3_07:
     initial_idle: 0.610526
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -312,9 +312,9 @@ episode_s3_p3_07:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.947368
   physical_human_metrics: true
 episode_s3_p3_08:
@@ -326,7 +326,7 @@ episode_s3_p3_08:
   start_yaw: 7.5
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -348,7 +348,7 @@ episode_s3_p3_08:
     initial_idle: 0.678947
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -357,9 +357,9 @@ episode_s3_p3_08:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 3.0
   physical_human_metrics: true
 episode_s3_p3_09:
@@ -371,7 +371,7 @@ episode_s3_p3_09:
   start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -393,7 +393,7 @@ episode_s3_p3_09:
     initial_idle: 0.747368
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -402,9 +402,9 @@ episode_s3_p3_09:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.894737
   physical_human_metrics: true
 episode_s3_p3_10:
@@ -416,7 +416,7 @@ episode_s3_p3_10:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -438,7 +438,7 @@ episode_s3_p3_10:
     initial_idle: 0.815789
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -447,9 +447,9 @@ episode_s3_p3_10:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.736842
   physical_human_metrics: true
 episode_s3_p3_11:
@@ -461,7 +461,7 @@ episode_s3_p3_11:
   start_yaw: 7.5
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -483,7 +483,7 @@ episode_s3_p3_11:
     initial_idle: 0.884211
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -492,9 +492,9 @@ episode_s3_p3_11:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.526316
   physical_human_metrics: true
 episode_s3_p3_12:
@@ -506,7 +506,7 @@ episode_s3_p3_12:
   start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -528,7 +528,7 @@ episode_s3_p3_12:
     initial_idle: 0.952632
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -537,9 +537,9 @@ episode_s3_p3_12:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.263158
   physical_human_metrics: true
 episode_s3_p3_13:
@@ -551,7 +551,7 @@ episode_s3_p3_13:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -573,7 +573,7 @@ episode_s3_p3_13:
     initial_idle: 1.021053
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -582,9 +582,9 @@ episode_s3_p3_13:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.157895
   physical_human_metrics: true
 episode_s3_p3_14:
@@ -596,7 +596,7 @@ episode_s3_p3_14:
   start_yaw: 7.5
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -618,7 +618,7 @@ episode_s3_p3_14:
     initial_idle: 1.089474
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -627,9 +627,9 @@ episode_s3_p3_14:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.105263
   physical_human_metrics: true
 episode_s3_p3_15:
@@ -641,7 +641,7 @@ episode_s3_p3_15:
   start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -663,7 +663,7 @@ episode_s3_p3_15:
     initial_idle: 1.157895
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -672,9 +672,9 @@ episode_s3_p3_15:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.0
   physical_human_metrics: true
 episode_s3_p3_16:
@@ -686,7 +686,7 @@ episode_s3_p3_16:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -708,7 +708,7 @@ episode_s3_p3_16:
     initial_idle: 1.226316
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -717,9 +717,9 @@ episode_s3_p3_16:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.631579
   physical_human_metrics: true
 episode_s3_p3_17:
@@ -731,7 +731,7 @@ episode_s3_p3_17:
   start_yaw: 7.5
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -753,7 +753,7 @@ episode_s3_p3_17:
     initial_idle: 1.294737
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -762,9 +762,9 @@ episode_s3_p3_17:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.473684
   physical_human_metrics: true
 episode_s3_p3_18:
@@ -776,7 +776,7 @@ episode_s3_p3_18:
   start_yaw: 15.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -798,7 +798,7 @@ episode_s3_p3_18:
     initial_idle: 1.363158
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -807,9 +807,9 @@ episode_s3_p3_18:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.210526
   physical_human_metrics: true
 episode_s3_p3_19:
@@ -821,7 +821,7 @@ episode_s3_p3_19:
   start_yaw: 0.0
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -843,7 +843,7 @@ episode_s3_p3_19:
     initial_idle: 1.431579
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -852,9 +852,9 @@ episode_s3_p3_19:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.684211
   physical_human_metrics: true
 episode_s3_p3_20:
@@ -866,7 +866,7 @@ episode_s3_p3_20:
   start_yaw: 7.5
   goal:
   - -19.44101607487867
-  - 9.85
+  - 11.0
   - 0.01
   instruction: go to the person wearing a long white coat and light trousers.
   timeout: 40.0
@@ -888,7 +888,7 @@ episode_s3_p3_20:
     initial_idle: 1.5
   - position:
     - -19.44101607487867
-    - 9.85
+    - 11.0
     - 0.01
     yaw_degrees: 180.0
   - position:
@@ -897,8 +897,8 @@ episode_s3_p3_20:
     - 0.01
     walk_route:
     - - -23.8
-      - 12.8
+      - 10.2
       - 0.01
-    yaw_degrees: 129.805571
+    yaw_degrees: 161.565051
     initial_idle: 2.842105
   physical_human_metrics: true
