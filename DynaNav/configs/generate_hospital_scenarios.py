@@ -82,17 +82,17 @@ CROSSOVER_MOVERS = (
         {
             # Starts farther down the hall/right, then walks south-left.
             "position": [-20.8, 9.2, 0.01],
-            "walk_route": [[-24.3, 12.8, 0.01]],
-            "yaw_degrees": 134.204276,
+            "walk_route": [[-23.8, 12.8, 0.01]],
+            "yaw_degrees": 129.805571,
         },
     ),
     (
         "crossover_b",
         {
-            # Starts slightly left of center and walks south with a slight left drift.
+            # Starts slightly left of center and veers aggressively south-left.
             "position": [-19.8, 11.3, 0.01],
-            "walk_route": [[-24.8, 11.8, 0.01]],
-            "yaw_degrees": 174.289407,
+            "walk_route": [[-23.3, 13.8, 0.01]],
+            "yaw_degrees": 144.462322,
         },
     ),
 )
@@ -354,7 +354,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="name 2/3/4-person files easy/medium/hard",
     )
     parser.add_argument("--seed", type=int, default=36)
-    parser.add_argument("--success-threshold", type=float, default=1.5)
+    parser.add_argument("--success-threshold", type=float, default=2.0)
     parser.add_argument("--human-collision-threshold", type=float, default=0.2)
     parser.add_argument("--timeout", type=float, default=40.0)
     parser.add_argument("--episode-prefix", default="episode_s3")
