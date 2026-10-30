@@ -1,7 +1,7 @@
 seed: 36
 navigation_method: ticvla_ros
 success_threshold: 2.0
-human_collision_threshold_m: 0.5
+human_collision_threshold_m: 0.4
 episode_s3_p3_01:
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:

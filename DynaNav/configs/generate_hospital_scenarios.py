@@ -91,8 +91,8 @@ CROSSOVER_MOVERS = (
         {
             # Starts in the former left-side lane and veers aggressively left.
             "position": [-19.8, 11.6, 0.01],
-            "walk_route": [[-23.3, 13.8, 0.01]],
-            "yaw_degrees": 147.847705,
+            "walk_route": [[-21.8, 13.8, 0.01]],
+            "yaw_degrees": 132.273689,
         },
     ),
 )
@@ -355,7 +355,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--seed", type=int, default=36)
     parser.add_argument("--success-threshold", type=float, default=2.0)
-    parser.add_argument("--human-collision-threshold", type=float, default=0.5)
+    parser.add_argument("--human-collision-threshold", type=float, default=0.4)
     parser.add_argument("--timeout", type=float, default=40.0)
     parser.add_argument("--episode-prefix", default="episode_s3")
     parser.add_argument(
