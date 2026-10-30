@@ -2,7 +2,7 @@
 
 This Hospital suite keeps the white-coat target, robot start and goal, head-on
 walker, stratified timing schedules, and 20-trial difficulty structure from the
-southbound suite. The head-on walker is offset `0.15 m` to the robot's right,
+southbound suite. The head-on walker is offset `0.25 m` to the robot's right,
 so continuing straight still causes a collision while avoidance is biased to
 the left. The additional pedestrians create a diagonal crossing and a
 near-southbound obstacle in that left-side avoidance region.
@@ -14,7 +14,7 @@ near-southbound obstacle in that left-side avoidance region.
 | Hard | 4 | Head-on walker, diagonal crosser, and near-southbound left walker |
 
 The right-side pedestrian starts farther down the hallway and to the right at
-`[-20.8, 9.2]`, then walks south-left to `[-25.3, 12.8]`. Its steep diagonal
+`[-20.8, 9.2]`, then walks south-left to `[-24.3, 12.8]`. Its steep diagonal
 brings it into the robot's intended left-avoidance region after the head-on
 encounter. The second pedestrian starts slightly left of the hallway center at
 `[-19.8, 11.3]`, then walks nearly straight south with a slight left slope to

@@ -20,10 +20,7 @@ from typing import Iterable
 import yaml
 
 
-SCENE = (
-    "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/"
-    "Isaac/5.1/Isaac/Environments/Hospital/hospital.usd"
-)
+SCENE = "/media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd"
 START = [-26.0, 11.0, 0.01]
 GOAL = [-19.44101607487867, 11.0, 0.01]
 TARGET_POSITION = [-18.8, 11.0, 0.01]
@@ -45,11 +42,11 @@ MOVERS = (
     (
         "head_on",
         {
-            # Offset 0.15 m to the robot's right to favor a left avoidance turn.
-            "position": [-21.8, 10.85, 0.01],
+            # Offset 0.25 m to the robot's right to favor a left avoidance turn.
+            "position": [-21.8, 10.75, 0.01],
             "walk_route": [
-                [-26.8, 10.85, 0.01],
-                [-21.8, 10.85, 0.01],
+                [-26.8, 10.75, 0.01],
+                [-21.8, 10.75, 0.01],
             ],
             "yaw_degrees": 180.0,
         },
@@ -85,8 +82,8 @@ CROSSOVER_MOVERS = (
         {
             # Starts farther down the hall/right, then walks south-left.
             "position": [-20.8, 9.2, 0.01],
-            "walk_route": [[-25.3, 12.8, 0.01]],
-            "yaw_degrees": 141.340192,
+            "walk_route": [[-24.3, 12.8, 0.01]],
+            "yaw_degrees": 134.204276,
         },
     ),
     (

@@ -3,7 +3,7 @@ navigation_method: ticvla_ros
 success_threshold: 1.5
 human_collision_threshold_m: 0.3
 episode_s3_p4_01:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -20,14 +20,14 @@ episode_s3_p4_01:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.2
@@ -41,10 +41,10 @@ episode_s3_p4_01:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.315789
   - position:
     - -19.8
@@ -58,7 +58,7 @@ episode_s3_p4_01:
     initial_idle: 2.894737
   physical_human_metrics: true
 episode_s3_p4_02:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -75,14 +75,14 @@ episode_s3_p4_02:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.268421
@@ -96,10 +96,10 @@ episode_s3_p4_02:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.368421
   - position:
     - -19.8
@@ -113,7 +113,7 @@ episode_s3_p4_02:
     initial_idle: 2.473684
   physical_human_metrics: true
 episode_s3_p4_03:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -130,14 +130,14 @@ episode_s3_p4_03:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.336842
@@ -151,10 +151,10 @@ episode_s3_p4_03:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.789474
   - position:
     - -19.8
@@ -168,7 +168,7 @@ episode_s3_p4_03:
     initial_idle: 2.578947
   physical_human_metrics: true
 episode_s3_p4_04:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -185,14 +185,14 @@ episode_s3_p4_04:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.405263
@@ -206,10 +206,10 @@ episode_s3_p4_04:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.421053
   - position:
     - -19.8
@@ -223,7 +223,7 @@ episode_s3_p4_04:
     initial_idle: 2.315789
   physical_human_metrics: true
 episode_s3_p4_05:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -240,14 +240,14 @@ episode_s3_p4_05:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.473684
@@ -261,10 +261,10 @@ episode_s3_p4_05:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.578947
   - position:
     - -19.8
@@ -278,7 +278,7 @@ episode_s3_p4_05:
     initial_idle: 2.052632
   physical_human_metrics: true
 episode_s3_p4_06:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -295,14 +295,14 @@ episode_s3_p4_06:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.542105
@@ -316,10 +316,10 @@ episode_s3_p4_06:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.052632
   - position:
     - -19.8
@@ -333,7 +333,7 @@ episode_s3_p4_06:
     initial_idle: 2.263158
   physical_human_metrics: true
 episode_s3_p4_07:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -350,14 +350,14 @@ episode_s3_p4_07:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.610526
@@ -371,10 +371,10 @@ episode_s3_p4_07:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.947368
   - position:
     - -19.8
@@ -388,7 +388,7 @@ episode_s3_p4_07:
     initial_idle: 2.105263
   physical_human_metrics: true
 episode_s3_p4_08:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -405,14 +405,14 @@ episode_s3_p4_08:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.678947
@@ -426,10 +426,10 @@ episode_s3_p4_08:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 3.0
   - position:
     - -19.8
@@ -443,7 +443,7 @@ episode_s3_p4_08:
     initial_idle: 2.684211
   physical_human_metrics: true
 episode_s3_p4_09:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -460,14 +460,14 @@ episode_s3_p4_09:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.747368
@@ -481,10 +481,10 @@ episode_s3_p4_09:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.894737
   - position:
     - -19.8
@@ -498,7 +498,7 @@ episode_s3_p4_09:
     initial_idle: 2.789474
   physical_human_metrics: true
 episode_s3_p4_10:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -515,14 +515,14 @@ episode_s3_p4_10:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.815789
@@ -536,10 +536,10 @@ episode_s3_p4_10:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.736842
   - position:
     - -19.8
@@ -553,7 +553,7 @@ episode_s3_p4_10:
     initial_idle: 2.0
   physical_human_metrics: true
 episode_s3_p4_11:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -570,14 +570,14 @@ episode_s3_p4_11:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.884211
@@ -591,10 +591,10 @@ episode_s3_p4_11:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.526316
   - position:
     - -19.8
@@ -608,7 +608,7 @@ episode_s3_p4_11:
     initial_idle: 3.0
   physical_human_metrics: true
 episode_s3_p4_12:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -625,14 +625,14 @@ episode_s3_p4_12:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 0.952632
@@ -646,10 +646,10 @@ episode_s3_p4_12:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.263158
   - position:
     - -19.8
@@ -663,7 +663,7 @@ episode_s3_p4_12:
     initial_idle: 2.421053
   physical_human_metrics: true
 episode_s3_p4_13:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -680,14 +680,14 @@ episode_s3_p4_13:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.021053
@@ -701,10 +701,10 @@ episode_s3_p4_13:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.157895
   - position:
     - -19.8
@@ -718,7 +718,7 @@ episode_s3_p4_13:
     initial_idle: 2.842105
   physical_human_metrics: true
 episode_s3_p4_14:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -735,14 +735,14 @@ episode_s3_p4_14:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.089474
@@ -756,10 +756,10 @@ episode_s3_p4_14:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.105263
   - position:
     - -19.8
@@ -773,7 +773,7 @@ episode_s3_p4_14:
     initial_idle: 2.736842
   physical_human_metrics: true
 episode_s3_p4_15:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -790,14 +790,14 @@ episode_s3_p4_15:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.157895
@@ -811,10 +811,10 @@ episode_s3_p4_15:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.0
   - position:
     - -19.8
@@ -828,7 +828,7 @@ episode_s3_p4_15:
     initial_idle: 2.631579
   physical_human_metrics: true
 episode_s3_p4_16:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -845,14 +845,14 @@ episode_s3_p4_16:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.226316
@@ -866,10 +866,10 @@ episode_s3_p4_16:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.631579
   - position:
     - -19.8
@@ -883,7 +883,7 @@ episode_s3_p4_16:
     initial_idle: 2.368421
   physical_human_metrics: true
 episode_s3_p4_17:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -900,14 +900,14 @@ episode_s3_p4_17:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.294737
@@ -921,10 +921,10 @@ episode_s3_p4_17:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.473684
   - position:
     - -19.8
@@ -938,7 +938,7 @@ episode_s3_p4_17:
     initial_idle: 2.947368
   physical_human_metrics: true
 episode_s3_p4_18:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -955,14 +955,14 @@ episode_s3_p4_18:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.363158
@@ -976,10 +976,10 @@ episode_s3_p4_18:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.210526
   - position:
     - -19.8
@@ -993,7 +993,7 @@ episode_s3_p4_18:
     initial_idle: 2.210526
   physical_human_metrics: true
 episode_s3_p4_19:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -1010,14 +1010,14 @@ episode_s3_p4_19:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.431579
@@ -1031,10 +1031,10 @@ episode_s3_p4_19:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.684211
   - position:
     - -19.8
@@ -1048,7 +1048,7 @@ episode_s3_p4_19:
     initial_idle: 2.157895
   physical_human_metrics: true
 episode_s3_p4_20:
-  scene: https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
+  scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
   - 11.0
@@ -1065,14 +1065,14 @@ episode_s3_p4_20:
   scripted_humans:
   - position:
     - -21.8
-    - 10.85
+    - 10.75
     - 0.01
     walk_route:
     - - -26.8
-      - 10.85
+      - 10.75
       - 0.01
     - - -21.8
-      - 10.85
+      - 10.75
       - 0.01
     yaw_degrees: 180.0
     initial_idle: 1.5
@@ -1086,10 +1086,10 @@ episode_s3_p4_20:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.3
+    - - -24.3
       - 12.8
       - 0.01
-    yaw_degrees: 141.340192
+    yaw_degrees: 134.204276
     initial_idle: 2.842105
   - position:
     - -19.8

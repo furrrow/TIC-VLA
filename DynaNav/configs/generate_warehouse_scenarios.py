@@ -16,10 +16,7 @@ from generate_hospital_scenarios import (
 )
 
 
-SCENE = (
-    "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/"
-    "Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd"
-)
+SCENE = "/media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Simple_Warehouse/full_warehouse.usd"
 START = [-10.0, 1.0, 0.01]
 GOAL = [-8.2, 8.2, 0.01]
 INSTRUCTION = "go to the person wearing a blue shirt and dark trousers."
