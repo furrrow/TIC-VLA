@@ -51,6 +51,21 @@ The worker collects metrics and cleans up episode resources. The child writes on
 
 The child process exits after its episode, so the next episode starts with a fresh SimulationApp. There is no separate `run_benchmark()` method in the current workflow.
 
+For `ticvla_ros` runs, RGB frames are saved under
+`${TICVLA_LOG_DIR}/<run_id>/<episode_name>/front_camera/` and
+`third_person_camera/`. Convert either sequence to MP4 with:
+
+```bash
+python DynaNav/frames_to_video.py \
+  /path/to/episode/third_person_camera \
+  /path/to/episode/third_person.mp4 \
+  --fps 10
+```
+
+The utility expects sequential `frame_*.jpg` images of equal dimensions. Use
+`--pattern` for another filename glob and `--codec` to select a different
+four-character OpenCV codec.
+
 ### Multi-scenario Nova experiments
 
 From the repository root, run all three five-episode scenarios sequentially with:

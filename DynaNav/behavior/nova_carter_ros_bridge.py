@@ -35,7 +35,9 @@ COMMAND_TIMEOUT_S = 0.5
 ZERO_COMMAND_TIMEOUT_S = float(os.environ.get("TICVLA_ZERO_COMMAND_TIMEOUT_S", "5.0"))
 ZERO_COMMAND_EPSILON = float(os.environ.get("TICVLA_ZERO_COMMAND_EPSILON", "0.001"))
 ZERO_COMMAND_TIMEOUT_FRAMES = max(1, round(ZERO_COMMAND_TIMEOUT_S * runtime.SIMULATION_FPS))
-CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/front_hawk/left/camera_left"
+FRONT_CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/front_hawk/left/camera_left"
+THIRD_PERSON_CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/third_person_view_cam"
+CAMERA_RESOLUTION = (1920, 1080)
 BASE_LINK_PATH = "/World/Robots/Nova_Carter/chassis_link"
 CHARACTER_ROOT_PATH = "/World/Characters"
 EXCLUDED_CHARACTER_PATHS = {"/World/Characters/Biped_Setup/biped_demo_meters"}
@@ -83,9 +85,12 @@ class NovaCarterROSBridge(BehaviorScript):
         self._zero_command_frames = 0
         self._zero_command_failure_reported = False
         self._owns_rclpy = False
-        self._render_product = None
-        self._annotator = None
-        self._image_dir = None
+        self._front_render_product = None
+        self._front_annotator = None
+        self._third_person_render_product = None
+        self._third_person_annotator = None
+        self._front_image_dir = None
+        self._third_person_image_dir = None
         self._image_index = 0
         self._closed = False
         self._episode_id = None
@@ -121,17 +126,31 @@ class NovaCarterROSBridge(BehaviorScript):
             )
         if not getattr(self._robot, "_initialized", False):
             self._robot.initialize()
-        if self._annotator is None:
-            self._render_product = rep.create.render_product(CAMERA_PATH, resolution=(1920, 1080))
-            self._annotator = rep.AnnotatorRegistry.get_annotator("rgb")
-            self._annotator.attach([self._render_product])
+        if self._front_annotator is None:
+            self._front_render_product = rep.create.render_product(
+                FRONT_CAMERA_PATH, resolution=CAMERA_RESOLUTION
+            )
+            self._front_annotator = rep.AnnotatorRegistry.get_annotator("rgb")
+            self._front_annotator.attach([self._front_render_product])
+        if self._third_person_annotator is None:
+            self._third_person_render_product = rep.create.render_product(
+                THIRD_PERSON_CAMERA_PATH, resolution=CAMERA_RESOLUTION
+            )
+            self._third_person_annotator = rep.AnnotatorRegistry.get_annotator("rgb")
+            self._third_person_annotator.attach([self._third_person_render_product])
         self._closed = False
         episode = self._benchmark_context
-        self._image_dir = Path(episode.log_dir) / episode.run_id / episode.episode_name / "front_camera"
-        self._image_dir.mkdir(parents=True, exist_ok=True)
+        episode_dir = Path(episode.log_dir) / episode.run_id / episode.episode_name
+        self._front_image_dir = episode_dir / "front_camera"
+        self._third_person_image_dir = episode_dir / "third_person_camera"
+        self._front_image_dir.mkdir(parents=True, exist_ok=True)
+        self._third_person_image_dir.mkdir(parents=True, exist_ok=True)
         self._image_index = 0
         self._pedestrian_history.clear()
-        carb.log_info(f"Saving ROS bridge camera frames to {self._image_dir}")
+        carb.log_info(
+            "Saving ROS bridge camera frames to "
+            f"{self._front_image_dir} and {self._third_person_image_dir}"
+        )
         self._episode_id = f"{episode.run_id}:{episode.episode_name}:{os.getpid()}"
         message = String()
         message.data = json.dumps({
@@ -291,33 +310,51 @@ class NovaCarterROSBridge(BehaviorScript):
         self._odom_pub.publish(odom)
 
         # Replicator rgb is RGB or RGBA. OpenCV's JPEG encoder expects BGR.
-        if self._annotator is None:
+        if self._front_annotator is None:
             return
-        frame = self._annotator.get_data()
-        if frame is None or not hasattr(frame, "shape") or frame.size == 0:
+        jpeg = self._encode_camera_frame(self._front_annotator, "front")
+        if jpeg is None:
             return
-        if frame.ndim != 3 or frame.shape[2] not in (3, 4):
-            carb.log_warn(f"Unexpected front camera frame shape: {frame.shape}")
-            return
-        if frame.dtype != np.uint8:
-            frame = np.clip(frame, 0, 255).astype(np.uint8)
-        bgr = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR if frame.shape[2] == 4 else cv2.COLOR_RGB2BGR)
-        encoded, jpeg = cv2.imencode(".jpg", bgr)
-        if not encoded:
-            carb.log_warn("Failed to JPEG-encode front camera frame")
-            return
-        image_path = self._image_dir / f"frame_{self._image_index:06d}.jpg"
-        try:
-            image_path.write_bytes(jpeg.tobytes())
-            self._image_index += 1
-        except OSError as exc:
-            carb.log_warn(f"Failed to save front camera frame to {image_path}: {exc}")
+        self._write_camera_frame(self._front_image_dir, jpeg, "front")
+        if self._third_person_annotator is not None:
+            third_person_jpeg = self._encode_camera_frame(
+                self._third_person_annotator, "third-person"
+            )
+            if third_person_jpeg is not None:
+                self._write_camera_frame(
+                    self._third_person_image_dir, third_person_jpeg, "third-person"
+                )
+        self._image_index += 1
         image = CompressedImage()
         image.header.stamp = stamp
         image.header.frame_id = "front_camera"
         image.format = "jpeg"
         image.data = jpeg.tobytes()
         self._image_pub.publish(image)
+
+    @staticmethod
+    def _encode_camera_frame(annotator, camera_name):
+        frame = annotator.get_data()
+        if frame is None or not hasattr(frame, "shape") or frame.size == 0:
+            return None
+        if frame.ndim != 3 or frame.shape[2] not in (3, 4):
+            carb.log_warn(f"Unexpected {camera_name} camera frame shape: {frame.shape}")
+            return None
+        if frame.dtype != np.uint8:
+            frame = np.clip(frame, 0, 255).astype(np.uint8)
+        conversion = cv2.COLOR_RGBA2BGR if frame.shape[2] == 4 else cv2.COLOR_RGB2BGR
+        encoded, jpeg = cv2.imencode(".jpg", cv2.cvtColor(frame, conversion))
+        if not encoded:
+            carb.log_warn(f"Failed to JPEG-encode {camera_name} camera frame")
+            return None
+        return jpeg
+
+    def _write_camera_frame(self, image_dir, jpeg, camera_name):
+        image_path = image_dir / f"frame_{self._image_index:06d}.jpg"
+        try:
+            image_path.write_bytes(jpeg.tobytes())
+        except OSError as exc:
+            carb.log_warn(f"Failed to save {camera_name} camera frame to {image_path}: {exc}")
 
     def on_stop(self):
         self._close()
@@ -340,13 +377,20 @@ class NovaCarterROSBridge(BehaviorScript):
                 self._robot.apply_wheel_actions(action)
         except Exception as exc:
             carb.log_warn(f"Failed to stop Nova Carter wheels: {exc}")
-        if self._annotator is not None:
+        if self._front_annotator is not None:
             try:
-                self._annotator.detach()
+                self._front_annotator.detach()
             except Exception as exc:
                 carb.log_warn(f"Failed to detach front camera annotator: {exc}")
-            self._annotator = None
-        self._render_product = None
+            self._front_annotator = None
+        if self._third_person_annotator is not None:
+            try:
+                self._third_person_annotator.detach()
+            except Exception as exc:
+                carb.log_warn(f"Failed to detach third-person camera annotator: {exc}")
+            self._third_person_annotator = None
+        self._front_render_product = None
+        self._third_person_render_product = None
         if self._node is not None:
             self._node.destroy_node()
             self._node = None
