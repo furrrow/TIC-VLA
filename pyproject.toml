@@ -23,6 +23,7 @@ dependencies = [
     "pytorch-lightning>=2.6.6",
     "custom_utils",
     "pytest>=9.2.0",
+    "pandas>=2.3.3",
 ]
 
 [tool.uv.sources]

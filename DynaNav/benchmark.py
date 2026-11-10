@@ -556,18 +556,6 @@ class BenchmarkRunner:
                     )
                 self.behavior_context.frame_count = self.state.simulation_frame_count
 
-                if self.terminate_on_human_collision and self.state.human_collision_detected:
-                    self.state.termination_condition = "human_collision"
-                    self.state.termination_reason = (
-                        "Terminated after detecting a collision with a pedestrian"
-                    )
-                    self.state.failure_reason = self.state.termination_reason
-                    _print_termination_banner(
-                        self.state.name, False, self.state.termination_condition,
-                        self.state.termination_reason,
-                    )
-                    return False
-
                 failure_reason = self.behavior_context.failure_reason
                 if failure_reason:
                     self.state.termination_condition = "behavior_failure"
@@ -580,10 +568,29 @@ class BenchmarkRunner:
                     return False
 
                 if self._update_success_criteria(distance):
-                    print(
+                    self.state.termination_condition = "goal_reached"
+                    self.state.termination_reason = (
                         "Success criterion met: robot came within "
                         f"{self.state.goal_threshold:.2f}m of the goal"
                     )
+                    print(self.state.termination_reason)
+                    _print_termination_banner(
+                        self.state.name, True, self.state.termination_condition,
+                        self.state.termination_reason,
+                    )
+                    return True
+
+                if self.terminate_on_human_collision and self.state.human_collision_detected:
+                    self.state.termination_condition = "human_collision"
+                    self.state.termination_reason = (
+                        "Terminated after detecting a collision with a pedestrian"
+                    )
+                    self.state.failure_reason = self.state.termination_reason
+                    _print_termination_banner(
+                        self.state.name, False, self.state.termination_condition,
+                        self.state.termination_reason,
+                    )
+                    return False
 
                 if self.terminate_when_moving_away and moving_away:
                     grace_seconds = self.state.moving_away_grace_frames / SIMULATION_FPS

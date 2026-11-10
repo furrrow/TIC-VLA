@@ -1,9 +1,11 @@
 import sys
+import types
 import unittest
 from contextlib import redirect_stderr
 from io import StringIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from unittest.mock import AsyncMock, Mock, patch
 
 
 DYNANAV_DIR = Path(__file__).resolve().parents[1] / "DynaNav"
@@ -55,6 +57,65 @@ class MovingAwayTrackingTests(unittest.TestCase):
         self.assertTrue(runner.state.success_criteria_met)
         self.assertFalse(runner._update_success_criteria(3.0))
         self.assertTrue(runner.state.success_criteria_met)
+
+
+class GoalCollisionPrecedenceTests(unittest.IsolatedAsyncioTestCase):
+    async def run_frame(self, distance):
+        runner = benchmark.BenchmarkRunner.__new__(benchmark.BenchmarkRunner)
+        runner.state = benchmark.EpisodeState(name="episode_1", goal_threshold=2.0)
+        runner.behavior_context = types.SimpleNamespace(failure_reason=None, frame_count=0)
+        runner.terminate_on_human_collision = True
+        runner.terminate_when_moving_away = False
+        runner.debug_print = False
+        runner._update_robot_position = AsyncMock(
+            side_effect=lambda: setattr(runner.state, "human_collision_detected", True)
+        )
+        runner._get_distance_to_goal = Mock(return_value=distance)
+        runner._update_goal_distance_tracking = Mock(return_value=False)
+
+        timeline = types.SimpleNamespace(
+            get_time_codes_per_second=Mock(return_value=60),
+            set_time_codes_per_second=Mock(),
+            commit_silently=Mock(),
+            is_playing=Mock(return_value=True),
+            stop=Mock(),
+        )
+        app = types.SimpleNamespace(next_update_async=AsyncMock())
+        modules = {
+            "omni": types.ModuleType("omni"),
+            "omni.timeline": types.SimpleNamespace(
+                get_timeline_interface=Mock(return_value=timeline)
+            ),
+            "omni.replicator": types.ModuleType("omni.replicator"),
+            "omni.replicator.core": types.SimpleNamespace(
+                orchestrator=types.SimpleNamespace(set_capture_on_play=Mock())
+            ),
+            "omni.kit": types.ModuleType("omni.kit"),
+            "omni.kit.app": types.SimpleNamespace(
+                get_app=Mock(return_value=app)
+            ),
+        }
+        modules["omni"].timeline = modules["omni.timeline"]
+        modules["omni"].replicator = modules["omni.replicator"]
+        modules["omni"].kit = modules["omni.kit"]
+        modules["omni.replicator"].core = modules["omni.replicator.core"]
+        modules["omni.kit"].app = modules["omni.kit.app"]
+
+        with patch.dict(sys.modules, modules), redirect_stderr(StringIO()):
+            result = await runner._run_navigation(timeout_frames=1)
+        return runner, result
+
+    async def test_same_frame_goal_and_collision_is_success(self):
+        runner, result = await self.run_frame(0.4)
+
+        self.assertTrue(result)
+        self.assertEqual(runner.state.termination_condition, "goal_reached")
+
+    async def test_collision_outside_goal_threshold_is_failure(self):
+        runner, result = await self.run_frame(3.0)
+
+        self.assertFalse(result)
+        self.assertEqual(runner.state.termination_condition, "human_collision")
 
 
 class MovingAwayConfigAndReportingTests(unittest.TestCase):
