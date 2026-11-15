@@ -51,9 +51,10 @@ The worker collects metrics and cleans up episode resources. The child writes on
 
 The child process exits after its episode, so the next episode starts with a fresh SimulationApp. There is no separate `run_benchmark()` method in the current workflow.
 
-For `ticvla_ros` runs, RGB frames are saved under
-`${TICVLA_LOG_DIR}/<run_id>/<episode_name>/front_camera/` and
-`third_person_camera/`. Convert either sequence to MP4 with:
+For `ticvla_ros` runs, only third-person RGB frames are saved under
+`${TICVLA_LOG_DIR}/<run_id>/<episode_name>/third_person_camera/`.
+The front camera is still published over ROS for navigation but is not saved
+to disk. Convert the third-person sequence to MP4 with:
 
 ```bash
 python DynaNav/frames_to_video.py \

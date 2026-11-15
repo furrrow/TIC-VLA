@@ -134,7 +134,12 @@ if [[ "${MODE}" != "normal" ]]; then
 #  steernav_flags="--debug-motion"
   steernav_flags=""
   if [[ "${MODE}" != "no-velocity" ]]; then
-    steernav_flags="${steernav_flags} --object-velocity-source ${OBJECT_VELOCITY_SOURCE}"
+    if rg -q -- '--object-velocity-source' "${STEERNAV_ROOT}/steernav/ros_inference.py"; then
+      steernav_flags="${steernav_flags} --object-velocity-source ${OBJECT_VELOCITY_SOURCE}"
+    elif [[ "${OBJECT_VELOCITY_SOURCE}" != "estimated" ]]; then
+      echo "This SteerNav checkout supports estimated velocities only." >&2
+      exit 2
+    fi
   fi
   if [[ "${FIX_END}" == true ]]; then
     steernav_flags="${steernav_flags} --fix-end"

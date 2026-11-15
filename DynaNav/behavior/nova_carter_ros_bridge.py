@@ -89,7 +89,6 @@ class NovaCarterROSBridge(BehaviorScript):
         self._front_annotator = None
         self._third_person_render_product = None
         self._third_person_annotator = None
-        self._front_image_dir = None
         self._third_person_image_dir = None
         self._image_index = 0
         self._closed = False
@@ -141,15 +140,12 @@ class NovaCarterROSBridge(BehaviorScript):
         self._closed = False
         episode = self._benchmark_context
         episode_dir = Path(episode.log_dir) / episode.run_id / episode.episode_name
-        self._front_image_dir = episode_dir / "front_camera"
         self._third_person_image_dir = episode_dir / "third_person_camera"
-        self._front_image_dir.mkdir(parents=True, exist_ok=True)
         self._third_person_image_dir.mkdir(parents=True, exist_ok=True)
         self._image_index = 0
         self._pedestrian_history.clear()
         carb.log_info(
-            "Saving ROS bridge camera frames to "
-            f"{self._front_image_dir} and {self._third_person_image_dir}"
+            f"Saving ROS bridge third-person frames to {self._third_person_image_dir}"
         )
         self._episode_id = f"{episode.run_id}:{episode.episode_name}:{os.getpid()}"
         message = String()
@@ -315,7 +311,7 @@ class NovaCarterROSBridge(BehaviorScript):
         jpeg = self._encode_camera_frame(self._front_annotator, "front")
         if jpeg is None:
             return
-        self._write_camera_frame(self._front_image_dir, jpeg, "front")
+        # Keep the front view for live navigation; only archive the third-person view.
         if self._third_person_annotator is not None:
             third_person_jpeg = self._encode_camera_frame(
                 self._third_person_annotator, "third-person"
