@@ -82,7 +82,9 @@ CROSSOVER_MOVERS = (
         {
             # Starts farther down the hall/right, then walks gently south-left.
             "position": [-20.8, 9.2, 0.01],
-            "walk_route": [[-23.8, 10.2, 0.01]],
+            # "walk_route": [[-23.8, 10.2, 0.01]],
+            # 2 m farther on the same (-3, +1) heading:
+            "walk_route": [[-25.697367, 10.832456, 0.01]],
             "yaw_degrees": 161.565051,
         },
     ),
@@ -240,6 +242,7 @@ def make_config(
     instruction: str = INSTRUCTION,
     target: dict = TARGET,
     start_yaws: tuple[float, ...] | list[float] = (0.0,),
+    goal_stop_collision_margin: float | None = None,
 ) -> dict:
     config: dict = {
         "seed": seed,
@@ -247,6 +250,8 @@ def make_config(
         "success_threshold": success_threshold,
         "human_collision_threshold_m": human_collision_threshold,
     }
+    if goal_stop_collision_margin is not None:
+        config["goal_stop_collision_margin_m"] = goal_stop_collision_margin
     episode_yaws = list(itertools.islice(itertools.cycle(start_yaws), len(delays)))
     width = max(2, len(str(len(delays))))
     for index, (delay_values, start_yaw) in enumerate(
@@ -355,6 +360,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--seed", type=int, default=36)
     parser.add_argument("--success-threshold", type=float, default=2.0)
+    parser.add_argument("--goal-stop-collision-margin", type=float, default=None,
+                        help="Optional close-goal stop margin above collision threshold; success scoring stays separate")
     parser.add_argument("--human-collision-threshold", type=float, default=0.4)
     parser.add_argument("--timeout", type=float, default=40.0)
     parser.add_argument("--episode-prefix", default="episode_s3")
@@ -373,6 +380,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.goal_stop_collision_margin is not None and (not math.isfinite(args.goal_stop_collision_margin) or args.goal_stop_collision_margin <= 0):
+        raise SystemExit("--goal-stop-collision-margin must be positive and finite")
     if args.seed < 0:
         raise SystemExit("--seed must be nonnegative")
     if not math.isfinite(args.success_threshold) or args.success_threshold <= 0:
@@ -414,6 +423,7 @@ def main() -> int:
             delays=delays,
             seed=args.seed,
             success_threshold=args.success_threshold,
+            goal_stop_collision_margin=args.goal_stop_collision_margin,
             human_collision_threshold=args.human_collision_threshold,
             timeout=args.timeout,
             episode_prefix=args.episode_prefix,
