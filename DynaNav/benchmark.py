@@ -165,6 +165,8 @@ class EpisodeState:
     contact_consecutive_frames: int = 0
     max_contact_consecutive_frames: int = 0
     goal_threshold: float = 0.5
+    goal_stop_radius_m: float | None = None
+    goal_stop_collision_margin_m: float | None = None
     success_criteria_met: bool = False
     closest_goal_distance_m: float | None = None
     initial_goal_distance_m: float | None = None
@@ -333,6 +335,7 @@ class BenchmarkRunner:
             duration_frames=self.state.simulation_frame_count - self.state.start_frame,
             navigation_error=self._get_distance_to_goal(),
             closest_goal_distance_m=self.state.closest_goal_distance_m,
+            success_criteria_met=self.state.success_criteria_met,
             spl=self._calculate_spl(success),
             path_length=self._calculate_path_length(),
             human_collision=self.state.human_collision_detected,
@@ -363,6 +366,9 @@ class BenchmarkRunner:
             config=episode_config,
             start_time=time.monotonic(),
             goal_threshold=episode_config['success_threshold'],
+            goal_stop_radius_m=(config_utils.goal_stop_radius_m(episode_config)
+                                if episode_config.get('goal_stop_collision_margin_m') is not None else None),
+            goal_stop_collision_margin_m=episode_config.get('goal_stop_collision_margin_m'),
             moving_away_distance_buffer_m=episode_config['moving_away_distance_buffer_m'],
             moving_away_grace_frames=max(
                 1, int(episode_config['moving_away_grace_seconds'] * SIMULATION_FPS)
@@ -370,6 +376,10 @@ class BenchmarkRunner:
             moving_away_min_progress_m=episode_config['moving_away_min_progress_m'],
         )
 
+        print(f"Episode protocol: success_threshold={self.state.goal_threshold:.3f}m "
+              f"goal_stop_radius={config_utils.goal_stop_radius_m(episode_config):.3f}m "
+              f"collision_threshold={self.human_collision_threshold:.3f}m "
+              f"close_approach={self.state.goal_stop_radius_m is not None}")
         # Set up simulation for this episode
         await self._setup_episode_simulation(episode_config)
         print(f"Setup episode simulation succeed")
@@ -547,6 +557,8 @@ class BenchmarkRunner:
                 self.state.simulation_frame_count += 1
                 distance = self._get_distance_to_goal()
                 moving_away = self._update_goal_distance_tracking(distance)
+                # 9560af1 latched success independently of moving-away termination.
+                self._update_success_criteria(distance)
                 # Avoid printing every frame (can flood logs and slow down Isaac Sim).
                 if self.debug_print and (self.state.simulation_frame_count % SIMULATION_FPS == 0):
                     distance = self._get_distance_to_goal()
@@ -567,30 +579,38 @@ class BenchmarkRunner:
                     )
                     return False
 
-                if self._update_success_criteria(distance):
+                collision = self.terminate_on_human_collision and self.state.human_collision_detected
+                # Preserve 9d4e12b precedence for legacy configs. For close approach,
+                # a step that crosses both radii must still be classified as collision.
+                if collision and self.state.goal_stop_radius_m is not None:
+                    return self._terminate_human_collision()
+
+                if self._should_stop_at_goal(distance):
                     self.state.termination_condition = "goal_reached"
-                    self.state.termination_reason = (
-                        "Success criterion met: robot came within "
-                        f"{self.state.goal_threshold:.2f}m of the goal"
-                    )
+                    if self.state.goal_stop_radius_m is None:
+                        self.state.termination_reason = (
+                            "Success criterion met: robot came within "
+                            f"{self.state.goal_threshold:.2f}m of the goal"
+                        )
+                    else:
+                        self.state.termination_reason = (
+                            f"Close-goal stop at {distance:.3f}m: radius "
+                            f"{self.state.goal_stop_radius_m:.3f}m = collision threshold "
+                            f"{self.human_collision_threshold:.3f}m + "
+                            f"{self.state.goal_stop_collision_margin_m:.3f}m margin; "
+                            f"success scoring threshold {self.state.goal_threshold:.3f}m"
+                        )
+                    if not self.state.success_criteria_met:
+                        self.state.failure_reason = self.state.termination_reason
                     print(self.state.termination_reason)
                     _print_termination_banner(
-                        self.state.name, True, self.state.termination_condition,
-                        self.state.termination_reason,
+                        self.state.name, self.state.success_criteria_met,
+                        self.state.termination_condition, self.state.termination_reason,
                     )
-                    return True
+                    return self.state.success_criteria_met
 
-                if self.terminate_on_human_collision and self.state.human_collision_detected:
-                    self.state.termination_condition = "human_collision"
-                    self.state.termination_reason = (
-                        "Terminated after detecting a collision with a pedestrian"
-                    )
-                    self.state.failure_reason = self.state.termination_reason
-                    _print_termination_banner(
-                        self.state.name, False, self.state.termination_condition,
-                        self.state.termination_reason,
-                    )
-                    return False
+                if collision:
+                    return self._terminate_human_collision()
 
                 if self.terminate_when_moving_away and moving_away:
                     grace_seconds = self.state.moving_away_grace_frames / SIMULATION_FPS
@@ -724,6 +744,22 @@ class BenchmarkRunner:
         if float(distance) < self.state.goal_threshold:
             self.state.success_criteria_met = True
             return True
+        return False
+
+    def _should_stop_at_goal(self, distance):
+        """Close-approach radius is independent of the latched success criterion."""
+        if not np.isfinite(distance):
+            return False
+        if self.state.goal_stop_radius_m is None:
+            return float(distance) < self.state.goal_threshold
+        return float(distance) <= self.state.goal_stop_radius_m
+
+    def _terminate_human_collision(self):
+        self.state.termination_condition = "human_collision"
+        self.state.termination_reason = "Terminated after detecting a collision with a pedestrian"
+        self.state.failure_reason = self.state.termination_reason
+        _print_termination_banner(self.state.name, False, self.state.termination_condition,
+                                  self.state.termination_reason)
         return False
 
     def _get_distance_to_goal(self):

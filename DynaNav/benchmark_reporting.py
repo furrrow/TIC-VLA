@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+from benchmark_config import goal_stop_radius_m
 from benchmark_runtime import SIMULATION_FPS
 
 
@@ -29,6 +30,7 @@ class EpisodeMetrics:
     duration_frames: int = 0
     navigation_error: float = float("inf")
     closest_goal_distance_m: float | None = None
+    success_criteria_met: bool | None = None
     spl: float = 0.0
     path_length: float = 0.0
     human_collision: bool = False
@@ -59,6 +61,12 @@ def build_episode_result(
         "timeout": episode_config.get("timeout", 0),
         "robot_type": episode_config.get("robot_type", ""),
         "success": metrics.success,
+        "success_threshold_m": episode_config.get("success_threshold"),
+        "success_criteria_met": metrics.success_criteria_met,
+        "human_collision_threshold_m": episode_config.get("human_collision_threshold_m"),
+        "goal_stop_collision_margin_m": episode_config.get("goal_stop_collision_margin_m"),
+        "goal_stop_radius_m": goal_stop_radius_m(episode_config),
+        "goal_stop_protocol": ("collision_margin" if episode_config.get("goal_stop_collision_margin_m") is not None else "success_threshold"),
         "duration": metrics.duration_frames / SIMULATION_FPS,
         "duration_frames": metrics.duration_frames,
         "navigation_error": metrics.navigation_error,
@@ -185,6 +193,9 @@ def _episode_lines(result: dict) -> list[str]:
         f"  Robot: {result.get('robot_type', 'N/A')}",
         f"  Instruction: {result.get('instruction', '')}",
     ]
+    if result.get("success_threshold_m") is not None:
+        lines.append(f"  Success Scoring Threshold: {result['success_threshold_m']:.3f}m")
+        lines.append(f"  Goal Stop Radius: {result['goal_stop_radius_m']:.3f}m ({result['goal_stop_protocol']})")
     termination_condition = result.get("termination_condition") or "unknown"
     termination_reason = result.get("termination_reason")
     if termination_reason is None and not result.get("success"):

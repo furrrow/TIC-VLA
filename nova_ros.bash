@@ -96,6 +96,7 @@ fi
 
 log_dir="${LOG_ROOT}/${session_name}"
 mkdir -p "${log_dir}"
+STEERNAV_VISUALIZATION_FRAME_DIR="${STEERNAV_VISUALIZATION_FRAME_DIR:-${log_dir}/steernav_frames}"
 inference_log="${log_dir}/inference.log"
 controller_log="${log_dir}/controller.log"
 steernav_log="${log_dir}/steernav.log"
@@ -133,6 +134,12 @@ if [[ "${MODE}" != "normal" ]]; then
   controller_flags="--steer ${controller_flags}"
 #  steernav_flags="--debug-motion"
   steernav_flags=""
+  if ! rg -q -- '--visualization-frame-dir' "${STEERNAV_ROOT}/steernav/ros_inference.py"; then
+    echo "SteerNav checkout lacks visualization frame saving support." >&2
+    exit 2
+  fi
+  printf -v visualization_frame_dir_quoted '%q' "${STEERNAV_VISUALIZATION_FRAME_DIR}"
+  steernav_flags+=" --visualization-frame-dir ${visualization_frame_dir_quoted}"
   if [[ "${MODE}" != "no-velocity" ]]; then
     if rg -q -- '--object-velocity-source' "${STEERNAV_ROOT}/steernav/ros_inference.py"; then
       steernav_flags="${steernav_flags} --object-velocity-source ${OBJECT_VELOCITY_SOURCE}"

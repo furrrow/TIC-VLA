@@ -207,6 +207,7 @@ run_mode() {
     nova_ros_args+=(--no-fix-end)
   fi
   NOVA_ROS_LOG_ROOT="${run_log_dir}" \
+  STEERNAV_VISUALIZATION_FRAME_DIR="${run_log_dir}/steernav_frames" \
     "${REPO_ROOT}/nova_ros.bash" "${nova_ros_args[@]}"
   # Only clean up sessions successfully created by this invocation.
   active_session="${session}"

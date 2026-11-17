@@ -10,14 +10,14 @@ import yaml
 
 GLOBAL_KEYS = {
     "seed", "navigation_method", "inference_method", "success_threshold",
-    "human_collision_threshold_m",
+    "human_collision_threshold_m", "goal_stop_collision_margin_m",
     "moving_away_distance_buffer_m", "moving_away_grace_seconds",
     "moving_away_min_progress_m",
 }
 EPISODE_KEYS = {
     "scene", "start", "start_yaw", "goal", "instruction", "timeout",
     "num_people", "robot_type", "success_threshold",
-    "human_collision_threshold_m",
+    "human_collision_threshold_m", "goal_stop_collision_margin_m",
     "scripted_humans", "physical_human_metrics",
     "moving_away_distance_buffer_m", "moving_away_grace_seconds",
     "moving_away_min_progress_m",
@@ -72,6 +72,18 @@ def _position(value, field):
     return value
 
 
+def goal_stop_radius_m(episode):
+    """Resolve early stopping independently of the success scoring threshold."""
+    margin = episode.get("goal_stop_collision_margin_m")
+    if margin is None:
+        return float(episode.get("success_threshold", 1.5))
+    return float(episode["human_collision_threshold_m"]) + float(margin)
+
+
+def _goal_stop_margin(value, field):
+    return None if value is None else _number(value, field, positive=True)
+
+
 def load_benchmark_config(path):
     """Return a validated mapping with defaults applied to every episode."""
     with Path(path).open(encoding="utf-8") as stream:
@@ -92,6 +104,8 @@ def load_benchmark_config(path):
         "navigation_method": method.lower(),
         "inference_method": inference_method.strip(),
         "success_threshold": threshold,
+        "goal_stop_collision_margin_m": _goal_stop_margin(
+            config.get("goal_stop_collision_margin_m"), "goal_stop_collision_margin_m"),
         "human_collision_threshold_m": _number(
             config.get("human_collision_threshold_m", 0.2),
             "human_collision_threshold_m", positive=True,
@@ -170,6 +184,9 @@ def load_benchmark_config(path):
             f"episode {name!r} human_collision_threshold_m",
             positive=True,
         )
+        entry["goal_stop_collision_margin_m"] = _goal_stop_margin(
+            entry.get("goal_stop_collision_margin_m", validated["goal_stop_collision_margin_m"]),
+            f"episode {name!r} goal_stop_collision_margin_m")
         for field in (
             "moving_away_distance_buffer_m", "moving_away_grace_seconds",
             "moving_away_min_progress_m",

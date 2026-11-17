@@ -134,6 +134,21 @@ optimization. `--no-fix-end` is retained as an explicit compatibility option:
 
 ### Nova Carter ROS sensor preview
 
+To rerun only the hard crossover velocity ablation across NaVILA, TIC-VLA,
+and OmniVLA:
+
+```bash
+./run_hard_velocity_ablation.bash --dry-run
+./run_hard_velocity_ablation.bash
+```
+
+This runs the same 20 trials in `no-velocity` and `steered` modes for each
+model (120 episodes total), with `OBJECT_VELOCITY_SOURCE=estimated` and a
+shared SteerNav checkout. Each invocation uses a unique batch prefix. Set
+`PROJECTS=TIC-VLA` to run only TIC-VLA, or set `BATCH_PREFIX` to name the
+comparison. Pass `--fix-end` to fix the final waypoint in both modes.
+Run outside tmux, as the experiment launcher attaches to its own sessions.
+
 The `ticvla_ros` method publishes Nova Carter's forward camera as
 `sensor_msgs/CompressedImage` on `/isaacsim/camera/front/image_raw/compressed` and
 base-frame velocity and pose as `nav_msgs/Odometry` on `/isaacsim/odom`. It
@@ -284,3 +299,41 @@ To convert collected camera JSON poses into a trajectory CSV:
 ```bash
 python camera_pose_trajectory.py output/office --out_csv output/office/trajectory.csv
 ```
+
+### Close-approach stopping, separate from scoring
+
+The optional YAML field `goal_stop_collision_margin_m: 0.1` changes early goal
+termination to horizontal goal distance <= `human_collision_threshold_m + 0.1`.
+For the current 0.4 m collision threshold, this is a 0.5 m stop radius. Crossing
+`success_threshold: 1.0` only latches criterion attainment; navigation continues
+until the close radius, sustained moving-away, timeout or an existing safety/health
+failure. Collision and behavior failures remain failures even if the 1 m criterion
+was reached earlier. In close-approach mode, a collision on the same sampled frame
+as a close-goal arrival takes precedence. Legacy configurations retain their
+existing immediate-goal-stop behavior and precedence.
+
+This reuses the existing moving-away detector: at least 0.5 m progress arms it;
+then distance must remain more than 0.5 m above the closest approach for 1 second.
+No moving-away thresholds, collision scoring or planner clearance were relaxed.
+Historical references: `35d617e` introduced moving-away termination;
+`9560af1` separated success latching from termination; `9d4e12b` later added the
+immediate success-zone return. The new mode restores that separation while adding
+the explicit close-approach stop, rather than reverting whole files/settings.
+
+New `_close_approach.yaml` variants exist for the hard 20-trial suite, eight-episode
+`trials`, and episode 12. Original scenario files and saved results are unchanged.
+Run the full suite with:
+
+```bash
+./run_navila_hard_taper_priority.bash --close-approach
+```
+
+The resulting JSON/CSV includes closest and terminal distances, termination reason,
+`success_threshold_m`, `success_criteria_met`, `goal_stop_protocol`,
+`goal_stop_radius_m`, `goal_stop_collision_margin_m` and the collision threshold.
+Use closest distance to analyze other radius criteria while retaining collision
+and failure categories. New runs cannot be pooled with runs that stopped at 1 m:
+continuing changes exposure and trajectories. The generator supports explicit
+`--goal-stop-collision-margin 0.1`; its default stays unchanged. See
+`logs/protocol_updates/close_approach_20261117/isaac_update_receipt.json` for the
+remote file-copy hashes and backup location; no git push or experiment was needed.
