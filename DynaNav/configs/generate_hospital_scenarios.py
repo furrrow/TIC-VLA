@@ -82,9 +82,7 @@ CROSSOVER_MOVERS = (
         {
             # Starts farther down the hall/right, then walks gently south-left.
             "position": [-20.8, 9.2, 0.01],
-            # "walk_route": [[-23.8, 10.2, 0.01]],
-            # 2 m farther on the same (-3, +1) heading:
-            "walk_route": [[-25.697367, 10.832456, 0.01]],
+            "walk_route": [[-23.8, 10.2, 0.01]],
             "yaw_degrees": 161.565051,
         },
     ),
@@ -330,12 +328,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--lateral-motion",
-        choices=("crossing", "crossover", "southbound"),
+        choices=("crossing", "crossover", "crossover-v2", "southbound"),
         default="crossing",
         help=(
             "use the original back-and-forth lateral routes or diagonal "
             "crossover routes that also head south; 'southbound' is retained "
-            "as an alias for 'crossover'"
+            "as an alias for 'crossover'; 'crossover-v2' extends the third "
+            "pedestrian route by 2 m along the same heading"
         ),
     )
     parser.add_argument(
@@ -397,9 +396,12 @@ def main() -> int:
     all_schedules = [args.head_on_delays, args.crosser_a_delays, args.crosser_b_delays]
     movers = (
         CROSSOVER_MOVERS
-        if args.lateral_motion in {"crossover", "southbound"}
+        if args.lateral_motion in {"crossover", "crossover-v2", "southbound"}
         else MOVERS
     )
+    if args.lateral_motion == "crossover-v2":
+        movers = copy.deepcopy(movers)
+        movers[1][1]["walk_route"] = [[-25.697367, 10.832456, 0.01]]
     if args.target_profile == "white-coat":
         goal = WHITE_COAT_GOAL
         instruction = WHITE_COAT_INSTRUCTION
