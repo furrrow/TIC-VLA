@@ -9,13 +9,13 @@ import yaml
 
 
 GLOBAL_KEYS = {
-    "seed", "navigation_method", "inference_method", "success_threshold",
+    "protocol_version", "seed", "navigation_method", "inference_method", "success_threshold",
     "human_collision_threshold_m", "goal_stop_collision_margin_m",
     "moving_away_distance_buffer_m", "moving_away_grace_seconds",
     "moving_away_min_progress_m",
 }
 EPISODE_KEYS = {
-    "scene", "start", "start_yaw", "goal", "instruction", "timeout",
+    "goal_human_index", "protocol_version", "scene", "start", "start_yaw", "goal", "instruction", "timeout",
     "num_people", "robot_type", "success_threshold",
     "human_collision_threshold_m", "goal_stop_collision_margin_m",
     "scripted_humans", "physical_human_metrics",
@@ -100,6 +100,7 @@ def load_benchmark_config(path):
     if not isinstance(inference_method, str) or not inference_method.strip():
         raise ValueError("inference_method must be a nonempty string")
     validated = {
+        "protocol_version": _integer(config.get("protocol_version", 1), "protocol_version", minimum=1),
         "seed": seed,
         "navigation_method": method.lower(),
         "inference_method": inference_method.strip(),
@@ -138,6 +139,14 @@ def load_benchmark_config(path):
             if field not in episode:
                 raise ValueError(f"episode {name!r} is missing {field}")
         entry = dict(episode)
+        entry["protocol_version"] = validated["protocol_version"]
+        if "goal_human_index" in entry:
+            index = _integer(entry["goal_human_index"], "goal_human_index")
+            humans = entry.get("scripted_humans", [])
+            if index >= len(humans) or humans[index].get("walk_route") or humans[index]["position"] != entry.get("goal"):
+                raise ValueError("goal_human_index must identify the stationary scripted goal person")
+        elif entry["protocol_version"] == 2:
+            raise ValueError("protocol v2 requires goal_human_index")
         for field in ("scene", "robot_type"):
             if not isinstance(entry[field], str) or not entry[field].strip():
                 raise ValueError(f"episode {name!r} {field} must be a nonempty string")

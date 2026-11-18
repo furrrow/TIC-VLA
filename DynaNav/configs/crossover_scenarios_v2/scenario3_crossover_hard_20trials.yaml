@@ -2,7 +2,13 @@ seed: 36
 navigation_method: ticvla_ros
 success_threshold: 1.0
 human_collision_threshold_m: 0.4
+protocol_version: 2
+goal_stop_collision_margin_m: 0.1
+moving_away_min_progress_m: 0.5
+moving_away_distance_buffer_m: 0.5
+moving_away_grace_seconds: 1.0
 episode_s3_p4_01:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -41,8 +47,8 @@ episode_s3_p4_01:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.315789
@@ -58,6 +64,7 @@ episode_s3_p4_01:
     initial_idle: 2.894737
   physical_human_metrics: true
 episode_s3_p4_02:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -96,8 +103,8 @@ episode_s3_p4_02:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.368421
@@ -113,6 +120,7 @@ episode_s3_p4_02:
     initial_idle: 2.473684
   physical_human_metrics: true
 episode_s3_p4_03:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -151,8 +159,8 @@ episode_s3_p4_03:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.789474
@@ -168,6 +176,7 @@ episode_s3_p4_03:
     initial_idle: 2.578947
   physical_human_metrics: true
 episode_s3_p4_04:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -206,8 +215,8 @@ episode_s3_p4_04:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.421053
@@ -223,6 +232,7 @@ episode_s3_p4_04:
     initial_idle: 2.315789
   physical_human_metrics: true
 episode_s3_p4_05:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -261,8 +271,8 @@ episode_s3_p4_05:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.578947
@@ -278,6 +288,7 @@ episode_s3_p4_05:
     initial_idle: 2.052632
   physical_human_metrics: true
 episode_s3_p4_06:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -316,8 +327,8 @@ episode_s3_p4_06:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.052632
@@ -333,6 +344,7 @@ episode_s3_p4_06:
     initial_idle: 2.263158
   physical_human_metrics: true
 episode_s3_p4_07:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -371,8 +383,8 @@ episode_s3_p4_07:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.947368
@@ -388,6 +400,7 @@ episode_s3_p4_07:
     initial_idle: 2.105263
   physical_human_metrics: true
 episode_s3_p4_08:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -426,8 +439,8 @@ episode_s3_p4_08:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 3.0
@@ -443,6 +456,7 @@ episode_s3_p4_08:
     initial_idle: 2.684211
   physical_human_metrics: true
 episode_s3_p4_09:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -481,8 +495,8 @@ episode_s3_p4_09:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.894737
@@ -498,6 +512,7 @@ episode_s3_p4_09:
     initial_idle: 2.789474
   physical_human_metrics: true
 episode_s3_p4_10:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -536,8 +551,8 @@ episode_s3_p4_10:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.736842
@@ -553,6 +568,7 @@ episode_s3_p4_10:
     initial_idle: 2.0
   physical_human_metrics: true
 episode_s3_p4_11:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -591,8 +607,8 @@ episode_s3_p4_11:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.526316
@@ -608,6 +624,7 @@ episode_s3_p4_11:
     initial_idle: 3.0
   physical_human_metrics: true
 episode_s3_p4_12:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -646,8 +663,8 @@ episode_s3_p4_12:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.263158
@@ -663,6 +680,7 @@ episode_s3_p4_12:
     initial_idle: 2.421053
   physical_human_metrics: true
 episode_s3_p4_13:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -701,8 +719,8 @@ episode_s3_p4_13:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.157895
@@ -718,6 +736,7 @@ episode_s3_p4_13:
     initial_idle: 2.842105
   physical_human_metrics: true
 episode_s3_p4_14:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -756,8 +775,8 @@ episode_s3_p4_14:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.105263
@@ -773,6 +792,7 @@ episode_s3_p4_14:
     initial_idle: 2.736842
   physical_human_metrics: true
 episode_s3_p4_15:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -811,8 +831,8 @@ episode_s3_p4_15:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.0
@@ -828,6 +848,7 @@ episode_s3_p4_15:
     initial_idle: 2.631579
   physical_human_metrics: true
 episode_s3_p4_16:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -866,8 +887,8 @@ episode_s3_p4_16:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.631579
@@ -883,6 +904,7 @@ episode_s3_p4_16:
     initial_idle: 2.368421
   physical_human_metrics: true
 episode_s3_p4_17:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -921,8 +943,8 @@ episode_s3_p4_17:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.473684
@@ -938,6 +960,7 @@ episode_s3_p4_17:
     initial_idle: 2.947368
   physical_human_metrics: true
 episode_s3_p4_18:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -976,8 +999,8 @@ episode_s3_p4_18:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.210526
@@ -993,6 +1016,7 @@ episode_s3_p4_18:
     initial_idle: 2.210526
   physical_human_metrics: true
 episode_s3_p4_19:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -1031,8 +1055,8 @@ episode_s3_p4_19:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.684211
@@ -1048,6 +1072,7 @@ episode_s3_p4_19:
     initial_idle: 2.157895
   physical_human_metrics: true
 episode_s3_p4_20:
+  goal_human_index: 1
   scene: /media/isaac/HardDisk/isaacsim_assets/Assets/Isaac/5.1/Isaac/Environments/Hospital/hospital.usd
   start:
   - -26.0
@@ -1086,8 +1111,8 @@ episode_s3_p4_20:
     - 9.2
     - 0.01
     walk_route:
-    - - -25.697367
-      - 10.832456
+    - - -23.8
+      - 10.2
       - 0.01
     yaw_degrees: 161.565051
     initial_idle: 2.842105

@@ -5,7 +5,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROBOT_CONFIG="${REPO_ROOT}/configs/robot.yaml"
 ROS_SETUP="/opt/ros/humble/setup.bash"
 STEERNAV_ROOT="${STEERNAV_ROOT:-/home/jim/Projects/steernav}"
-OBJECT_VELOCITY_SOURCE="${OBJECT_VELOCITY_SOURCE:-sim-ground-truth}"
+OBJECT_VELOCITY_SOURCE="${OBJECT_VELOCITY_SOURCE:-estimated}"
 MODE="ablation"
 DETACH=false
 SESSION_NAME=""
@@ -20,6 +20,7 @@ fi
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --validate-only) VALIDATE_ONLY=true; shift ;;
     --detach)
       DETACH=true
       shift
@@ -69,6 +70,9 @@ if [[ ! "${CONTROLLER_DT}" =~ ^[0-9]+([.][0-9]+)?$ ]] || [[ ! "${CONTROLLER_DT}"
   exit 2
 fi
 
+source "${CROSSOVER_TOOLS_ROOT:-/home/jim/Projects/TIC-VLA}/scripts/steernav_launch_settings.bash"
+if [[ "${VALIDATE_ONLY:-false}" == true ]]; then printf 'SteerNav flags: %s\n' "$steernav_settings_flags"; exit 0; fi
+
 echo "Mode: ${MODE}"
 echo "Robot config: ${ROBOT_CONFIG}"
 echo "Controller dt: ${CONTROLLER_DT}s"
@@ -95,7 +99,8 @@ if tmux has-session -t "${session_name}" 2>/dev/null; then
 fi
 
 log_dir="${LOG_ROOT}/${session_name}"
-mkdir -p "${log_dir}"
+mkdir -p "${LOG_ROOT}"
+mkdir "${log_dir}"
 STEERNAV_VISUALIZATION_FRAME_DIR="${STEERNAV_VISUALIZATION_FRAME_DIR:-${log_dir}/steernav_frames}"
 inference_log="${log_dir}/inference.log"
 controller_log="${log_dir}/controller.log"
@@ -107,6 +112,7 @@ run_in_pane() {
   local command="$3"
   local quoted_log
   printf -v quoted_log '%q' "${log_file}"
+  printf '%s\n' "$command" >> "${log_dir}/effective_commands.txt"
   tmux send-keys -t "${pane}" \
     "set -o pipefail; export PYTHONUNBUFFERED=1; ( ${command} ) 2>&1 | tee -a ${quoted_log}" C-m
 }
@@ -132,22 +138,9 @@ if [[ "${OBJECT_VELOCITY_SOURCE}" != "estimated" && "${OBJECT_VELOCITY_SOURCE}" 
 fi
 if [[ "${MODE}" != "normal" ]]; then
   controller_flags="--steer ${controller_flags}"
-#  steernav_flags="--debug-motion"
-  steernav_flags=""
-  if ! rg -q -- '--visualization-frame-dir' "${STEERNAV_ROOT}/steernav/ros_inference.py"; then
-    echo "SteerNav checkout lacks visualization frame saving support." >&2
-    exit 2
-  fi
+  steernav_flags="$steernav_settings_flags"
   printf -v visualization_frame_dir_quoted '%q' "${STEERNAV_VISUALIZATION_FRAME_DIR}"
   steernav_flags+=" --visualization-frame-dir ${visualization_frame_dir_quoted}"
-  if [[ "${MODE}" != "no-velocity" ]]; then
-    if rg -q -- '--object-velocity-source' "${STEERNAV_ROOT}/steernav/ros_inference.py"; then
-      steernav_flags="${steernav_flags} --object-velocity-source ${OBJECT_VELOCITY_SOURCE}"
-    elif [[ "${OBJECT_VELOCITY_SOURCE}" != "estimated" ]]; then
-      echo "This SteerNav checkout supports estimated velocities only." >&2
-      exit 2
-    fi
-  fi
   if [[ "${FIX_END}" == true ]]; then
     steernav_flags="${steernav_flags} --fix-end"
   fi

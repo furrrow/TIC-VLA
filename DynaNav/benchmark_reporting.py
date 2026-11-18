@@ -33,6 +33,10 @@ class EpisodeMetrics:
     success_criteria_met: bool | None = None
     spl: float = 0.0
     path_length: float = 0.0
+    goal_human_collision: bool = False
+    min_goal_human_distance_m: float | None = None
+    min_non_goal_human_distance_m: float | None = None
+    collision_identities: list | None = None
     human_collision: bool = False
     human_collision_count: int = 0
     min_human_distance_m: float | None = None
@@ -52,6 +56,15 @@ def build_episode_result(
     metrics = metrics or EpisodeMetrics()
     result = {
         "episode": episode_name,
+        "protocol_version": episode_config.get("protocol_version", 1),
+        "goal_human_index": episode_config.get("goal_human_index"),
+        "goal_human_collision": metrics.goal_human_collision,
+        "min_goal_human_distance_m": metrics.min_goal_human_distance_m,
+        "min_non_goal_human_distance_m": metrics.min_non_goal_human_distance_m,
+        "collision_identities": metrics.collision_identities or [],
+        "moving_away_min_progress_m": episode_config.get("moving_away_min_progress_m"),
+        "moving_away_distance_buffer_m": episode_config.get("moving_away_distance_buffer_m"),
+        "moving_away_grace_seconds": episode_config.get("moving_away_grace_seconds"),
         "inference_method": inference_method,
         "experiment_mode": experiment_mode,
         "scene": episode_config.get("scene"),
@@ -60,7 +73,7 @@ def build_episode_result(
         "instruction": episode_config.get("instruction", ""),
         "timeout": episode_config.get("timeout", 0),
         "robot_type": episode_config.get("robot_type", ""),
-        "success": metrics.success,
+        "success": bool(metrics.success and not metrics.goal_human_collision),
         "success_threshold_m": episode_config.get("success_threshold"),
         "success_criteria_met": metrics.success_criteria_met,
         "human_collision_threshold_m": episode_config.get("human_collision_threshold_m"),
@@ -71,12 +84,16 @@ def build_episode_result(
         "duration_frames": metrics.duration_frames,
         "navigation_error": metrics.navigation_error,
         "closest_goal_distance_m": metrics.closest_goal_distance_m,
-        "success_rate": 1.0 if metrics.success else 0.0,
-        "collision": float(metrics.human_collision or metrics.physical_collision),
-        "human_collision": float(metrics.human_collision),
+        "success_rate": 1.0 if metrics.success and not metrics.goal_human_collision else 0.0,
+        "collision": float(metrics.human_collision or metrics.physical_collision or metrics.goal_human_collision),
+        "non_goal_collision": bool(metrics.human_collision),
+        "human_collision": float(metrics.human_collision and not metrics.goal_human_collision),
         "human_collision_count": metrics.human_collision_count,
         "min_human_distance_m": metrics.min_human_distance_m,
         "physical_collision": float(metrics.physical_collision),
+        "normalized_progress": (max(0.0, min(1.0, 1.0 - metrics.closest_goal_distance_m /
+            float(np.linalg.norm(np.asarray(episode_config['start'])[:2] - np.asarray(episode_config['goal'])[:2]))))
+            if metrics.closest_goal_distance_m is not None and np.linalg.norm(np.asarray(episode_config['start'])[:2] - np.asarray(episode_config['goal'])[:2]) > 0 else None),
         "spl": metrics.spl,
         "path_length": metrics.path_length,
         "physical_collision_detected": metrics.physical_collision,
@@ -250,6 +267,7 @@ def save_results_to_file(
     timestamp = "latest" if incremental else time.strftime("%Y%m%d_%H%M%S")
     config_name = Path(config_file_path).stem if config_file_path else "benchmark"
     summary = {
+        "run_id": run_id,
         "timestamp": timestamp,
         "config_file": config_file_path if config_file_path else None,
         **summarize_results(results),

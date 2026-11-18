@@ -10,10 +10,12 @@ MODE="ablation"
 CONTROLLER_DT="0.75"
 FIX_END=false
 INFERENCE_METHOD="${INFERENCE_METHOD:-TIC-VLA}"
+BENCHMARK_TIMEOUT_SECONDS="${BENCHMARK_TIMEOUT_SECONDS:-14400}"
+SHUTDOWN_TIMEOUT_SECONDS="${SHUTDOWN_TIMEOUT_SECONDS:-15}"
 READY_TIMEOUT_SECONDS="${READY_TIMEOUT_SECONDS:-600}"
 BATCH_ID="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
 LOG_DIR="${REPO_ROOT}/logs/orchestration/${BATCH_ID}"
-RUN_ATTEMPT_ID="${RUN_ATTEMPT_ID:-$(date +%Y%m%d_%H%M%S)_$$}"
+RUN_ATTEMPT_ID="${RUN_ATTEMPT_ID:-attempt1}"
 
 usage() {
   cat <<EOF
@@ -26,6 +28,7 @@ EOF
 
 while (( $# > 0 )); do
   case "$1" in
+    --dry-run) DRY_RUN=true; shift ;;
     --mode)
       if (( $# < 2 )); then
         echo "--mode requires one of: normal, steered, no-velocity, both, ablation." >&2
@@ -123,9 +126,12 @@ if [[ ! "${READY_TIMEOUT_SECONDS}" =~ ^[0-9]+$ || "${READY_TIMEOUT_SECONDS}" -eq
   echo "READY_TIMEOUT_SECONDS must be a positive integer." >&2
   exit 2
 fi
+source "${CROSSOVER_TOOLS_ROOT:-/home/jim/Projects/TIC-VLA}/scripts/protocol_v2_run.bash"
+
 mkdir -p "${LOG_DIR}"
 active_session=""
 active_remote_job=""
+active_run_log_dir=""
 
 stop_remote_job() {
   if [[ -z "${active_remote_job}" ]]; then
@@ -138,8 +144,20 @@ stop_remote_job() {
   active_remote_job=""
 }
 
+finalize_steernav_logging() {
+  local directory="$1" status=0
+  [[ -n "${STEERNAV_RECEIVER_TIMING_LOG:-}" ]] || return 0
+  timeout --signal=TERM --kill-after=5s "$((SHUTDOWN_TIMEOUT_SECONDS + 5))s" python3 \
+    "${STEERNAV_ROOT:-/home/jim/Projects/steernav}/steernav/receiver_timing.py" \
+    --finalize "$STEERNAV_RECEIVER_TIMING_LOG" --timeout "$SHUTDOWN_TIMEOUT_SECONDS" \
+    > "$directory/timing_shutdown.log" 2>&1 || status=$?
+  printf '%s\n' "$status" > "$directory/.timing_shutdown.status"
+  return "$status"
+}
+
 cleanup_session() {
   stop_remote_job
+  if [[ -n "$active_run_log_dir" && ! -f "$active_run_log_dir/.timing_shutdown.status" ]]; then finalize_steernav_logging "$active_run_log_dir" || true; fi
   if [[ -n "${active_session}" ]] && tmux has-session -t "${active_session}" 2>/dev/null; then
     echo "Stopping local tmux session ${active_session}"
     tmux kill-session -t "${active_session}"
@@ -185,11 +203,11 @@ wait_until_ready() {
 
 run_mode() {
   local mode="$1"
-  local run_id="${BATCH_ID}_${mode}"
+  local run_id="${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_${mode}"
   # tmux uses dots when parsing session:window.pane targets, so keep them out of
   # the internal session name. Preserve the original run ID in result/log paths.
   local session="nova_${run_id//./_}_${RUN_ATTEMPT_ID//./_}"
-  local run_log_dir="${LOG_DIR}/${run_id}/${RUN_ATTEMPT_ID}"
+  local run_log_dir="${LOG_DIR}/${BATCH_ID}_${mode}/${RUN_ATTEMPT_ID}"
   local status_file="${run_log_dir}/.remote.status"
   local remote_command=""
   local remote_pane=""
@@ -198,7 +216,7 @@ run_mode() {
 
   echo
   echo "=== ${mode}: run_id=${run_id} ==="
-  mkdir -p "${run_log_dir}"
+  prepare_run_capture "$mode"
   # runs nova_ros.bash
   local nova_ros_args=("${mode}" --detach --session-name "${session}" --dt "${CONTROLLER_DT}")
   if [[ "${FIX_END}" == true ]]; then
@@ -211,19 +229,24 @@ run_mode() {
     "${REPO_ROOT}/nova_ros.bash" "${nova_ros_args[@]}"
   # Only clean up sessions successfully created by this invocation.
   active_session="${session}"
+  active_run_log_dir="$run_log_dir"
   wait_until_ready "${mode}" "${session}"
 
   echo "Starting simulator benchmark on ${REMOTE_HOST} in a visible tmux pane..."
   active_remote_job="${run_id}"
-  remote_command="set -o pipefail; ssh -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} --inference-method ${INFERENCE_METHOD} -- --run_id ${run_id} --experiment_mode ${mode}' 2>&1 | tee ${run_log_dir}/remote.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
+  remote_command="set -o pipefail; timeout --signal=TERM --kill-after=30s ${BENCHMARK_TIMEOUT_SECONDS}s ssh -n -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} --inference-method ${INFERENCE_METHOD} -- --run_id ${run_id} --experiment_mode ${mode}' 2>&1 | tee ${run_log_dir}/remote.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
+  printf '%s\n' "$remote_command" > "$run_log_dir/remote_command.txt"
   remote_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${session}:0" -c "${REPO_ROOT}" /bin/bash -lc "${remote_command}")"
   tmux select-pane -t "${remote_pane}" -T "Isaac ${mode} status"
   tmux select-layout -t "${session}:0" tiled
 
   (
+    deadline=$((SECONDS + BENCHMARK_TIMEOUT_SECONDS + 45))
     while tmux has-session -t "${session}" 2>/dev/null && [[ ! -s "${status_file}" ]]; do
+      if (( SECONDS >= deadline )); then printf '124\n' > "$status_file"; break; fi
       sleep 1
     done
+    finalize_steernav_logging "$run_log_dir" || true
     if tmux has-session -t "${session}" 2>/dev/null; then
       sleep 3
       tmux kill-session -t "${session}"
@@ -248,11 +271,16 @@ run_mode() {
   fi
   remote_status="$(<"${status_file}")"
   active_remote_job=""
+  local capture_status=0
+  finish_run_capture "$mode" || capture_status=$?
+  if [[ "$capture_status" != 0 ]]; then return "$capture_status"; fi
   if [[ "${remote_status}" != "0" ]]; then
     echo "Remote ${mode} benchmark failed with status ${remote_status}." >&2
     return "${remote_status}"
   fi
 
+  if [[ -n "${STEERNAV_RECEIVER_TIMING_LOG:-}" && "$(cat "$run_log_dir/.timing_shutdown.status" 2>/dev/null)" != 0 ]]; then return 1; fi
+  active_run_log_dir=""
   echo "Remote ${mode} benchmark completed."
   sleep 5
 }
@@ -281,10 +309,10 @@ fi
 echo
 echo "Requested experiment mode '${MODE}' completed successfully."
 if [[ "${MODE}" == "ablation" ]]; then
-  echo "Remote run IDs: ${BATCH_ID}_normal, ${BATCH_ID}_steered, ${BATCH_ID}_no-velocity"
+  echo "Remote run IDs: ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_normal, ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_steered, ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_no-velocity"
 elif [[ "${MODE}" == "both" ]]; then
-  echo "Remote run IDs: ${BATCH_ID}_normal, ${BATCH_ID}_steered"
+  echo "Remote run IDs: ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_normal, ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_steered"
 else
-  echo "Remote run ID: ${BATCH_ID}_${MODE}"
+  echo "Remote run ID: ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_${MODE}"
 fi
 echo "Local orchestration logs: ${LOG_DIR}"

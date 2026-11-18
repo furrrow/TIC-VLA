@@ -32,7 +32,7 @@ from generate_commands import generate_character_commands, generate_robot_comman
 import benchmark_reporting as report_utils
 import benchmark_config as config_utils
 import benchmark_runtime as runtime
-from scripted_humans import generate_scripted_commands
+from scripted_humans import generate_scripted_commands, character_name
 
 SIMULATION_FPS = runtime.SIMULATION_FPS
 DEFAULT_EPISODE_WALL_TIMEOUT_SECONDS = 600.0
@@ -154,6 +154,12 @@ class EpisodeState:
     termination_reason: str | None = None
     failure_reason: str | None = None
     robot_path: list[np.ndarray] = field(default_factory=list)
+    goal_human_path: str | None = None
+    goal_human_collision: bool = False
+    min_goal_human_distance_m: float | None = None
+    min_non_goal_human_distance_m: float | None = None
+    collision_identities: list = field(default_factory=list)
+    protocol_version: int = 1
     human_collision_detected: bool = False
     human_collision_count: int = 0
     min_human_distance_m: float | None = None
@@ -338,6 +344,10 @@ class BenchmarkRunner:
             success_criteria_met=self.state.success_criteria_met,
             spl=self._calculate_spl(success),
             path_length=self._calculate_path_length(),
+            goal_human_collision=self.state.goal_human_collision,
+            min_goal_human_distance_m=self.state.min_goal_human_distance_m,
+            min_non_goal_human_distance_m=self.state.min_non_goal_human_distance_m,
+            collision_identities=self.state.collision_identities,
             human_collision=self.state.human_collision_detected,
             human_collision_count=self.state.human_collision_count,
             min_human_distance_m=self.state.min_human_distance_m,
@@ -369,6 +379,9 @@ class BenchmarkRunner:
             goal_stop_radius_m=(config_utils.goal_stop_radius_m(episode_config)
                                 if episode_config.get('goal_stop_collision_margin_m') is not None else None),
             goal_stop_collision_margin_m=episode_config.get('goal_stop_collision_margin_m'),
+            protocol_version=episode_config.get('protocol_version', 1),
+            goal_human_path=(f"/World/Characters/{character_name(episode_config['goal_human_index'])}"
+                             if 'goal_human_index' in episode_config else None),
             moving_away_distance_buffer_m=episode_config['moving_away_distance_buffer_m'],
             moving_away_grace_frames=max(
                 1, int(episode_config['moving_away_grace_seconds'] * SIMULATION_FPS)
@@ -579,6 +592,16 @@ class BenchmarkRunner:
                     )
                     return False
 
+                if self.state.goal_human_collision:
+                    self.state.termination_condition = "goal_human_collision"
+                    self.state.termination_reason = "Contact with explicitly identified stationary goal person"
+                    self.state.failure_reason = self.state.termination_reason
+                    return False
+                if self.state.protocol_version == 2 and self.state.physical_collision_detected:
+                    self.state.termination_condition = "physical_collision"
+                    self.state.termination_reason = "Sustained physical contact"
+                    self.state.failure_reason = self.state.termination_reason
+                    return False
                 collision = self.terminate_on_human_collision and self.state.human_collision_detected
                 # Preserve 9d4e12b precedence for legacy configs. For close approach,
                 # a step that crosses both radii must still be classified as collision.
@@ -741,7 +764,7 @@ class BenchmarkRunner:
         """Latch success after the robot first enters the goal threshold."""
         if self.state.success_criteria_met or not np.isfinite(distance):
             return False
-        if float(distance) < self.state.goal_threshold:
+        if float(distance) <= self.state.goal_threshold:
             self.state.success_criteria_met = True
             return True
         return False
@@ -849,6 +872,17 @@ class BenchmarkRunner:
                     or distance < self.state.min_human_distance_m
                 ):
                     self.state.min_human_distance_m = float(distance)
+                is_goal = prim_path == self.state.goal_human_path
+                minimum_field = "min_goal_human_distance_m" if is_goal else "min_non_goal_human_distance_m"
+                previous = getattr(self.state, minimum_field)
+                setattr(self.state, minimum_field, float(distance) if previous is None else min(previous, float(distance)))
+                if distance < self.human_collision_threshold:
+                    if not any(item['path'] == skelroot_path for item in self.state.collision_identities):
+                        self.state.collision_identities.append(dict(path=skelroot_path, character=prim_path,
+                            goal_human=is_goal, distance_m=float(distance), frame=self.state.simulation_frame_count))
+                    if is_goal:
+                        self.state.goal_human_collision = True
+                        continue
                 if distance < (self.human_collision_threshold + 0.1):
                     print(f"distance: {distance:.2f} to {skelroot_prim.GetPath().pathString} ")
                 if distance < self.human_collision_threshold:

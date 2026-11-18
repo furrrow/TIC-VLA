@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCENARIO_DIR="DynaNav/configs/icra_scenarios_v4"
+SCENARIO_DIR="DynaNav/configs/crossover_scenarios_v2"
 BATCH_PREFIX="${BATCH_ID:-$(date +%Y%m%d_%H%M%S)}"
 MODE="ablation"
 FORWARD_ARGS=()
@@ -49,6 +49,7 @@ while (( $# > 0 )); do
       FORWARD_ARGS+=("$1")
       shift
       ;;
+    --dry-run) FORWARD_ARGS+=(--dry-run); shift ;;
     --fix-end|--no-fix-end)
       FORWARD_ARGS+=("$1")
       shift
