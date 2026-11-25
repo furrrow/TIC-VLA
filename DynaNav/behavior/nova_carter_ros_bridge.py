@@ -34,7 +34,8 @@ PEDESTRIAN_TOPIC = "/isaacsim/pedestrians"
 COMMAND_TIMEOUT_S = 0.5
 ZERO_COMMAND_TIMEOUT_S = float(os.environ.get("TICVLA_ZERO_COMMAND_TIMEOUT_S", "5.0"))
 ZERO_COMMAND_EPSILON = float(os.environ.get("TICVLA_ZERO_COMMAND_EPSILON", "0.001"))
-ZERO_COMMAND_TIMEOUT_FRAMES = max(1, round(ZERO_COMMAND_TIMEOUT_S * runtime.SIMULATION_FPS))
+if not np.isfinite(ZERO_COMMAND_TIMEOUT_S) or ZERO_COMMAND_TIMEOUT_S <= 0:
+    raise ValueError("TICVLA_ZERO_COMMAND_TIMEOUT_S must be finite and positive")
 FRONT_CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/front_hawk/left/camera_left"
 THIRD_PERSON_CAMERA_PATH = "/World/Robots/Nova_Carter/chassis_link/third_person_view_cam"
 CAMERA_RESOLUTION = (1920, 1080)
@@ -82,7 +83,9 @@ class NovaCarterROSBridge(BehaviorScript):
         )
         self._command = (0.0, 0.0)
         self._command_time = None
+        self._last_sim_time = None
         self._zero_command_frames = 0
+        self._zero_command_duration = runtime.SustainedCondition()
         self._zero_command_failure_reported = False
         self._owns_rclpy = False
         self._front_render_product = None
@@ -100,7 +103,9 @@ class NovaCarterROSBridge(BehaviorScript):
         self._benchmark_context.ros_cleanup = self._close
         self._command = (0.0, 0.0)
         self._command_time = None
+        self._last_sim_time = None
         self._zero_command_frames = 0
+        self._zero_command_duration = runtime.SustainedCondition()
         self._zero_command_failure_reported = False
         if not rclpy.ok():
             rclpy.init()
@@ -236,6 +241,11 @@ class NovaCarterROSBridge(BehaviorScript):
             rclpy.spin_once(self._node, timeout_sec=0.0)
         if self._closed or self._node is None:
             return
+        if self._last_sim_time is not None and current_time < self._last_sim_time:
+            self._command = (0.0, 0.0)
+            self._command_time = None
+            self._pedestrian_history.clear()
+        self._last_sim_time = current_time
         stamp = simulation_time_msg(current_time)
         clock = Clock()
         clock.clock = stamp
@@ -247,13 +257,17 @@ class NovaCarterROSBridge(BehaviorScript):
             and time.monotonic() - self._command_time < COMMAND_TIMEOUT_S
         )
         command = self._command if command_is_fresh else (0.0, 0.0)
+        zero_elapsed = self._zero_command_duration.update(
+            current_time,
+            command_is_fresh and all(abs(value) <= ZERO_COMMAND_EPSILON for value in command),
+        )
         if command_is_fresh and all(abs(value) <= ZERO_COMMAND_EPSILON for value in command):
             self._zero_command_frames += 1
         else:
             self._zero_command_frames = 0
 
         if (
-            self._zero_command_frames >= ZERO_COMMAND_TIMEOUT_FRAMES
+            zero_elapsed >= ZERO_COMMAND_TIMEOUT_S - 1e-9
             and not self._zero_command_failure_reported
             and self._benchmark_context.failure_reason is None
         ):
@@ -261,7 +275,7 @@ class NovaCarterROSBridge(BehaviorScript):
             self._benchmark_context.failure_reason = (
                 "robot_zero_velocity: external controller published zero linear and angular "
                 f"velocity for {self._zero_command_frames} frames / "
-                f"{self._zero_command_frames / runtime.SIMULATION_FPS:.2f}s"
+                f"{zero_elapsed:.2f} simulation s"
             )
             carb.log_warn(
                 "Nova Carter external controller continuously published zero velocity; "
@@ -366,7 +380,9 @@ class NovaCarterROSBridge(BehaviorScript):
             self._benchmark_context.ros_cleanup = None
         self._command = (0.0, 0.0)
         self._command_time = None
+        self._last_sim_time = None
         self._zero_command_frames = 0
+        self._zero_command_duration = runtime.SustainedCondition()
         try:
             if self._robot.is_valid():
                 action = self._controller.forward(command=np.zeros(2, dtype=np.float32))

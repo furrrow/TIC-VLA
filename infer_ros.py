@@ -37,7 +37,8 @@ from cv_bridge import CvBridge
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry, Path as PathMsg
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rclpy.clock import Clock, ClockType
+from rclpy.clock import JumpThreshold
+from rclpy.duration import Duration
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
@@ -271,12 +272,17 @@ class TICVLAROSNode(Node):
         self.pub_path = self.create_publisher(PathMsg, policy_path_topic, qos_profile=reliable_qos)
         self.pub_started = self.create_publisher(Empty, "/started", 10)
 
-        wall_clock = Clock(clock_type=ClockType.STEADY_TIME)
+        self._clock_epoch = 0
+        self._clock_reset_pending = False
+        self._clock_jump_handle = self.get_clock().create_jump_callback(
+            JumpThreshold(min_forward=None, min_backward=Duration(nanoseconds=-1), on_clock_change=True),
+            post_callback=self._on_behavior_clock_jump,
+        )
         self.timer = self.create_timer(
             1.0 / self.rate,
             self.run_inference_loop,
             callback_group=self.inference_group,
-            clock=wall_clock,
+            clock=self.get_clock(),
         )
 
         self.get_logger().info(f"Using robot config for: {args.robot}")
@@ -446,7 +452,21 @@ class TICVLAROSNode(Node):
         self.get_logger().warn_once("Calibration matrix unavailable for image overlay.")
         return frame_rgb
 
+    def _on_behavior_clock_jump(self, _jump):
+        # Never read the clock, take model locks or reset a model inside this callback.
+        self._clock_epoch += 1
+        self._clock_reset_pending = True
+
     def run_inference_loop(self) -> None:
+        clock_epoch = self._clock_epoch
+        if self._clock_reset_pending:
+            self._clock_reset_pending = False
+            with self.lock:
+                self.episode_generation += 1
+                self.pending_episode_reset = True
+                self.obs_img_bgr = None
+                self.obs_header = None
+                self.have_odom = False
         with self.lock:
             reset_requested = self.pending_episode_reset
             reset_generation = self.episode_generation
@@ -538,7 +558,7 @@ class TICVLAROSNode(Node):
         inference_seconds = time.perf_counter() - t0
 
         with self.lock:
-            if generation != self.episode_generation:
+            if generation != self.episode_generation or clock_epoch != self._clock_epoch:
                 return
 
         if generation_step is not None and generation_pose is not None:
@@ -566,7 +586,7 @@ class TICVLAROSNode(Node):
             waypoint_msg = Float32MultiArray()
             waypoint_msg.data = chosen_waypoint.flatten().astype(float).tolist()
         with self.lock:
-            if generation != self.episode_generation:
+            if generation != self.episode_generation or clock_epoch != self._clock_epoch:
                 return
             self.pub_path.publish(self.to_path_msg(path_xy, header.stamp))
             if self.waypoint_pub is not None:
@@ -575,7 +595,7 @@ class TICVLAROSNode(Node):
         sampled_actions_msg = Float32MultiArray()
         sampled_actions_msg.data = path_xy.flatten().astype(float).tolist()
         with self.lock:
-            if generation != self.episode_generation:
+            if generation != self.episode_generation or clock_epoch != self._clock_epoch:
                 return
             self.sampled_actions_pub.publish(sampled_actions_msg)
         if self.show_overlay:
@@ -592,12 +612,12 @@ class TICVLAROSNode(Node):
             out_msg = self.bridge.cv2_to_imgmsg(np.array(overlay), encoding="bgr8")
             out_msg.header = header
             with self.lock:
-                if generation != self.episode_generation:
+                if generation != self.episode_generation or clock_epoch != self._clock_epoch:
                     return
                 self.trajectory_visual_pub.publish(out_msg)
 
         with self.lock:
-            if generation != self.episode_generation:
+            if generation != self.episode_generation or clock_epoch != self._clock_epoch:
                 return
             if not self.started_sent:
                 self.started_sent = True

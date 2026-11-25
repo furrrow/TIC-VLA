@@ -28,6 +28,8 @@ class EpisodeMetrics:
 
     success: bool = False
     duration_frames: int = 0
+    duration_sim_seconds: float | None = None
+    duration_wall_seconds: float | None = None
     navigation_error: float = float("inf")
     closest_goal_distance_m: float | None = None
     success_criteria_met: bool | None = None
@@ -80,8 +82,11 @@ def build_episode_result(
         "goal_stop_collision_margin_m": episode_config.get("goal_stop_collision_margin_m"),
         "goal_stop_radius_m": goal_stop_radius_m(episode_config),
         "goal_stop_protocol": ("collision_margin" if episode_config.get("goal_stop_collision_margin_m") is not None else "success_threshold"),
-        "duration": metrics.duration_frames / SIMULATION_FPS,
+        "duration": (metrics.duration_sim_seconds if metrics.duration_sim_seconds is not None
+                     else metrics.duration_frames / SIMULATION_FPS),
+        "duration_clock": ("simulation_elapsed" if metrics.duration_sim_seconds is not None else "legacy_frames_30hz"),
         "duration_frames": metrics.duration_frames,
+        "duration_wall_seconds": metrics.duration_wall_seconds,
         "navigation_error": metrics.navigation_error,
         "closest_goal_distance_m": metrics.closest_goal_distance_m,
         "success_rate": 1.0 if metrics.success and not metrics.goal_human_collision else 0.0,

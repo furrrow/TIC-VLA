@@ -167,6 +167,10 @@ class EpisodeState:
     start_position: np.ndarray | None = None
     simulation_frame_count: int = 0
     start_frame: int = 0
+    simulation_time_seconds: float | None = None
+    duration_sim_seconds: float | None = None
+    duration_wall_seconds: float | None = None
+    moving_away_since_sim: float | None = None
     physical_collision_detected: bool = False
     contact_consecutive_frames: int = 0
     max_contact_consecutive_frames: int = 0
@@ -178,6 +182,7 @@ class EpisodeState:
     initial_goal_distance_m: float | None = None
     moving_away_consecutive_frames: int = 0
     moving_away_distance_buffer_m: float = 0.5
+    moving_away_grace_seconds: float | None = None
     moving_away_grace_frames: int = 30
     moving_away_min_progress_m: float = 0.5
     position_error_logged: bool = False
@@ -339,6 +344,8 @@ class BenchmarkRunner:
         metrics = report_utils.EpisodeMetrics(
             success=success,
             duration_frames=self.state.simulation_frame_count - self.state.start_frame,
+            duration_sim_seconds=self.state.duration_sim_seconds,
+            duration_wall_seconds=self.state.duration_wall_seconds,
             navigation_error=self._get_distance_to_goal(),
             closest_goal_distance_m=self.state.closest_goal_distance_m,
             success_criteria_met=self.state.success_criteria_met,
@@ -383,6 +390,7 @@ class BenchmarkRunner:
             goal_human_path=(f"/World/Characters/{character_name(episode_config['goal_human_index'])}"
                              if 'goal_human_index' in episode_config else None),
             moving_away_distance_buffer_m=episode_config['moving_away_distance_buffer_m'],
+            moving_away_grace_seconds=float(episode_config['moving_away_grace_seconds']),
             moving_away_grace_frames=max(
                 1, int(episode_config['moving_away_grace_seconds'] * SIMULATION_FPS)
             ),
@@ -426,10 +434,8 @@ class BenchmarkRunner:
         # Record start position for path tracking
         self.state.start_position = np.array(episode_config['start'])
 
-        # Run navigation with timeout (in simulation frames)
-        timeout_seconds = episode_config['timeout']
-        timeout_frames = int(timeout_seconds * SIMULATION_FPS)
-        success = await self._run_navigation(timeout_frames)
+        # World budgets use actual simulator seconds, independent of update rate.
+        success = await self._run_navigation(float(episode_config['timeout']))
 
         return success
 
@@ -543,7 +549,7 @@ class BenchmarkRunner:
 
         return temp_config_path
 
-    async def _run_navigation(self, timeout_frames):
+    async def _run_navigation(self, timeout_seconds):
         import omni.timeline
         import omni.replicator.core as rep
         import omni.kit.app
@@ -564,7 +570,16 @@ class BenchmarkRunner:
             await app.next_update_async()
 
             self.state.start_frame = self.state.simulation_frame_count
-            for _ in range(timeout_frames):
+            start_wall = time.monotonic()
+            elapsed = runtime.SimulationElapsed()
+            self.state.duration_sim_seconds = elapsed.update(timeline.get_current_time())
+            while True:
+                now = float(timeline.get_current_time())
+                self.state.duration_wall_seconds = time.monotonic() - start_wall
+                self.state.simulation_time_seconds = now
+                self.state.duration_sim_seconds = elapsed.update(now)
+                if self.state.duration_sim_seconds >= timeout_seconds - 1e-9:
+                    break
                 # per-frame: update pos, check goal/collisions, count frames
                 await self._update_robot_position()
                 self.state.simulation_frame_count += 1
@@ -636,7 +651,8 @@ class BenchmarkRunner:
                     return self._terminate_human_collision()
 
                 if self.terminate_when_moving_away and moving_away:
-                    grace_seconds = self.state.moving_away_grace_frames / SIMULATION_FPS
+                    grace_seconds = (self.state.moving_away_grace_seconds if self.state.moving_away_grace_seconds is not None
+                                     else self.state.moving_away_grace_frames / SIMULATION_FPS)
                     termination_reason = (
                         "Terminated after moving away from the goal for "
                         f"{grace_seconds:.1f}s: current distance {distance:.2f}m, "
@@ -659,13 +675,13 @@ class BenchmarkRunner:
             self.state.termination_condition = "timeout"
             if self.state.success_criteria_met:
                 self.state.termination_reason = (
-                    f"Navigation time limit reached after {timeout_frames / SIMULATION_FPS:.1f}s "
-                    f"({timeout_frames} frames); success criterion was met"
+                    f"Navigation time limit reached after {timeout_seconds:.1f} simulation s "
+                    f"({self.state.simulation_frame_count - self.state.start_frame} updates); success criterion was met"
                 )
             else:
                 self.state.termination_reason = (
-                    f"Timed out after {timeout_frames / SIMULATION_FPS:.1f}s "
-                    f"({timeout_frames} frames) without reaching the goal"
+                    f"Timed out after {timeout_seconds:.1f} simulation s "
+                    f"({self.state.simulation_frame_count - self.state.start_frame} updates) without reaching the goal"
                 )
                 self.state.failure_reason = self.state.termination_reason
             _print_termination_banner(
@@ -813,6 +829,17 @@ class BenchmarkRunner:
         beyond_buffer = distance > (
             self.state.closest_goal_distance_m + self.state.moving_away_distance_buffer_m
         )
+        if self.state.simulation_time_seconds is not None:
+            if armed and beyond_buffer:
+                if self.state.moving_away_since_sim is None:
+                    self.state.moving_away_since_sim = self.state.simulation_time_seconds
+            else:
+                self.state.moving_away_since_sim = None
+            return (self.state.moving_away_since_sim is not None and
+                    self.state.simulation_time_seconds - self.state.moving_away_since_sim >=
+                    (self.state.moving_away_grace_seconds if self.state.moving_away_grace_seconds is not None
+                     else self.state.moving_away_grace_frames / SIMULATION_FPS) - 1e-9)
+        # Legacy callers without simulator samples retain frame-based interpretation.
         if armed and beyond_buffer:
             self.state.moving_away_consecutive_frames += 1
         else:
