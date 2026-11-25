@@ -1,0 +1,13 @@
+# Command timing diagnostics
+
+Controller behavioral updates and waypoint leases follow the node ROS clock: simulation time with `use_sim_time=true`, system time otherwise. The extra controller watchdog that published zero after 0.5 wall seconds without a control tick has been removed from the updated local controller sources. It interrupted valid updates when Isaac ran slower than real time. The simulator bridge's original 0.5-wall-second command-receipt timeout is unchanged; this can still intervene between simulation-time controller updates at low real-time factor.
+
+The controller runs locally for the NaVILA benchmark. Removing its tick watchdog requires the local controller source change, not an update to Isaac's `custom_utils` checkout. Simulator-side tracing requires the updated TIC-VLA bridge source on Isaac. No control rate, projection horizon, steering tuning or bridge timeout is changed by this diagnostic instrumentation.
+
+Set `TICVLA_COMMAND_TRACE=true` in each actual controller/simulator invocation to enable `COMMAND_TRACE` JSON log records. Tracing is disabled by default. Controller records identify publication reasons and ROS-time receipt age. Bridge records identify command receipt, clipped values, freshness and values submitted to the wheel API. A bridge-local receive sequence links its receive/application records. Optional logging failures must not interrupt command publication/reception. Logging can add latency, so preserve the setting with run provenance.
+
+For an explicitly approved run, `scripts/record_command_timing.py --output <new-file> --ros-args -p use_sim_time:=true` records commands, clocks, odometry, episode metadata and waypoints passively. Launch it in the existing ROS Python environment with the same `ROS_DOMAIN_ID`. It refuses to overwrite an existing file. BEST_EFFORT receipt observations can miss messages and cannot identify the publisher of an unstamped Twist. The recorder publishes no control messages.
+
+After capture, `python3 scripts/summarize_command_timing.py <controller.log> <isaac.log> <observer.jsonl>` summarizes each file offline. It retains support for historical watchdog-zero traces. Bridge hold intervals describe forward intervals between observed wheel API submissions, excluding final unobserved intervals and isolating resets; they do not establish achieved robot velocity. Never subtract monotonic timestamps from different hosts. Command messages are still unstamped, so these traces do not establish unique cross-host message correlation.
+
+Offline checks: `python3 -m pytest -q custom_utils/tests/test_controller_clock_policy.py tests/test_bridge_command_trace.py tests/test_command_timing.py`.

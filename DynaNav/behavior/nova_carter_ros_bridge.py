@@ -229,12 +229,28 @@ class NovaCarterROSBridge(BehaviorScript):
         })
         self._pedestrian_pub.publish(message)
 
+    def _trace_command(self, event, **fields):
+        if os.environ.get("TICVLA_COMMAND_TRACE", "false").lower() != "true":
+            return
+        try:
+            record = dict(event=event, pid=os.getpid(), episode_id=self._episode_id,
+                          monotonic_ns=time.monotonic_ns(),
+                          receive_sequence=getattr(self, "_command_sequence", 0), **fields)
+            carb.log_info("COMMAND_TRACE " + json.dumps(record, allow_nan=False))
+        except Exception:
+            pass  # Optional telemetry must not interrupt simulation/control.
+
     def _on_command(self, msg: Twist):
         self._command = (
             float(np.clip(msg.linear.x, -self._max_linear_speed, self._max_linear_speed)),
             float(np.clip(msg.angular.z, -self._max_angular_speed, self._max_angular_speed)),
         )
         self._command_time = time.monotonic()
+        self._command_sequence = getattr(self, "_command_sequence", 0) + 1
+        self._trace_command("bridge_receive", simulation_seconds=self._last_sim_time,
+                            command_wall_time=self._command_time,
+                            raw_linear_x=float(msg.linear.x), raw_angular_z=float(msg.angular.z),
+                            linear_x=self._command[0], angular_z=self._command[1])
 
     def on_update(self, current_time: float, delta_time: float):
         if self._node is not None:
@@ -252,9 +268,10 @@ class NovaCarterROSBridge(BehaviorScript):
         self._clock_pub.publish(clock)
         if not self._robot.is_valid():
             return
+        selection_wall = time.monotonic()
         command_is_fresh = (
             self._command_time is not None
-            and time.monotonic() - self._command_time < COMMAND_TIMEOUT_S
+            and selection_wall - self._command_time < COMMAND_TIMEOUT_S
         )
         command = self._command if command_is_fresh else (0.0, 0.0)
         zero_elapsed = self._zero_command_duration.update(
@@ -292,6 +309,15 @@ class NovaCarterROSBridge(BehaviorScript):
         position = transform.ExtractTranslation()
         action = self._controller.forward(command=np.asarray(command, dtype=np.float32))
         self._robot.apply_wheel_actions(action)
+        self._trace_command("bridge_apply", simulation_seconds=float(current_time),
+                            delta_sim_seconds=float(delta_time), command_fresh=command_is_fresh,
+                            selected_command_wall_age_s=(None if self._command_time is None
+                                                       else selection_wall-self._command_time),
+                            apply_command_wall_age_s=(None if self._command_time is None
+                                                    else time.monotonic()-self._command_time),
+                            selected_linear_x=command[0], selected_angular_z=command[1],
+                            received_linear_x=self._command[0], received_angular_z=self._command[1],
+                            zero_command_elapsed_sim_s=zero_elapsed)
 
         # Both messages describe this update and share its simulation timestamp.
         rotation = transform.ExtractRotation().GetQuat()
