@@ -31,7 +31,8 @@ ODOM_TOPIC = "/isaacsim/odom"
 CMD_VEL_TOPIC = os.environ.get("TICVLA_CMD_VEL_TOPIC", "/isaacsim/cmd_vel")
 EPISODE_TOPIC = "/isaacsim/episode"
 PEDESTRIAN_TOPIC = "/isaacsim/pedestrians"
-COMMAND_TIMEOUT_S = 0.5
+# ROS-time controller ticks can be about 0.85 wall seconds apart in slow simulation.
+COMMAND_TIMEOUT_S = 1.0
 ZERO_COMMAND_TIMEOUT_S = float(os.environ.get("TICVLA_ZERO_COMMAND_TIMEOUT_S", "5.0"))
 ZERO_COMMAND_EPSILON = float(os.environ.get("TICVLA_ZERO_COMMAND_EPSILON", "0.001"))
 if not np.isfinite(ZERO_COMMAND_TIMEOUT_S) or ZERO_COMMAND_TIMEOUT_S <= 0:

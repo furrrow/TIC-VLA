@@ -612,7 +612,7 @@ class BenchmarkRunner:
                     self.state.termination_reason = "Contact with explicitly identified stationary goal person"
                     self.state.failure_reason = self.state.termination_reason
                     return False
-                if self.state.protocol_version == 2 and self.state.physical_collision_detected:
+                if self.state.protocol_version in (2, 3) and self.state.physical_collision_detected:
                     self.state.termination_condition = "physical_collision"
                     self.state.termination_reason = "Sustained physical contact"
                     self.state.failure_reason = self.state.termination_reason

@@ -145,8 +145,8 @@ def load_benchmark_config(path):
             humans = entry.get("scripted_humans", [])
             if index >= len(humans) or humans[index].get("walk_route") or humans[index]["position"] != entry.get("goal"):
                 raise ValueError("goal_human_index must identify the stationary scripted goal person")
-        elif entry["protocol_version"] == 2:
-            raise ValueError("protocol v2 requires goal_human_index")
+        elif entry["protocol_version"] in (2, 3):
+            raise ValueError("protocol v2/v3 requires goal_human_index")
         for field in ("scene", "robot_type"):
             if not isinstance(entry[field], str) or not entry[field].strip():
                 raise ValueError(f"episode {name!r} {field} must be a nonempty string")
