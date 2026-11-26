@@ -234,7 +234,7 @@ run_mode() {
 
   echo "Starting simulator benchmark on ${REMOTE_HOST} in a visible tmux pane..."
   active_remote_job="${run_id}"
-  remote_command="set -o pipefail; timeout --signal=TERM --kill-after=30s ${BENCHMARK_TIMEOUT_SECONDS}s ssh -n -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} --inference-method ${INFERENCE_METHOD} -- --run_id ${run_id} --experiment_mode ${mode}' 2>&1 | tee ${run_log_dir}/remote.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
+  remote_command="set -o pipefail; timeout --signal=TERM --kill-after=30s ${BENCHMARK_TIMEOUT_SECONDS}s ssh -n -o BatchMode=yes -o ConnectTimeout=10 ${REMOTE_HOST} 'cd ${REMOTE_REPO} && ${RECOVERY_REMOTE_GUARD:-}DISPLAY=${REMOTE_DISPLAY} ./run_sim.bash --scenario ${SCENARIO} --job-id ${run_id} --inference-method ${INFERENCE_METHOD} -- --run_id ${run_id} --experiment_mode ${mode}${RECOVERY_REMOTE_ARGS:-}' 2>&1 | tee ${run_log_dir}/remote.log; status=\${PIPESTATUS[0]}; echo \${status} > ${status_file}; exit \${status}"
   printf '%s\n' "$remote_command" > "$run_log_dir/remote_command.txt"
   remote_pane="$(tmux split-window -v -P -F '#{pane_id}' -t "${session}:0" -c "${REPO_ROOT}" /bin/bash -lc "${remote_command}")"
   tmux select-pane -t "${remote_pane}" -T "Isaac ${mode} status"
@@ -256,12 +256,10 @@ run_mode() {
 
   echo "Attaching to ${session}; it will close shortly after the remote benchmark exits."
   if [[ -n "${TMUX:-}" ]]; then
-    echo "Run this orchestrator outside an existing tmux client so it can display its experiment session." >&2
-    tmux kill-session -t "${session}"
-    wait "${watcher_pid}" || true
-    return 1
+    echo "Waiting for benchmark in ${session} without nesting a tmux client."
+  else
+    tmux attach-session -t "${session}" || true
   fi
-  tmux attach-session -t "${session}" || true
   wait "${watcher_pid}" || true
   active_session=""
 
@@ -307,7 +305,7 @@ if [[ "${MODE}" == "normal" || "${MODE}" == "both" || "${MODE}" == "ablation" ]]
 fi
 
 echo
-echo "Requested experiment mode '${MODE}' completed successfully."
+echo "Requested experiment mode '${MODE}' finished scheduling; check capture_status.json and recovery_needed.json."
 if [[ "${MODE}" == "ablation" ]]; then
   echo "Remote run IDs: ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_normal, ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_steered, ${INFERENCE_METHOD}_${BATCH_ID}_${RUN_ATTEMPT_ID}_no-velocity"
 elif [[ "${MODE}" == "both" ]]; then
